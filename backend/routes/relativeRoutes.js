@@ -38,6 +38,24 @@ router.post('/relative-chat', async (req, res) => {
   }
 });
 
+// ลบข้อมูลญาติผู้ป่วยตาม telegramID
+router.delete('/relative/:telegramID', async (req, res) => {
+  const { telegramID } = req.params;
+  try {
+    const deleted = await RelativeChatID.destroy({
+      where: { telegramID },
+    });
+
+    if (deleted) {
+      res.status(200).json({ message: 'Deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Relative not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting relative:', error);
+    res.status(500).json({ message: 'Error deleting relative', error });
+  }
+});
 
 
 module.exports = router;
