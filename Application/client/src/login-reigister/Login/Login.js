@@ -26,7 +26,7 @@ const Login = ({ onLogin }) => {
                 code: data.code,
             });
     
-            const { token, isAdmin, patient_id, gender, ageRange, adminCode } = response.data;
+            const { token, isAdmin, patient_id, gender, ageRange, adminCode, role } = response.data;
     
             if (isAdmin) {
                 // Admin
@@ -42,6 +42,7 @@ const Login = ({ onLogin }) => {
                 sessionStorage.setItem('patient_id', patient_id);
                 sessionStorage.setItem('patient_gender', gender);
                 sessionStorage.setItem('patient_age_range', ageRange);
+                sessionStorage.setItem('role', role); // เก็บ role ของญาติผู้ป่วย
                 onLogin();
                 navigate('/basic');
             }
@@ -49,8 +50,6 @@ const Login = ({ onLogin }) => {
             setError(error.response?.data?.message || 'Login failed.');
         }
     };
-    
-    
 
     return (
         <div className={styles.login_container}>

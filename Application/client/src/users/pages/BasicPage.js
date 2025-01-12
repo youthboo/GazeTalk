@@ -78,7 +78,7 @@ const BasicPage = () => {
     if (!inputText.trim()) {
         return; // ไม่ทำอะไรถ้าข้อความว่าง
     }
-
+  
     const patient_id = sessionStorage.getItem('patient_id');
     
     if (!patient_id) {
@@ -92,40 +92,26 @@ const BasicPage = () => {
         });
         return;
     }
-
+  
+    // ตรวจสอบประเภทข้อความ (ปกติหรือฉุกเฉิน)
+    const isEmergency = inputText.includes("แจ้งเตือนฉุกเฉิน");
+  
     try {
-        // บันทึกข้อความลง DB
-        const dbResponse = await fetch('http://localhost:3008/api/messages/send-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                text: inputText,
-                patient_id 
-            }),
-        });
-
-        if (!dbResponse.ok) {
-            throw new Error('Failed to save message to database');
-        }
-
-        // ส่งข้อความไป Telegram
         const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-                message: inputText
+                message: inputText,
+                isEmergency // ส่งประเภทข้อความไปยัง Backend
             }),
         });
-
+  
         if (!telegramResponse.ok) {
             throw new Error('Failed to send message to Telegram');
         }
-
-        // แสดง success message
+  
         Swal.fire({
             title: "ส่งข้อความสำเร็จ!",
             text: `ข้อความที่ส่ง: ${inputText}`,
@@ -134,9 +120,9 @@ const BasicPage = () => {
             timerProgressBar: true,
             showConfirmButton: false,
         });
-
+  
         setInputText(""); // ล้างข้อความหลังจากส่ง
-
+  
     } catch (error) {
         console.error('Error sending message:', error);
         Swal.fire({
@@ -148,7 +134,8 @@ const BasicPage = () => {
             showConfirmButton: false,
         });
     }
-}, [inputText]);
+  }, [inputText]);
+  
 
   const handleKeyInput = useCallback((phrase) => {
     switch (phrase) {

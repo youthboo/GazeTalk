@@ -55,7 +55,7 @@ const AddLineIDForm = ({ onSubmit, onClose }) => {
 
     axios.post('http://localhost:3008/api/relative/relative-chat', dataToSend)
       .then(response => {
-        console.log('Data saved successfully:', response.data);
+        console.log('Data saved successfully:');
         if (onSubmit) onSubmit();
         navigate(-1); // ย้อนกลับไปยังหน้าก่อนหน้า
       })
