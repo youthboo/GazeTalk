@@ -25,18 +25,51 @@ router.post('/patients/:patient_id/send-message', async (req, res) => {
   const { message } = req.body;
 
   try {
-    // ค้นหา telegramID ของญาติทั้งหมดที่มี patient_id ตรงกัน
+    // ค้นหา telegramID และ role ของญาติทั้งหมดที่มี patient_id ตรงกัน
     const relatives = await RelativeChatID.findAll({
-      where: { patient_id }
+      where: { patient_id },
+      attributes: ['telegramID', 'role'] // ดึงเฉพาะ telegramID และ role
     });
 
     if (relatives.length === 0) {
       return res.status(404).json({ message: 'ไม่พบข้อมูลญาติของผู้ป่วยคนนี้' });
     }
 
-    // ส่งข้อความไปยัง Telegram ของญาติแต่ละคน
+    // ตรวจสอบประเภทของข้อความ (ปกติหรือแจ้งเตือน)
+    const isEmergency = message.includes('แจ้งเตือนฉุกเฉิน');
+
+    // ส่งข้อความไปยัง Telegram ของญาติแต่ละคนตามบทบาท
+    const errors = [];
     for (const relative of relatives) {
-      await sendMessageToRelative(relative.telegramID, message);
+      const { telegramID, role } = relative;
+
+      // เงื่อนไขสำหรับ Notifier
+      if (role === 'Notifier' && !isEmergency) {
+        continue; // ข้ามถ้า Notifier ได้รับข้อความปกติ
+      }
+
+      // เงื่อนไขสำหรับ Receiver
+      if (role === 'Receiver' && isEmergency) {
+        continue; // ข้ามถ้า Receiver ได้รับแจ้งเตือนฉุกเฉิน
+      }
+
+      // เงื่อนไขสำหรับ Notifier/Receiver (รับได้ทั้งสองประเภท)
+      if (role === 'Notifier/Receiver' || (role === 'Notifier' && isEmergency) || (role === 'Receiver' && !isEmergency)) {
+        try {
+          await sendMessageToRelative(telegramID, message);
+        } catch (error) {
+          console.error(`Error sending message to ${telegramID}:`, error);
+          errors.push({ telegramID, error });
+        }
+      }
+    }
+
+    // ตรวจสอบว่ามีข้อผิดพลาดในการส่งข้อความหรือไม่
+    if (errors.length > 0) {
+      return res.status(500).json({
+        message: 'ข้อความบางส่วนไม่สามารถส่งได้',
+        errors
+      });
     }
 
     res.status(200).json({ message: 'ส่งข้อความไปยังญาติของผู้ป่วยเรียบร้อยแล้ว' });
@@ -45,5 +78,6 @@ router.post('/patients/:patient_id/send-message', async (req, res) => {
     res.status(500).json({ message: 'มีข้อผิดพลาดในการส่งข้อความ', error });
   }
 });
+
 
 module.exports = router;

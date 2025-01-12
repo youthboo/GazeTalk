@@ -126,13 +126,13 @@ router.post('/login', async (req, res) => {
             { 
                 id: isAdmin ? user.admin_id : user.patient_id, 
                 userType: isAdmin ? 'admin' : 'patient',
-                adminCode: adminCode // เพิ่ม adminCode ลงใน token
+                adminCode: adminCode 
             },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        return res.status(200).json({ token, isAdmin, patient_id: patientId, gender, ageRange, adminCode });
+        return res.status(200).json({ token, isAdmin, patient_id: patientId, gender, ageRange, adminCode,  });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
