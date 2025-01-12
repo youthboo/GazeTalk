@@ -12,12 +12,20 @@ const Patient = sequelize.define('Patient', {
         allowNull: false,
         unique: true,
     },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true, // Email ต้องไม่ซ้ำ
+        validate: {
+            isEmail: true, // ตรวจสอบรูปแบบ email
+        },
+    },
     password: {
         type: DataTypes.STRING,
         allowNull: false,
     },
     dateOfBirth: {
-        type: DataTypes.DATEONLY, // ใช้ DataTypes.DATEONLY แทน DataTypes.DATE
+        type: DataTypes.DATEONLY,
         allowNull: false,
     },
     gender: {

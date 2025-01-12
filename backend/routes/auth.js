@@ -2,8 +2,11 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const moment = require('moment'); // ใช้ moment สำหรับคำนวณอายุ
+const nodemailer = require('nodemailer');
+const crypto = require('crypto'); // ใช้สำหรับสร้าง token
 const Patient = require('../models/Users');
 const Admin = require('../models/Admin');
+require('dotenv').config(); 
 
 const router = express.Router();
 
@@ -28,15 +31,18 @@ const authorizeAdmin = (allowedCodes) => {
 
 // ลงทะเบียนผู้ใช้ใหม่
 router.post('/signup', async (req, res) => {
-    const { username, password, dateOfBirth, gender, code, userType } = req.body;
+    const { username, email, password, dateOfBirth, gender, code, userType } = req.body;
 
     try {
-        // ตรวจสอบว่า username ซ้ำหรือไม่
+        // ตรวจสอบว่า username หรือ email ซ้ำหรือไม่
         const existingUser =
             await Admin.findOne({ where: { username } }) ||
-            await Patient.findOne({ where: { username } });
+            await Patient.findOne({ where: { username } }) ||
+            await Admin.findOne({ where: { email } }) ||
+            await Patient.findOne({ where: { email } });
+
         if (existingUser) {
-            return res.status(400).json({ message: 'Username already exists' });
+            return res.status(400).json({ message: 'Username or email already exists' });
         }
 
         // เข้ารหัสรหัสผ่าน
@@ -49,6 +55,7 @@ router.post('/signup', async (req, res) => {
             }
             await Admin.create({
                 username,
+                email, // เพิ่ม email
                 password: hashedPassword,
                 code,
             });
@@ -60,6 +67,7 @@ router.post('/signup', async (req, res) => {
             }
             await Patient.create({
                 username,
+                email, // เพิ่ม email
                 password: hashedPassword,
                 dateOfBirth,
                 gender,
@@ -76,7 +84,7 @@ router.post('/signup', async (req, res) => {
 
 // เข้าสู่ระบบผู้ใช้
 router.post('/login', async (req, res) => {
-    const { username, password, code } = req.body;
+    const { username, email, password, code } = req.body;
 
     try {
         let user = null;
@@ -161,18 +169,94 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
 
-// ตัวอย่าง Routes ที่ใช้ Middleware
-router.get('/admin/dashboard', authorizeAdmin(['SKCode55', 'SecretCodeAdmin']), (req, res) => {
-    res.json({ message: 'Dashboard accessible' });
+    try {
+        // ตรวจสอบว่าอีเมลมีอยู่หรือไม่
+        const user = 
+            await Admin.findOne({ where: { email } }) || 
+            await Patient.findOne({ where: { email } });
+        
+        if (!user) {
+            return res.status(404).json({ message: 'Email not found.' });
+        }
+
+        // สร้าง reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+
+        // กำหนด token ให้ user และตั้งค่าหมดอายุ (ตัวอย่าง: 1 ชั่วโมง)
+        user.resetToken = resetToken;
+        user.resetTokenExpiration = Date.now() + 3600000; // 1 ชั่วโมง
+        await user.save();
+
+        // ส่งอีเมล
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail', // หรือบริการอื่น เช่น SendGrid
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const resetLink = `http://localhost:3008/reset-password/${resetToken}`;
+
+        await transporter.sendMail({
+            to: email,
+            from: 'yourapp@example.com',
+            subject: 'Password Reset',
+            html: `
+                <p>You requested a password reset</p>
+                <p>Click this <a href="${resetLink}">link</a> to set a new password.</p>
+            `,
+        });
+
+        res.status(200).json({ message: 'Password reset link has been sent to your email.' });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
-router.get('/admin/addline', authorizeAdmin(['SKCode55', 'SecretCodeAdmin']), (req, res) => {
-    res.json({ message: 'Add Relative ID accessible' });
-});
+router.post('/reset-password', async (req, res) => {
+    const { token, password } = req.body;
 
-router.get('/admin/editword', authorizeAdmin(['SKCode55']), (req, res) => {
-    res.json({ message: 'Edit Word accessible' });
+    try {
+        // ค้นหา user จาก resetToken
+        const user = 
+            await Admin.findOne({ 
+                where: { 
+                    resetToken: token,
+                    resetTokenExpiration: { [Op.gt]: Date.now() }
+                }
+            }) || 
+            await Patient.findOne({ 
+                where: { 
+                    resetToken: token,
+                    resetTokenExpiration: { [Op.gt]: Date.now() }
+                }
+            });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        // อัปเดตรหัสผ่านใหม่
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // อัปเดตข้อมูลและล้าง token
+        await user.update({ 
+            password: hashedPassword,
+            resetToken: null,
+            resetTokenExpiration: null
+        });
+
+        res.status(200).json({ message: 'Password has been reset successfully' });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
 module.exports = router;

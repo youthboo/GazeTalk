@@ -1,18 +1,18 @@
 .signup_container {
     width: 100%;
     min-height: 100vh;
-    background-color: #F5FFFA;
+    background-color: #f5fffa;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url('/Users/aqwerrrx/Desktop/whatthehell/gazetalk/admins/src/assets/images/bg.jpg');
+    background-image: url('../../admins//assets//images//bg.jpg');
     background-size: cover;
     font-family: 'Nunito Sans', sans-serif;
 }
 
 .signup_form_container {
-    width: 1000px;
-    height: 600px;
+    width: 1100px;
+    height: 700px;
     display: flex;
     border-radius: 10px;
     box-shadow: 0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
@@ -24,16 +24,15 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #01579B;
+    background-color: #01579b;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
 
 .left h1 {
-    margin-top: 0;
     color: white;
     font-size: 35px;
-    align-self: center;
+    margin-bottom: 20px;
 }
 
 .right {
@@ -45,96 +44,53 @@
     background-color: white;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
+    padding: 20px;
 }
 
 .form_container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     width: 100%;
-}
-
-.form_container h1 {
-    font-size: 40px;
-    margin-top: 0;
+    max-width: 400px;
 }
 
 .user_type_container {
-    margin: 10px 0;
     display: flex;
     justify-content: center;
-    width: 100%;
+    margin-bottom: 10px;
 }
 
 .user_type_btn {
+    background-color: #f0f0f0;
     border: none;
-    outline: none;
-    padding: 10px 20px;
     border-radius: 20px;
+    padding: 10px 20px;
     font-weight: bold;
     font-size: 14px;
     cursor: pointer;
-    background-color: #f0f0f0;
     margin: 0 10px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .user_type_btn.active {
-    background-color: #01579B;
+    background-color: #01579b;
     color: white;
-}
-
-.input {
-    outline: none;
-    border: none;
-    width: 370px;
-    padding: 15px;
-    border-radius: 10px;
-    background-color: #edf5f3;
-    margin: 5px 0;
-    font-size: 14px;
-}
-
-.select {
-    outline: none;
-    border: none;
-    width: 370px;
-    padding: 15px;
-    border-radius: 10px;
-    background-color: #edf5f3;
-    margin: 5px 0;
-    font-size: 14px;
-    
-}
-
-.select option:disabled {
-    color: #999; 
-}
-
-.error_msg {
-    width: 370px;
-    padding: 15px;
-    margin: 5px 0;
-    font-size: 14px;
-    background-color: #f34646;
-    color: white;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.white_btn, .green_btn {
-    border: none;
-    outline: none;
-    padding: 12px 0;
-    background-color: white;
-    border-radius: 20px;
-    width: 180px;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: pointer;
 }
 
 .green_btn {
-    background-color: #01579B;
+    background-color: #01579b;
     color: white;
-    margin: 10px;
+    width: 100%;
+    height: 40px;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.white_btn {
+    width: 180px;
+    background-color: white;
+    color: #01579b;
+    border-radius: 20px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
 }

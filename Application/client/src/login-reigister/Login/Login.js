@@ -1,39 +1,31 @@
 import React, { useState } from 'react';
-import styles from './Login.module.css';
+import { Form, Input, Button, Checkbox, message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import styles from './Login.module.css';
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 
 const Login = ({ onLogin }) => {
-    const [data, setData] = useState({
-        username: "",
-        password: "",
-        code: "", 
-    });
-    
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    
-    const handleChange = ({ currentTarget: input }) => {
-        setData({ ...data, [input.name]: input.value });
-    };
-    
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+
+    const onFinish = async (values) => {
+        const { username, password, code, remember } = values;
+        setLoading(true);
         try {
             const response = await axios.post('http://localhost:3008/api/auth/login', {
-                username: data.username,
-                password: data.password,
-                code: data.code,
+                username,
+                password,
+                code,
             });
-    
+
             const { token, isAdmin, patient_id, gender, ageRange, adminCode, role } = response.data;
-    
-            if (!isAdmin && data.code) {
-                // หากเป็น admin แต่ไม่ได้ใส่ code
+
+            if (!isAdmin && code) {
                 navigate('/access-denied');
                 return;
             }
-    
+
             if (isAdmin) {
                 localStorage.setItem('token', token);
                 localStorage.setItem('isAdmin', 'true');
@@ -50,55 +42,74 @@ const Login = ({ onLogin }) => {
                 onLogin();
                 navigate('/basic');
             }
+
+            if (remember) {
+                localStorage.setItem('rememberUser', username);
+            } else {
+                localStorage.removeItem('rememberUser');
+            }
         } catch (error) {
-            setError(error.response?.data?.message || 'Login failed.');
+            message.error(error.response?.data?.message || 'Login failed.');
+        } finally {
+            setLoading(false);
         }
-    };    
+    };
 
     return (
         <div className={styles.login_container}>
             <div className={styles.login_form_container}>
                 <div className={styles.left}>
-                    <form className={styles.form_container} onSubmit={handleSubmit}>
+                    <Form
+                        className={styles.form_container}
+                        onFinish={onFinish}
+                        initialValues={{
+                            remember: true,
+                            username: localStorage.getItem('rememberUser') || '',
+                        }}
+                    >
                         <h1>Login to Your Account</h1>
-                        <input
-                            type='text'
-                            placeholder='Username'
-                            name='username'
-                            onChange={handleChange}
-                            value={data.username}
-                            required
-                            className={styles.input}
-                        />
-                        <input
-                            type='password'
-                            placeholder='Password'
-                            name='password'
-                            onChange={handleChange}
-                            value={data.password}
-                            required
-                            className={styles.input}
-                        />
-                        <input
-                            type='text'
-                            placeholder='Code (Only Personnel, optional)'
-                            name='code'
-                            onChange={handleChange}
-                            value={data.code}
-                            className={styles.input} 
-                        />
-                        {error && <div className={styles.error_msg}>{error}</div>} 
-                        <button type='submit' className={styles.green_btn}>
+                        <Form.Item
+                            name="username"
+                            rules={[{ required: true, message: 'Please enter your username!' }]}
+                        >
+                            <Input placeholder="Username" />
+                        </Form.Item>
+                        <Form.Item
+                            name="password"
+                            rules={[{ required: true, message: 'Please enter your password!' }]}
+                        >
+                            <Input.Password
+                                placeholder="Password"
+                                iconRender={(visible) =>
+                                    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                                }
+                            />
+                        </Form.Item>
+                        <Form.Item name="code">
+                            <Input placeholder="Code (Only Personnel, optional)" />
+                        </Form.Item>
+                        <div className={styles.extra_options}>
+                            <Form.Item name="remember" valuePropName="checked" noStyle>
+                                <Checkbox>Remember Me</Checkbox>
+                            </Form.Item>
+                            <Link to="/forgot-password" className={styles.forgot_password}>
+                                Forgot Password?
+                            </Link>
+                        </div>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className={styles.green_btn}
+                            loading={loading}
+                        >
                             Sign In
-                        </button>
-                    </form>
+                        </Button>
+                    </Form>
                 </div>
                 <div className={styles.right}>
-                    <h1>New Here ?</h1>
-                    <Link to='/signup'>
-                        <button type='button' className={styles.white_btn}>
-                            Sign Up
-                        </button>
+                    <h1>New Here?</h1>
+                    <Link to="/signup">
+                        <Button className={styles.white_btn}>Sign Up</Button>
                     </Link>
                 </div>
             </div>

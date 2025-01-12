@@ -8,6 +8,8 @@ import BasicPage from './users/pages/BasicPage';
 import AdminRec from './users/pages/AdminRec';
 import AccessDenied from './users/pages/AccessDenied';
 import Sidebar from './admins/components/Sidebar/Sidebar';
+import ForgotPassword from './login-reigister/Login/ForgotPassword';
+import ResetPassword from './login-reigister/Login/ResetPassword';
 import './App.css';
 
 const App = () => {
@@ -87,6 +89,10 @@ const App = () => {
           }
         />
         <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/" />} />
+
+        {/* New Forgot Password Route */}
+        <Route path="/forgot-password" element={!isLoggedIn ? <ForgotPassword /> : <Navigate to="/" />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Admin Routes */}
         <Route
