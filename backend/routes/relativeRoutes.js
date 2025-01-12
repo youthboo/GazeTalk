@@ -16,10 +16,49 @@ router.get('/patients/:patient_id/relatives', async (req, res) => {
   }
 });
 
+// อัพเดตข้อมูลญาติผู้ป่วยตาม telegramID
+router.put('/relative/:telegramID', async (req, res) => {
+  const { telegramID } = req.params;
+  const { firstName, lastName, phone, role, email } = req.body;
+
+  const updatedFields = {};
+  if (firstName) updatedFields.firstName = firstName;
+  if (lastName) updatedFields.lastName = lastName;
+  if (phone) updatedFields.phone = phone;
+  if (role) updatedFields.role = role;
+  if (email) updatedFields.email = email;
+
+  try {
+    // ค้นหาและอัปเดตข้อมูล
+    const updated = await RelativeChatID.update(updatedFields, {
+      where: { telegramID },
+    });
+
+    if (updated[0] > 0) {
+      const updatedRelative = await RelativeChatID.findOne({ where: { telegramID } });
+      res.status(200).json({ message: 'Updated successfully', data: updatedRelative });
+    } else {
+      res.status(404).json({ message: 'Relative not found' });
+    }
+  } catch (error) {
+    console.error('Error updating relative:', error);
+    res.status(500).json({ message: 'Error updating relative', error });
+  }
+});
+
+
 // เส้นทางสำหรับการบันทึกข้อมูลญาติ
 router.post('/relative-chat', async (req, res) => {
   try {
     const { telegramID, patient_id, firstName, lastName, phone, role, email } = req.body;
+
+    const count = await RelativeChatID.count({
+      where: { patient_id },
+    });
+
+    if (count >= 4) {
+      return res.status(400).json({ message: 'ไม่สามารถเพิ่มข้อผู้เกี่ยวข้องได้ เนื่องจากจำนวนเกินลิมิต' });
+    }
 
     const newRelativeChatID = await RelativeChatID.create({
       telegramID,
@@ -28,7 +67,7 @@ router.post('/relative-chat', async (req, res) => {
       lastName,
       phone,
       role,
-      email
+      email,
     });
 
     res.status(201).json(newRelativeChatID);
@@ -37,6 +76,7 @@ router.post('/relative-chat', async (req, res) => {
     res.status(500).json({ message: 'มีข้อผิดพลาดในการบันทึกข้อมูล', error });
   }
 });
+
 
 // ลบข้อมูลญาติผู้ป่วยตาม telegramID
 router.delete('/relative/:telegramID', async (req, res) => {

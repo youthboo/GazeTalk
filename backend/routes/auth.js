@@ -79,64 +79,88 @@ router.post('/login', async (req, res) => {
     const { username, password, code } = req.body;
 
     try {
-        let user;
+        let user = null;
         let isAdmin = false;
         let adminCode = null;
         let patientId = null;
         let gender = null;
         let ageRange = null;
 
-        // ตรวจสอบผู้ใช้จากตาราง Admins ก่อน
-        user = await Admin.findOne({ where: { username } });
+        if (code) {
+            // ตรวจสอบผู้ใช้จากตาราง Admins
+            user = await Admin.findOne({ where: { username } });
 
-        if (user) {
-            if (user.code !== code) {
-                return res.status(400).json({ message: 'Invalid code for admin' });
+            if (!user) {
+                return res.status(400).json({ message: 'Admin not found' });
             }
+
+            // ตรวจสอบ admin code
+            if (user.code !== code) {
+                return res.status(400).json({ message: 'Invalid admin credentials or code' });
+            }
+
             isAdmin = true;
             adminCode = user.code;
         } else {
-            // หากไม่พบในตาราง Admin ให้ตรวจสอบในตาราง Patients
+            // หากไม่กรอก code ให้ตรวจสอบในตาราง Patients
             user = await Patient.findOne({ where: { username } });
 
-            if (user) {
-                patientId = user.patient_id;
-                gender = user.gender;
+            if (!user) {
+                return res.status(400).json({ message: 'Patient not found' });
+            }
 
-                // คำนวณช่วงอายุ
-                const currentAge = moment().diff(moment(user.dateOfBirth), 'years');
-                if (currentAge >= 13 && currentAge <= 19) {
-                    ageRange = '13-19';
-                } else if (currentAge >= 20 && currentAge <= 39) {
-                    ageRange = '20-39';
-                } else if (currentAge >= 40 && currentAge <= 59) {
-                    ageRange = '40-59';
-                } else if (currentAge >= 60) {
-                    ageRange = '60-120';
-                }
+            // กรณี Patient กรอก code admin
+            if (code) {
+                return res.status(403).json({ message: 'Access Denied: Patients cannot use admin code' });
+            }
+
+            patientId = user.patient_id;
+            gender = user.gender;
+
+            // คำนวณช่วงอายุ
+            const currentAge = moment().diff(moment(user.dateOfBirth), 'years');
+            if (currentAge >= 13 && currentAge <= 19) {
+                ageRange = '13-19';
+            } else if (currentAge >= 20 && currentAge <= 39) {
+                ageRange = '20-39';
+            } else if (currentAge >= 40 && currentAge <= 59) {
+                ageRange = '40-59';
+            } else if (currentAge >= 60) {
+                ageRange = '60-120';
             }
         }
 
+        // ตรวจสอบรหัสผ่าน
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ message: 'Invalid username or password' });
         }
 
-        // สร้าง token ใหม่
+        // สร้าง token
         const token = jwt.sign(
-            { 
-                id: isAdmin ? user.admin_id : user.patient_id, 
+            {
+                id: isAdmin ? user.admin_id : patientId,
                 userType: isAdmin ? 'admin' : 'patient',
-                adminCode: adminCode 
+                adminCode,
             },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        return res.status(200).json({ token, isAdmin, patient_id: patientId, gender, ageRange, adminCode,  });
+        // ส่งข้อมูลกลับไปยัง frontend
+        return res.status(200).json({
+            token,
+            isAdmin,
+            patient_id: patientId,
+            gender,
+            ageRange,
+            adminCode,
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Login error:', error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 // ตัวอย่าง Routes ที่ใช้ Middleware
 router.get('/admin/dashboard', authorizeAdmin(['SKCode55', 'SecretCodeAdmin']), (req, res) => {
