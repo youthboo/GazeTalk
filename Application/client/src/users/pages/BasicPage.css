@@ -1,0 +1,165 @@
+.basic-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  min-height: 90vh;
+  background-color: #fff;
+}
+
+.basic-page .header-logo {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.basic-page .logo-image {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+
+.basic-page .logo-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.basic-page .input-container {
+  width: 95%;
+  margin-top: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.basic-page .input-container input {
+  width: 100%;
+  padding: 15px;
+  font-size: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+.basic-page .keyboard {
+  width: 95%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+}
+
+
+.basic-page .keyboard-row {
+  display: grid;
+  min-height: 350px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.basic-page .keyboard-bottom {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+}
+
+.basic-page .key-button {
+  padding: 25px;
+  font-size: 32px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.basic-page .key-button.special-key {
+  font-weight: bold;
+  background-color: #d9eafc;
+  grid-column: span 1;
+}
+
+.basic-page .key-button.confirm-key {
+  background-color: #d4f8d4;
+  font-weight: bold;
+  grid-column: span 3;
+}
+
+.basic-page .key-button.alert-key {
+  background-color: #fdffb8;
+  color: #eb3300;
+  font-weight: bold;
+  grid-column: span 1;
+}
+
+.basic-page .key-button:hover {
+  background-color: #f5f5f5;
+}
+
+.basic-page .key-button.highlighted {
+  background-color: #4285f4 !important;
+  color: white !important;
+  border-color: #4285f4 !important;
+}
+
+.basic-page .key-button.delete-key {
+  background-color: #ffc9c9;
+  grid-column: span 1;
+}
+
+/* เพิ่มสไตล์สำหรับปุ่มลบเมื่อถูกไฮไลท์ */
+.basic-page .key-button.delete-key.highlighted {
+  background-color: #4285f4 !important;
+  color: white !important;
+  border-color: #4285f4 !important;
+}
+
+.basic-page .webcam-container {
+  width: 10%;
+  max-width: 640px;
+  margin: 0 auto 1px;
+  text-align: center;
+  position: relative;
+}
+
+.basic-page .webcam-video {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  transform: scaleX(-1);
+}
+
+.basic-page .header-icons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.basic-page .icon-button {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.basic-page .icon-button:hover {
+  color: #555;
+  transform: scale(1.2);
+}
+
+
+.button-image {
+  max-width: 64px;
+  max-height: 64px;
+  display: block;
+  margin: 0 auto;
+}

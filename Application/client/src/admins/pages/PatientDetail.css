@@ -1,0 +1,78 @@
+/* Global Styles */
+.patient-detail-container {
+  background-color: #ffffff;
+  
+  display: flex;
+  flex-direction: column;
+}
+
+.patient-detail-content {
+  padding: 2rem;
+}
+
+.patient-detail-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Table Styling */
+.ant-table {
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100% !important;
+}
+
+.ant-table-thead > tr > th {
+  background-color: #f0f2f5;
+  color: #262626;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ant-table-tbody > tr:hover {
+  background-color: #e6f7ff;
+}
+
+/* Modal Styling */
+.ant-modal {
+  border-radius: 8px;
+}
+
+.ant-modal-header {
+  background-color: #f0f2f5;
+}
+
+.ant-modal-title {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.patient-actions .ant-btn {
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.patient-actions .ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: white;
+}
+
+.patient-actions .ant-btn-danger {
+  background-color: #CD5C5C;
+  border-color: #CD5C5C;
+  color: white;
+}
+
+/* Add New Person Button Styling */
+.ant-btn-primary {
+  border-radius: 6px;
+  padding: 10px 20px;
+}
+
+

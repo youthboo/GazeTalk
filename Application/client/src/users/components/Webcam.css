@@ -1,0 +1,17 @@
+.webcam-container {
+    width: 10%;
+    max-width: 640px;
+    margin: 0 auto 1px;
+    text-align: center;
+    position: relative;
+  }
+  
+  .webcam-video {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    transform: scaleX(-1);
+  }
+  

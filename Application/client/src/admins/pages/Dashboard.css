@@ -1,0 +1,60 @@
+.dashboard {
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+h1 .dashboard-icon {
+  font-size: 1.8rem;
+  margin-right: 10px;
+  color: #1890ff; /* Blue color for the icon */
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.ant-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-card .ant-card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.ant-card-bordered {
+  border: none;
+}
+
+.ant-row {
+  margin-top: 20px;
+}
+
+.stat-card h3 {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.stat-card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #000;
+}
+
+

@@ -1,0 +1,102 @@
+/* === Variables === */
+:root {
+  --primary-color: #0073e6;
+  --secondary-color: #52c41a;
+  --text-color: #333;
+  --border-color: #ddd;
+  --font-family: 'Nunito Sans', sans-serif;
+  --padding: 1rem;
+  --border-radius: 4px;
+}
+
+/* === Container === */
+.edit-word-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 2rem;
+  margin-left: var(--nav-width);
+}
+
+/* === Filters Section === */
+.edit-word-form-group {
+  width: 45%;
+}
+
+.edit-word-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.edit-word-select {
+  width: 100%;
+  padding: var(--padding);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  background-color: #fff;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+/* === Table Section === */
+.edit-word-table {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.edit-word-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.edit-word-table th,
+.edit-word-table td {
+  padding: var(--padding);
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  word-wrap: break-word;
+}
+
+/* === New Words Section === */
+.edit-word-new-word-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.edit-word-new-word-btn {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* === Buttons === */
+.edit-word-add-btn {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.edit-word-add-btn:hover {
+  background: #389e0d;
+}
+
+.edit-word-update-btn {
+  padding: 1rem 2rem;
+  background-color: #77c987;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  cursor: pointer;
+}

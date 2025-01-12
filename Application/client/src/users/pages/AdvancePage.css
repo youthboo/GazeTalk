@@ -1,0 +1,248 @@
+.advance-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 90vh;
+    background-color: #fff;
+  }
+  
+  .header-logo {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+  }
+  
+  .logo-image {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+  }
+  
+  .logo-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .input-container {
+    width: 95%;
+    margin-top: 1px;
+    margin-bottom: px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .input-container input {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+  }
+  
+  .prediction-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 95%;
+    position: absolute;
+    top: 200px; /* ปรับตำแหน่งให้คำแนะนำอยู่ในพื้นที่ว่าง */
+    z-index: 10;
+    background-color: white;
+  }
+  
+  .prediction-button {
+    padding: 15px 20px;
+    font-size: 22px; /* ปรับขนาดฟอนต์ให้เล็กลง */
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+  }
+  
+  .prediction-button.highlighted {
+    background-color: #4285f4;
+    color: white;
+    border-color: #4285f4;
+  }
+  
+  .keyboard {
+    width: 95%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 140px; /* เพิ่มระยะห่างจากคำแนะนำ */
+    position: fixed;
+    bottom: 20px;
+    z-index: 1;
+  }
+  
+  .keyboard-row {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 10px;
+  }
+  
+  
+  .keyboard-bottom {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 10px;
+  }
+  
+  .key-button {
+    padding: 15px;
+    font-size: 30px;
+    background-color: #f9f9f9; /* สีพื้นหลังอ่อน */
+    border: 1px solid #e0e0e0; /* สีเส้นขอบอ่อน */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333; /* สีตัวอักษรเข้มเล็กน้อย */
+  }
+  
+  .key-button.special-key {
+    font-weight: bold;
+    background-color: #d9eafc; /* สีฟ้าอ่อนพาสเทล */
+    grid-column: span 2;
+  }
+  
+  .key-button.shift-key {
+    background-color: #d4d4d4; /* สีเหลืองอ่อนพาสเทล */
+    font-weight: bold;
+    grid-column: span 2;
+  }
+
+  .key-button.shift-keytwo {
+    background-color: #d4d4d4; /* สีเหลืองอ่อนพาสเทล */
+    font-weight: bold;
+    grid-column: span 2;
+  }
+
+  
+  
+  .key-button.confirm-key {
+    background-color: #d4f8d4; /* สีเขียวอ่อนพาสเทล */
+    font-weight: bold;
+    grid-column: span 5;
+  }
+
+  .key-button.clear-key {
+    background-color: #ff9028; /* สีเขียวอ่อนพาสเทล */
+    font-weight: bold;
+    grid-column: span 2;
+    
+  }
+  
+  .key-button.alert-key {
+    background-color: #fdffb8; /* สีส้มอ่อนพาสเทล */
+    color: #eb3300; /* สีตัวอักษรที่เข้ากับสีส้ม */
+    font-weight: bold;
+    grid-column: span 2;
+  }
+  
+  .key-button.basic-key {
+    background-color: #cde7ff; /* สีฟ้าอ่อนพาสเทล */
+    color: #003366; /* สีตัวอักษรเข้มเล็กน้อย */
+    font-weight: bold;
+    grid-column: span 2;
+  }
+  
+  .key-button.delete-key {
+    background-color: #ffc9c9; /* สีแดงอ่อนพาสเทล */
+    color: #990000; /* สีตัวอักษรแดงเข้ม */
+    font-weight: bold;
+    grid-column: span 2;
+  }
+
+
+  .key-button.delete-key.highlighted,
+  .key-button.clear-key.highlighted,
+  .key-button.alert-key.highlighted {
+    background-color: #4285f4 !important; /* เปลี่ยนพื้นหลังเป็นสีขาว */
+    color: rgb(255, 255, 255) !important; /* เปลี่ยนสีตัวอักษรเป็นสีดำ */
+    border-color: #ccc !important; /* เส้นขอบสีเทา */
+  }
+  .key-button.delete-key.highlighted img {
+    filter: invert(1); /* เปลี่ยนสีของไอคอนเป็นขาว */
+  }
+  .key-button.clear-key.highlighted img {
+    filter: invert(1); /* เปลี่ยนสีของไอคอนเป็นขาว */
+  }
+
+  .key-button.alert-key.highlighted img {
+    filter: invert(1); /* เปลี่ยนสีของไอคอนเป็นขาว */
+  }
+
+  
+  .key-button:hover {
+    background-color: #f0f0f0; /* สีเทาอ่อนเมื่อ hover */
+  }
+  
+  .key-button.highlighted {
+    background-color: #4285f4;
+    color: white;
+    border-color: #4285f4;
+  }
+  
+  .icon-button {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  
+  .icon-button:hover {
+    color: #555;
+    transform: scale(1.2);
+  }
+
+
+  .icon-image {
+    width: 30px;
+    height: 30px;
+  }
+
+  .webcam-container {
+    width: 10%;
+    max-width: 640px;
+    margin: 0 auto 1px;
+    text-align: center;
+    position: relative;
+  }
+  
+  .webcam-video {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    transform: scaleX(-1);
+  }
+
+
+  
+  
+  /* Media Queries for small screens */
+  @media screen and (max-width: 768px) {
+    .key-button {
+      font-size: 16px; /* ปรับขนาดฟอนต์ให้เล็กลงบนมือถือ */
+      padding: 12px;
+    }
+    
+    .prediction-button {
+      font-size: 12px; /* ปรับขนาดฟอนต์ของคำแนะนำให้เล็กลง */
+      padding: 12px;
+    }
+  
+    .keyboard-row {
+      grid-template-columns: repeat(5, 1fr); /* ใช้ 5 คอลัมน์สำหรับหน้าจอเล็ก */
+    }
+  }

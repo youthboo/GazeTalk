@@ -1,0 +1,132 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Bar, Doughnut } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+import { Row, Col, Card, Spin } from "antd";
+import { UserOutlined, ManOutlined, WomanOutlined, SmileOutlined } from "@ant-design/icons";
+import "./Dashboard.css";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+
+const Dashboard = () => {
+  const [patientData, setPatientData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data from API
+  useEffect(() => {
+    axios
+      .get("http://localhost:3008/api/dashboard/dashboard")
+      .then((response) => {
+        const { patientData } = response.data;
+        setPatientData(patientData);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching dashboard data:", error);
+        setIsLoading(false);
+      });
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Chart Data
+  const genderChartData = {
+    labels: ["Male", "Female", "Other"],
+    datasets: [
+      {
+        label: "Patient Count by Gender",
+        data: [patientData.male || 0, patientData.female || 0, patientData.other || 0],
+        backgroundColor: ["rgba(75, 192, 192, 0.2)", "rgba(255, 99, 132, 0.2)", "rgba(153, 102, 255, 0.2)"],
+        borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)", "rgba(153, 102, 255, 1)"],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const ageChartData = {
+    labels: ["13-19", "20-39", "40-59", "60+"],
+    datasets: [
+      {
+        label: "Patients by Age Range",
+        data: [
+          patientData.ageGroups?.["13-19"] || 0,
+          patientData.ageGroups?.["20-39"] || 0,
+          patientData.ageGroups?.["40-59"] || 0,
+          patientData.ageGroups?.["60-120"] || 0,
+        ],
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+      },
+    ],
+  };
+
+  // Render Dashboard
+  return (
+    <div className="dashboard">
+      <h1>Dashboard</h1>
+
+      {/* Section: Cards for Total Users */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered className="stat-card">
+            <UserOutlined style={{ fontSize: "2rem", color: "#1890ff" }} />
+            <h3>Total Users</h3>
+            <p>{patientData.total || 0}</p>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered className="stat-card">
+            <ManOutlined style={{ fontSize: "2rem", color: "#52c41a" }} />
+            <h3>Male</h3>
+            <p>{patientData.male || 0}</p>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered className="stat-card">
+            <WomanOutlined style={{ fontSize: "2rem", color: "#eb2f96" }} />
+            <h3>Female</h3>
+            <p>{patientData.female || 0}</p>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered className="stat-card">
+            <SmileOutlined style={{ fontSize: "2rem", color: "#722ed1" }} />
+            <h3>Other</h3>
+            <p>{patientData.other || 0}</p>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Section: Charts */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12}>
+          <Card title="Patient Count by Gender" bordered>
+            <Bar data={genderChartData} />
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card title="Patient Count by Age Range" bordered>
+            <Doughnut data={ageChartData} />
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+};
+
+export default Dashboard;

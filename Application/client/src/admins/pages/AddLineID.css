@@ -1,0 +1,92 @@
+/* AddLineID.css */
+
+/* Global Styles */
+.patient-list-container {
+  background-color: #ffffff;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  margin-left: var(--nav-width);
+  width: 100%;
+}
+
+/* Card Styling */
+.ant-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+}
+
+.ant-card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+
+}
+
+/* Title Styling */
+.text-primary {
+  color: #000000;
+
+}
+
+.text-secondary {
+  color: #000000;
+}
+
+/* Search Input */
+.patient-search-input {
+  border-radius: 8px;
+  border-color: #d9d9d9;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.patient-search-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Table Styling */
+.patient-table {
+  width: 100% !important;
+}
+
+.ant-table {
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100% !important;
+}
+
+.ant-table-thead > tr > th {
+  background-color: #f0f2f5;
+  color: #262626;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ant-table-tbody > tr:hover {
+  background-color: #e6f7ff;
+}
+
+/* Action Buttons */
+.patient-actions .ant-btn {
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.patient-actions .ant-btn-primary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+  }
+
+.patient-actions .ant-btn-danger {
+  background-color: #CD5C5C;
+  border-color: #CD5C5C;
+  color: white;
+}
+
+
+
