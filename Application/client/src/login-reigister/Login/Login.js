@@ -26,12 +26,13 @@ const Login = ({ onLogin }) => {
                 code: data.code,
             });
     
-            const { token, isAdmin, patient_id, gender, ageRange } = response.data;
+            const { token, isAdmin, patient_id, gender, ageRange, adminCode } = response.data;
     
             if (isAdmin) {
                 // Admin
                 localStorage.setItem('token', token);
                 localStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('adminCode', adminCode);
                 onLogin();
                 navigate('/dashboard');
             } else {

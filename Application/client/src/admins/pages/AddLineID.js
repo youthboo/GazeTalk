@@ -1,23 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Table, 
-  Input, 
-  Button, 
-  message, 
-  Modal, 
-  Layout, 
-  Row, 
-  Typography, 
-  Card 
-} from 'antd';
-import { 
-  SearchOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  UserAddOutlined 
-} from '@ant-design/icons';
+import { Table, Input, Button, message, Modal, Layout, Row, Typography, Card } from 'antd';
+import { SearchOutlined, EditOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
 import './AddLineID.css';
 
 const { Content } = Layout;
@@ -65,6 +50,7 @@ const AddLineID = () => {
   };
 
   const handleDeletePatient = (patientId) => {
+    console.log('Patient ID to delete:', patientId); // เพิ่มตรงนี้
     Modal.confirm({
       title: 'ยืนยันการลบข้อมูล',
       content: 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลผู้ป่วยนี้?',
@@ -84,7 +70,7 @@ const AddLineID = () => {
       },
     });
   };
-
+  
   const columns = [
     {
       title: 'Username',

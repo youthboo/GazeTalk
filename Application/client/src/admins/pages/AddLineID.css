@@ -20,7 +20,10 @@
 
 .ant-card:hover {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
 
+.ant-modal {
+  z-index: 1050 !important; /* เพิ่ม z-index */
 }
 
 /* Title Styling */

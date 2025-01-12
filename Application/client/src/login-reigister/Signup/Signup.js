@@ -27,31 +27,44 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        // ตรวจสอบเงื่อนไขการกรอก code สำหรับ personnel
         if (data.userType === 'personnel') {
-            if (data.code !== 'SecretCodeAdmin' && data.code !== 'SKCode55') {
+            // ตรวจสอบเงื่อนไข code
+            if (!data.code || (data.code !== 'SecretCodeAdmin' && data.code !== 'SKCode55')) {
                 setError('Invalid code for personnel');
-                return; // หยุดการส่งข้อมูลหาก code ไม่ถูกต้อง
+                return;
+            }
+        }
+    
+        if (data.userType === 'patient') {
+            // ตรวจสอบว่ากรอก dateOfBirth และ gender ครบถ้วน
+            if (!data.dateOfBirth || !data.gender) {
+                setError('Date of Birth and Gender are required for patients');
+                return;
             }
         }
     
         try {
-            // ใช้ URL ที่เปลี่ยนแล้ว
-            await axios.post('http://localhost:3008/api/auth/signup', {
+            // สร้าง payload สำหรับการส่งข้อมูล
+            const payload = {
                 username: data.username,
                 password: data.password,
                 userType: data.userType,
-                dateOfBirth: data.dateOfBirth,
-                gender: data.gender,
-                code: data.code,
-            });
-            navigate('/login');
+                ...(data.userType === 'personnel' && { code: data.code }),
+                ...(data.userType === 'patient' && {
+                    dateOfBirth: data.dateOfBirth,
+                    gender: data.gender,
+                }),
+            };
+    
+            await axios.post('http://localhost:3008/api/auth/signup', payload);
+            navigate('/login'); // นำผู้ใช้ไปหน้า login
         } catch (error) {
             if (error.response && error.response.status >= 400 && error.response.status <= 500) {
                 setError(error.response.data.message);
             }
         }
     };    
+    
 
     return (
         <div className={styles.signup_container}>
@@ -108,7 +121,7 @@ const Signup = () => {
                                 name='gender'
                                 onChange={handleChange}
                                 value={data.gender}
-                                required
+                                required={data.userType === 'patient'}
                                 className={styles.select}
                             >
                                 <option value="" disabled hidden>Gender</option>
@@ -122,7 +135,7 @@ const Signup = () => {
                                 name='dateOfBirth'
                                 onChange={handleChange}
                                 value={data.dateOfBirth}
-                                required
+                                required={data.userType === 'patient'}
                                 className={styles.input}
                             />
                         </>

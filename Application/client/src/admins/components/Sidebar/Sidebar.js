@@ -19,7 +19,7 @@ import AddLineIDForm from '../../pages/AddLineIDForm';
 
 const { Sider, Content, Header } = Layout;
 
-const Sidebar = ({ onLogout }) => {
+const Sidebar = ({ onLogout, adminCode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [username, setUsername] = useState('');
   const [selectedMenuKey, setSelectedMenuKey] = useState('/dashboard'); // กำหนดค่าเริ่มต้น
@@ -66,17 +66,22 @@ const Sidebar = ({ onLogout }) => {
       icon: <DashboardOutlined />,
       label: 'Dashboard',
     },
-    {
-      key: '/admin/addline',
-      icon: <UserAddOutlined />,
-      label: 'Add Relative ID',
-    },
-    {
-      key: '/admin/editword',
-      icon: <EditOutlined />,
-      label: 'Edit Word',
-    },
+    ...(adminCode === 'SKCode55' || adminCode === 'SecretCodeAdmin' ? [
+      {
+        key: '/admin/addline',
+        icon: <UserAddOutlined />,
+        label: 'Add Relative ID',
+      },
+    ] : []),
+    ...(adminCode === 'SKCode55' ? [
+      {
+        key: '/admin/editword',
+        icon: <EditOutlined />,
+        label: 'Edit Word',
+      },
+    ] : []),
   ];
+  
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

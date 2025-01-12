@@ -13,13 +13,19 @@ import './App.css';
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [adminCode, setAdminCode] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const adminCodeFromStorage = localStorage.getItem('adminCode');
+
     if (token) {
       setIsLoggedIn(true);
       setUserRole(isAdmin ? 'admin' : 'patient');
+      if (isAdmin) {
+        setAdminCode(adminCodeFromStorage); // ดึง adminCode จาก localStorage
+      }
     }
   }, []);
 
@@ -27,18 +33,22 @@ const App = () => {
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
     setIsLoggedIn(true);
     setUserRole(isAdmin ? 'admin' : 'patient');
+    if (isAdmin) {
+      setAdminCode(localStorage.getItem('adminCode'));
+    }
   };
 
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
-    setIsLoggedIn(false); // รีเซ็ตสถานะการล็อกอิน
-    setUserRole(null);    // รีเซ็ตบทบาทผู้ใช้งาน
+    setIsLoggedIn(false); 
+    setUserRole(null); 
+    setAdminCode(null);  
   };
 
   const renderAdminRoutes = () => (
     <div className="app-with-sidebar">
-      <Sidebar onLogout={handleLogout} />
+      <Sidebar onLogout={handleLogout} adminCode={adminCode} />
     </div>
   );  
 
