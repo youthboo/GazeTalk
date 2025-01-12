@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Table, Button, Space, Typography, Modal, Layout, Card, message } from 'antd';
+import { Table, Button, Space, Typography, Modal, Layout, Card, message, Form, Input, Select } from 'antd';
 import { EyeOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import './PatientDetail.css';
 
 const { Title } = Typography;
 const { Content } = Layout;
+const { Option } = Select;
 
 const PatientDetail = () => {
   const [relatedPeople, setRelatedPeople] = useState([]);
-  const [selectedRelative, setSelectedRelative] = useState(null); 
-  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [selectedRelative, setSelectedRelative] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm(); // ใช้ form instance ของ Ant Design
   const { id } = useParams(); // patient_id
   const navigate = useNavigate();
 
@@ -39,15 +41,40 @@ const PatientDetail = () => {
   };
 
   const handleView = (relativeId) => {
-    // ค้นหาข้อมูลของญาติจากรายการ
     const relative = relatedPeople.find((r) => r.telegramID === relativeId);
-    setSelectedRelative(relative); 
-    setIsModalVisible(true); 
+    setSelectedRelative(relative); // อัปเดตข้อมูลญาติที่เลือก
+    setIsModalVisible(true);
+  };
+
+  useEffect(() => {
+    if (selectedRelative) {
+      form.setFieldsValue(selectedRelative); // อัปเดตค่าในฟอร์มเมื่อ selectedRelative เปลี่ยน
+    }
+  }, [selectedRelative, form]);
+
+  const handleUpdate = async (values) => {
+    try {
+      const response = await axios.put(`http://localhost:3008/api/relative/relative/${selectedRelative.telegramID}`, values);
+      message.success('อัพเดตข้อมูลสำเร็จ');
+
+      // อัปเดตรายการใน Frontend
+      setRelatedPeople((prev) =>
+        prev.map((relative) =>
+          relative.telegramID === selectedRelative.telegramID ? response.data.data : relative
+        )
+      );
+
+      setIsModalVisible(false); // ปิด Modal
+      setSelectedRelative(null); // เคลียร์ข้อมูลที่เลือก
+    } catch (error) {
+      console.error('Error updating relative:', error);
+      message.error('อัพเดตข้อมูลไม่สำเร็จ');
+    }
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
-    setSelectedRelative(null); 
+    setSelectedRelative(null);
   };
 
   const handleDelete = (telegramID) => {
@@ -60,7 +87,6 @@ const PatientDetail = () => {
         try {
           await axios.delete(`http://localhost:3008/api/relative/relative/${telegramID}`);
           message.success('ลบข้อมูลสำเร็จ');
-          // อัปเดตรายการญาติหลังการลบ
           setRelatedPeople((prev) =>
             prev.filter((relative) => relative.telegramID !== telegramID)
           );
@@ -138,33 +164,44 @@ const PatientDetail = () => {
           </Space>
         </Card>
 
-        {/* Modal สำหรับแสดงรายละเอียดของญาติ */}
+        {/* Modal สำหรับแก้ไขข้อมูลญาติ */}
         <Modal
-          title="รายละเอียดของญาติ"
+          title="แก้ไขข้อมูลญาติ"
           open={isModalVisible}
           onCancel={handleCancel}
           footer={null}
         >
-          {selectedRelative ? (
-            <div>
-              <p>
-                <strong>ชื่อ:</strong> {selectedRelative.firstName} {selectedRelative.lastName}
-              </p>
-              <p>
-                <strong>โทรศัพท์:</strong> {selectedRelative.phone}
-              </p>
-              <p>
-                <strong>อีเมล:</strong> {selectedRelative.email}
-              </p>
-              <p>
-                <strong>บทบาท:</strong> {selectedRelative.role}
-              </p>
-              <p>
-                <strong>Telegram ID:</strong> {selectedRelative.telegramID}
-              </p>
-            </div>
-          ) : (
-            <p>กำลังโหลดข้อมูล...</p>
+          {selectedRelative && (
+            <Form
+              layout="vertical"
+              form={form} // ใช้ form instance ที่สร้าง
+              onFinish={handleUpdate}
+            >
+              <Form.Item name="firstName" label="First Name" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="lastName" label="Last Name" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="phone" label="Phone" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="role" label="Role" rules={[{ required: true }]}>
+                <Select>
+                  <Option value="Notifier">Notifier</Option>
+                  <Option value="Receiver">Receiver</Option>
+                  <Option value="Notifier/Receiver">Notifier/Receiver</Option>
+                </Select>
+              </Form.Item>
+              <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Save
+                </Button>
+              </Form.Item>
+            </Form>
           )}
         </Modal>
       </Content>

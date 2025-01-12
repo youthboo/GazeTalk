@@ -28,28 +28,32 @@ const Login = ({ onLogin }) => {
     
             const { token, isAdmin, patient_id, gender, ageRange, adminCode, role } = response.data;
     
+            if (!isAdmin && data.code) {
+                // หากเป็น admin แต่ไม่ได้ใส่ code
+                navigate('/access-denied');
+                return;
+            }
+    
             if (isAdmin) {
-                // Admin
                 localStorage.setItem('token', token);
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('adminCode', adminCode);
                 onLogin();
-                navigate('/dashboard');
+                navigate('/admin/dashboard');
             } else {
-                // Patient
                 localStorage.setItem('token', token);
                 localStorage.setItem('isAdmin', 'false');
                 sessionStorage.setItem('patient_id', patient_id);
                 sessionStorage.setItem('patient_gender', gender);
                 sessionStorage.setItem('patient_age_range', ageRange);
-                sessionStorage.setItem('role', role); // เก็บ role ของญาติผู้ป่วย
+                sessionStorage.setItem('role', role);
                 onLogin();
                 navigate('/basic');
             }
         } catch (error) {
             setError(error.response?.data?.message || 'Login failed.');
         }
-    };
+    };    
 
     return (
         <div className={styles.login_container}>

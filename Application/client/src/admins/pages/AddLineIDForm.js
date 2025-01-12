@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Select, message, Layout, Card, Space } from 'antd';
+import { Form, Input, Button, Select, notification, Layout, Card, Space } from 'antd';
 import './AddLineIDForm.css';
 
 const { Option } = Select;
 const { Content } = Layout;
 
-const AddLineIDForm = ({ onSubmit, onClose }) => {
+const AddLineIDForm = ({ onSubmit }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -19,27 +19,12 @@ const AddLineIDForm = ({ onSubmit, onClose }) => {
     }
   }, [patient]);
 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    role: '',
-    email: '',
-    telegramID: ''
-  });
-
-  // eslint-disable-next-line
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values) => {
     if (!patient.patient_id) {
-      message.error('Patient ID is missing. Please select a patient before submitting.');
+      notification.error({
+        message: 'Error',
+        description: 'Patient ID is missing. Please select a patient before submitting.',
+      });
       return;
     }
 
@@ -50,18 +35,37 @@ const AddLineIDForm = ({ onSubmit, onClose }) => {
       lastName: values.lastName,
       phone: values.phone,
       role: values.role,
-      email: values.email
+      email: values.email,
     };
 
-    axios.post('http://localhost:3008/api/relative/relative-chat', dataToSend)
-      .then(response => {
-        console.log('Data saved successfully:');
-        if (onSubmit) onSubmit();
-        navigate(-1); // ย้อนกลับไปยังหน้าก่อนหน้า
-      })
-      .catch(error => {
-        console.error('Error saving data:', error);
+    try {
+      await axios.post('http://localhost:3008/api/relative/relative-chat', dataToSend);
+
+      // แจ้งเตือนเมื่อเพิ่มข้อมูลสำเร็จ
+      notification.success({
+        message: 'Success',
+        description: 'เพิ่มข้อมูลสำเร็จ!',
       });
+
+      if (onSubmit) onSubmit();
+      navigate(-1); // ย้อนกลับไปยังหน้าก่อนหน้า
+    } catch (error) {
+      // ตรวจสอบข้อผิดพลาดจาก API
+      if (error.response && error.response.status === 400) {
+        // กรณีที่จำนวนเกินลิมิต
+        notification.error({
+          message: 'Error',
+          description: error.response.data.message || 'จำนวนผู้เกี่ยวข้องเกินลิมิต ไม่สามารถเพิ่มได้อีก',
+        });
+      } else {
+        // กรณีที่เกิดข้อผิดพลาดทั่วไป
+        notification.error({
+          message: 'Error',
+          description: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
+        });
+      }
+      console.error('Error saving data:', error);
+    }
   };
 
   return (
@@ -80,7 +84,6 @@ const AddLineIDForm = ({ onSubmit, onClose }) => {
             name="add-line-id-form"
             layout="vertical"
             onFinish={handleSubmit}
-            initialValues={formData}
             className="add-line-id-form"
           >
             <Form.Item
@@ -120,7 +123,7 @@ const AddLineIDForm = ({ onSubmit, onClose }) => {
               name="email"
               rules={[
                 { required: true, message: 'Please input the email!' },
-                { type: 'email', message: 'Please input a valid email!' }
+                { type: 'email', message: 'Please input a valid email!' },
               ]}
             >
               <Input placeholder="Email" />

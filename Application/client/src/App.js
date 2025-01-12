@@ -31,10 +31,21 @@ const App = () => {
 
   const handleLogin = () => {
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const adminCode = localStorage.getItem('adminCode');
+  
+    // ถ้า user ไม่ใช่ admin แต่กรอก code admin
+    if (!isAdmin && adminCode) {
+      localStorage.clear();
+      setIsLoggedIn(false);
+      setUserRole(null);
+      setAdminCode(null);
+      return <Navigate to="/access-denied" />;
+    }
+  
     setIsLoggedIn(true);
     setUserRole(isAdmin ? 'admin' : 'patient');
     if (isAdmin) {
-      setAdminCode(localStorage.getItem('adminCode'));
+      setAdminCode(adminCode);
     }
   };
 
