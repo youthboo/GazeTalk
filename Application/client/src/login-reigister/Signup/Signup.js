@@ -118,7 +118,7 @@ const Signup = () => {
                             <>
                                 <Form.Item
                                     name="gender"
-                                    label="Gender"
+                                    label="Gender (for Patients)"
                                     rules={[{ required: true, message: 'Please select your gender!' }]}
                                 >
                                     <Select placeholder="Select gender">
@@ -129,7 +129,7 @@ const Signup = () => {
                                 </Form.Item>
                                 <Form.Item
                                     name="dateOfBirth"
-                                    label="Date of Birth"
+                                    label="Date of Birth (for Patients)"
                                     rules={[{ required: true, message: 'Please select your date of birth!' }]}
                                 >
                                     <DatePicker
