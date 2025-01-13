@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   height: 90vh;
-  background-color: #f8f9fa; /* สีพื้นหลังขาวนวล */
+  background-color: #f8f9fa; 
   font-family: 'Arial', sans-serif;
   text-align: center;
 }
@@ -39,55 +39,55 @@ p {
 
 .alert-buttons {
   display: flex;
-  gap: 80px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+  gap: 80px; 
 }
 
 .alert-button {
   flex: 1;
-  max-width: 500px; /* ขยายความกว้างของปุ่ม */
-  padding: 120px 180px; /* เพิ่มขนาดของปุ่ม */
-  font-size: 3rem; /* ขนาดตัวอักษรใหญ่ขึ้น */
+  max-width: 500px; 
+  padding: 120px 180px; 
+  font-size: 3rem; 
   border: none;
-  border-radius: 15px; /* เพิ่มความโค้งมน */
+  border-radius: 15px; 
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .alert-button.highlighted {
   transform: scale(1.2);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.1); /* เงาและเรืองแสง */
-  border: 3px solid transparent; /* กรอบที่ปรับเปลี่ยนตามปุ่ม */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.1); 
+  border: 3px solid transparent; 
 }
 
 .alert-button:first-child.highlighted {
-  background-color: #b5dcb3; /* เขียวเข้มขึ้น */
+  background-color: #b5dcb3; 
   color: #0b3d0b;
   border: 3px solid #343a40;
-  box-shadow: 0 6px 15px rgba(181, 220, 179, 0.4), 0 0 10px rgba(181, 220, 179, 0.6); /* เรืองแสงเขียว */
+  box-shadow: 0 6px 15px rgba(181, 220, 179, 0.4), 0 0 10px rgba(181, 220, 179, 0.6); 
 }
 
 .alert-button:last-child.highlighted {
-  background-color: #f4b8bb; /* แดงเข้มขึ้น */
+  background-color: #f4b8bb;
   color: #6e0e10;
   border: 3px solid #343a40;
-  box-shadow: 0 6px 15px rgba(244, 184, 187, 0.4), 0 0 10px rgba(244, 184, 187, 0.6); /* เรืองแสงแดง */
+  box-shadow: 0 6px 15px rgba(244, 184, 187, 0.4), 0 0 10px rgba(244, 184, 187, 0.6); 
 }
 
 
 .alert-button:first-child {
-  background-color: #d4edda; /* เขียวอ่อน */
+  background-color: #d4edda; 
   color: #155724;
 }
 
 .alert-button:first-child:hover {
-  background-color: #c3e6cb; /* เขียว hover */
+  background-color: #c3e6cb;
 }
 
 .alert-button:last-child {
-  background-color: #f8d7da; /* แดงอ่อน */
+  background-color: #f8d7da; 
   color: #721c24;
 }
 
 .alert-button:last-child:hover {
-  background-color: #f5c6cb; /* แดง hover */
+  background-color: #f5c6cb;
 }

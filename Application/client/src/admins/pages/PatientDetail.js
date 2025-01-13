@@ -13,7 +13,7 @@ const PatientDetail = () => {
   const [relatedPeople, setRelatedPeople] = useState([]);
   const [selectedRelative, setSelectedRelative] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm(); // ใช้ form instance ของ Ant Design
+  const [form] = Form.useForm(); 
   const { id } = useParams(); // patient_id
   const navigate = useNavigate();
 
@@ -48,7 +48,7 @@ const PatientDetail = () => {
 
   useEffect(() => {
     if (selectedRelative) {
-      form.setFieldsValue(selectedRelative); // อัปเดตค่าในฟอร์มเมื่อ selectedRelative เปลี่ยน
+      form.setFieldsValue(selectedRelative);
     }
   }, [selectedRelative, form]);
 
@@ -57,15 +57,14 @@ const PatientDetail = () => {
       const response = await axios.put(`http://localhost:3008/api/relative/relative/${selectedRelative.telegramID}`, values);
       message.success('อัพเดตข้อมูลสำเร็จ');
 
-      // อัปเดตรายการใน Frontend
       setRelatedPeople((prev) =>
         prev.map((relative) =>
           relative.telegramID === selectedRelative.telegramID ? response.data.data : relative
         )
       );
 
-      setIsModalVisible(false); // ปิด Modal
-      setSelectedRelative(null); // เคลียร์ข้อมูลที่เลือก
+      setIsModalVisible(false);
+      setSelectedRelative(null); 
     } catch (error) {
       console.error('Error updating relative:', error);
       message.error('อัพเดตข้อมูลไม่สำเร็จ');

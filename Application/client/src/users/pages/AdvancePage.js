@@ -65,7 +65,7 @@ const AdvancePage = () => {
 
   const fetchPredictions = async (text) => {
     if (!text.trim()) {
-      setPredictedWords([]); // ล้างคำทำนายหากข้อความว่าง
+      setPredictedWords([]);
       return;
     }
   
@@ -153,7 +153,6 @@ const AdvancePage = () => {
             throw new Error('Failed to send message to Telegram');
         }
 
-        // แสดง success message
         Swal.fire({
             title: "ส่งข้อความสำเร็จ!",
             text: `ข้อความที่ส่ง: ${inputText}`,
@@ -163,8 +162,7 @@ const AdvancePage = () => {
             showConfirmButton: false,
         });
 
-        setInputText(""); // ล้างข้อความหลังจากส่ง
-
+        setInputText("");
     } catch (error) {
         console.error('Error sending message:', error);
         Swal.fire({

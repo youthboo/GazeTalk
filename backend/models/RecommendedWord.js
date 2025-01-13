@@ -14,11 +14,11 @@ const RecommendedWord = sequelize.define('RecommendedWord', {
     allowNull: false,  
   },
   gender: {
-    type: DataTypes.ENUM('male', 'female', 'other'), // การใช้ ENUM สำหรับค่าเพศ
+    type: DataTypes.ENUM('male', 'female', 'other'), 
     allowNull: false,  
   },
   age_range: {
-    type: DataTypes.ENUM('13-19', '20-39', '40-59', '60-120'), // การใช้ ENUM สำหรับช่วงอายุ
+    type: DataTypes.ENUM('13-19', '20-39', '40-59', '60-120'), 
     allowNull: false,  
   },
 }, {

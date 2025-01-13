@@ -93,7 +93,6 @@ const BasicPage = () => {
         return;
     }
   
-    // ตรวจสอบประเภทข้อความ (ปกติหรือฉุกเฉิน)
     const isEmergency = inputText.includes("แจ้งเตือนฉุกเฉิน");
   
     try {
@@ -104,7 +103,7 @@ const BasicPage = () => {
             },
             body: JSON.stringify({ 
                 message: inputText,
-                isEmergency // ส่งประเภทข้อความไปยัง Backend
+                isEmergency 
             }),
         });
   

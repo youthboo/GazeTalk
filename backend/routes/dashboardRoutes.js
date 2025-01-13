@@ -39,7 +39,7 @@ router.get('/dashboard', async (req, res) => {
         total: totalPatients,
         male: malePatients,
         female: femalePatients,
-        other: otherPatients, // รวมข้อมูลเพศ other ใน Response
+        other: otherPatients, 
         ageGroups,
       },
     });

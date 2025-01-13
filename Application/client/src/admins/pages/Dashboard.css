@@ -15,7 +15,7 @@ h1 {
 h1 .dashboard-icon {
   font-size: 1.8rem;
   margin-right: 10px;
-  color: #1890ff; /* Blue color for the icon */
+  color: #1890ff; 
 }
 
 .loading-container {
@@ -56,5 +56,11 @@ h1 .dashboard-icon {
   font-weight: bold;
   color: #000;
 }
+
+.qr-card {
+  text-align: center;
+  margin-top: 20px;
+}
+
 
 

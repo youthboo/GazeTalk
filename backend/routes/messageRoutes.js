@@ -98,7 +98,7 @@ router.get('/messages', async (req, res) => {
                 word,
                 usage_count: count,
             }))
-            .sort((a, b) => b.usage_count - a.usage_count); // เรียงตามจำนวนการใช้จากมากไปหาน้อย
+            .sort((a, b) => b.usage_count - a.usage_count); 
 
         res.json({ summary });
 

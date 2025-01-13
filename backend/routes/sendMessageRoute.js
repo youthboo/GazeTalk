@@ -3,7 +3,6 @@ const router = express.Router();
 const RelativeChatID = require('../models/RelativeChatID');
 const axios = require('axios');
 
-// ดึง token จาก .env
 const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
 const telegramApiUrl = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
 
@@ -28,29 +27,27 @@ router.post('/patients/:patient_id/send-message', async (req, res) => {
     // ค้นหา telegramID และ role ของญาติทั้งหมดที่มี patient_id ตรงกัน
     const relatives = await RelativeChatID.findAll({
       where: { patient_id },
-      attributes: ['telegramID', 'role'] // ดึงเฉพาะ telegramID และ role
+      attributes: ['telegramID', 'role'] 
     });
 
     if (relatives.length === 0) {
       return res.status(404).json({ message: 'ไม่พบข้อมูลญาติของผู้ป่วยคนนี้' });
     }
 
-    // ตรวจสอบประเภทของข้อความ (ปกติหรือแจ้งเตือน)
     const isEmergency = message.includes('แจ้งเตือนฉุกเฉิน');
 
-    // ส่งข้อความไปยัง Telegram ของญาติแต่ละคนตามบทบาท
     const errors = [];
     for (const relative of relatives) {
       const { telegramID, role } = relative;
 
       // เงื่อนไขสำหรับ Notifier
       if (role === 'Notifier' && !isEmergency) {
-        continue; // ข้ามถ้า Notifier ได้รับข้อความปกติ
+        continue; 
       }
 
       // เงื่อนไขสำหรับ Receiver
       if (role === 'Receiver' && isEmergency) {
-        continue; // ข้ามถ้า Receiver ได้รับแจ้งเตือนฉุกเฉิน
+        continue; 
       }
 
       // เงื่อนไขสำหรับ Notifier/Receiver (รับได้ทั้งสองประเภท)
@@ -64,7 +61,6 @@ router.post('/patients/:patient_id/send-message', async (req, res) => {
       }
     }
 
-    // ตรวจสอบว่ามีข้อผิดพลาดในการส่งข้อความหรือไม่
     if (errors.length > 0) {
       return res.status(500).json({
         message: 'ข้อความบางส่วนไม่สามารถส่งได้',

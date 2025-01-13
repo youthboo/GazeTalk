@@ -8,14 +8,12 @@ const AlertPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ปุ่ม "ใช่" เป็นค่าเริ่มต้น
   const [highlightedButton, setHighlightedButton] = useState("ใช่");
   
   // เพิ่ม state นี้เพื่อป้องกันการเรียกซ้ำ
   const [isEmergencySent, setIsEmergencySent] = useState(false);
 
   const handleYesClick = async () => {
-    // เมื่อคลิกหรือกระพริบตาสองครั้งแล้ว ตัดโอกาสไม่ให้กดซ้ำ
     setIsEmergencySent(true);
 
     const patient_id = sessionStorage.getItem('patient_id');
@@ -90,14 +88,12 @@ const AlertPage = () => {
         .then((data) => {
           const { direction, double_blink } = data;
 
-          // ตรวจจับทิศทางตาเพื่อสลับปุ่มที่ไฮไลต์
           if (direction === "right") {
             setHighlightedButton("ไม่ใช่");
           } else if (direction === "left") {
             setHighlightedButton("ใช่");
           }
 
-          // หากมีการกระพริบตาสองครั้ง (double_blink) และยังไม่เคยกดแจ้งเตือน
           if (double_blink && !isEmergencySent) {
             if (highlightedButton === "ใช่") {
               handleYesClick();

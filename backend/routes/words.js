@@ -28,7 +28,7 @@ router.put('/update', async (req, res) => {
       where: {
         gender: gender,  
         age_range: ageRange, 
-        word: oldWord,  // กรองคำเก่า
+        word: oldWord,  
       },
     });
 

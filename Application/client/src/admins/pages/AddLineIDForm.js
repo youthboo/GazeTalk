@@ -41,14 +41,13 @@ const AddLineIDForm = ({ onSubmit }) => {
     try {
       await axios.post('http://localhost:3008/api/relative/relative-chat', dataToSend);
 
-      // แจ้งเตือนเมื่อเพิ่มข้อมูลสำเร็จ
       notification.success({
         message: 'Success',
         description: 'เพิ่มข้อมูลสำเร็จ!',
       });
 
       if (onSubmit) onSubmit();
-      navigate(-1); // ย้อนกลับไปยังหน้าก่อนหน้า
+      navigate(-1); 
     } catch (error) {
       // ตรวจสอบข้อผิดพลาดจาก API
       if (error.response && error.response.status === 400) {

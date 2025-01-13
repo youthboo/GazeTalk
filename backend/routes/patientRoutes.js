@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Patient = require('../models/Users'); // ใช้ Model Patient
-const RelativeChatID = require('../models/RelativeChatID'); // ใช้ Model RelativeChatID
+const Patient = require('../models/Users'); 
+const RelativeChatID = require('../models/RelativeChatID'); 
 
 // Route เพื่อดึงข้อมูลผู้ป่วยทั้งหมด
 router.get('/patients', async (req, res) => {

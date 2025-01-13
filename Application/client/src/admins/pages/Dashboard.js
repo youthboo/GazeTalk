@@ -12,17 +12,21 @@ import {
   ArcElement,
 } from "chart.js";
 import { Row, Col, Card, Spin } from "antd";
-import { UserOutlined, ManOutlined, WomanOutlined, SmileOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  ManOutlined,
+  WomanOutlined,
+  SmileOutlined,
+} from "@ant-design/icons";
 import "./Dashboard.css";
+import QrCode from "../assets/images/qr.png";
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
   const [patientData, setPatientData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch data from API
   useEffect(() => {
     axios
       .get("http://localhost:3008/api/dashboard/dashboard")
@@ -52,8 +56,16 @@ const Dashboard = () => {
       {
         label: "Patient Count by Gender",
         data: [patientData.male || 0, patientData.female || 0, patientData.other || 0],
-        backgroundColor: ["rgba(75, 192, 192, 0.2)", "rgba(255, 99, 132, 0.2)", "rgba(153, 102, 255, 0.2)"],
-        borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)", "rgba(153, 102, 255, 1)"],
+        backgroundColor: [
+          "rgba(75, 192, 192, 0.2)",
+          "rgba(255, 99, 132, 0.2)",
+          "rgba(153, 102, 255, 0.2)",
+        ],
+        borderColor: [
+          "rgba(75, 192, 192, 1)",
+          "rgba(255, 99, 132, 1)",
+          "rgba(153, 102, 255, 1)",
+        ],
         borderWidth: 1,
       },
     ],
@@ -75,12 +87,10 @@ const Dashboard = () => {
     ],
   };
 
-  // Render Dashboard
   return (
     <div className="dashboard">
       <h1>Dashboard</h1>
 
-      {/* Section: Cards for Total Users */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
           <Card bordered className="stat-card">
@@ -112,15 +122,31 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* Section: Charts */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
         <Col xs={24} md={12}>
-          <Card title="Patient Count by Gender" bordered>
-            <Bar data={genderChartData} />
-          </Card>
+          <Row gutter={[16, 16]}>
+    
+            <Col span={24}>
+              <Card bordered title="QR Code สแกนเพื่อเชื่อมต่อกับผู้ป่วยผ่าน GazeTalk Bot">
+                <p>พิมพ์ /start ในช่องแชทเพื่อรับ Telegram ID</p>
+                <img
+                  src={QrCode}
+                  alt="QR Code"
+                  style={{ width: "300px", display: "block", margin: "0 auto" }}
+                />
+              </Card>
+            </Col>
+
+            <Col span={24}>
+              <Card title="Patient Count by Gender" bordered >
+                <Bar data={genderChartData} />
+              </Card>
+            </Col>
+          </Row>
         </Col>
+
         <Col xs={24} md={12}>
-          <Card title="Patient Count by Age Range" bordered>
+          <Card title="Patient Count by Age Range" bordered style={{ marginTop: 20 }}>
             <Doughnut data={ageChartData} />
           </Card>
         </Col>

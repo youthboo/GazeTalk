@@ -50,14 +50,14 @@
     gap: 10px;
     width: 95%;
     position: absolute;
-    top: 200px; /* ปรับตำแหน่งให้คำแนะนำอยู่ในพื้นที่ว่าง */
+    top: 200px; 
     z-index: 10;
     background-color: white;
   }
   
   .prediction-button {
     padding: 15px 20px;
-    font-size: 22px; /* ปรับขนาดฟอนต์ให้เล็กลง */
+    font-size: 22px; 
     background-color: #f1f1f1;
     border: 1px solid #ccc;
     border-radius: 6px;
@@ -76,7 +76,7 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    margin-top: 140px; /* เพิ่มระยะห่างจากคำแนะนำ */
+    margin-top: 140px; 
     position: fixed;
     bottom: 20px;
     z-index: 1;
@@ -98,28 +98,28 @@
   .key-button {
     padding: 15px;
     font-size: 30px;
-    background-color: #f9f9f9; /* สีพื้นหลังอ่อน */
-    border: 1px solid #e0e0e0; /* สีเส้นขอบอ่อน */
+    background-color: #f9f9f9; 
+    border: 1px solid #e0e0e0; 
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #333; /* สีตัวอักษรเข้มเล็กน้อย */
+    color: #333; 
   }
   
   .key-button.special-key {
     font-weight: bold;
-    background-color: #d9eafc; /* สีฟ้าอ่อนพาสเทล */
+    background-color: #d9eafc; 
     grid-column: span 2;
   }
   
   .key-button.shift-key {
-    background-color: #d4d4d4; /* สีเหลืองอ่อนพาสเทล */
+    background-color: #d4d4d4; 
     font-weight: bold;
     grid-column: span 2;
   }
 
   .key-button.shift-keytwo {
-    background-color: #d4d4d4; /* สีเหลืองอ่อนพาสเทล */
+    background-color: #d4d4d4; 
     font-weight: bold;
     grid-column: span 2;
   }
@@ -127,21 +127,21 @@
   
   
   .key-button.confirm-key {
-    background-color: #d4f8d4; /* สีเขียวอ่อนพาสเทล */
+    background-color: #d4f8d4;
     font-weight: bold;
     grid-column: span 5;
   }
 
   .key-button.clear-key {
-    background-color: #ff9028; /* สีเขียวอ่อนพาสเทล */
+    background-color: #ff9028;
     font-weight: bold;
     grid-column: span 2;
     
   }
   
   .key-button.alert-key {
-    background-color: #fdffb8; /* สีส้มอ่อนพาสเทล */
-    color: #eb3300; /* สีตัวอักษรที่เข้ากับสีส้ม */
+    background-color: #fdffb8; 
+    color: #eb3300; 
     font-weight: bold;
     grid-column: span 2;
   }
@@ -154,8 +154,8 @@
   }
   
   .key-button.delete-key {
-    background-color: #ffc9c9; /* สีแดงอ่อนพาสเทล */
-    color: #990000; /* สีตัวอักษรแดงเข้ม */
+    background-color: #ffc9c9;
+    color: #990000; 
     font-weight: bold;
     grid-column: span 2;
   }
@@ -164,24 +164,24 @@
   .key-button.delete-key.highlighted,
   .key-button.clear-key.highlighted,
   .key-button.alert-key.highlighted {
-    background-color: #4285f4 !important; /* เปลี่ยนพื้นหลังเป็นสีขาว */
-    color: rgb(255, 255, 255) !important; /* เปลี่ยนสีตัวอักษรเป็นสีดำ */
-    border-color: #ccc !important; /* เส้นขอบสีเทา */
+    background-color: #4285f4 !important; 
+    color: rgb(255, 255, 255) !important; 
+    border-color: #ccc !important; 
   }
   .key-button.delete-key.highlighted img {
-    filter: invert(1); /* เปลี่ยนสีของไอคอนเป็นขาว */
+    filter: invert(1); 
   }
   .key-button.clear-key.highlighted img {
-    filter: invert(1); /* เปลี่ยนสีของไอคอนเป็นขาว */
+    filter: invert(1); 
   }
 
   .key-button.alert-key.highlighted img {
-    filter: invert(1); /* เปลี่ยนสีของไอคอนเป็นขาว */
+    filter: invert(1); 
   }
 
   
   .key-button:hover {
-    background-color: #f0f0f0; /* สีเทาอ่อนเมื่อ hover */
+    background-color: #f0f0f0;
   }
   
   .key-button.highlighted {
@@ -228,21 +228,18 @@
   }
 
 
-  
-  
-  /* Media Queries for small screens */
   @media screen and (max-width: 768px) {
     .key-button {
-      font-size: 16px; /* ปรับขนาดฟอนต์ให้เล็กลงบนมือถือ */
+      font-size: 16px; 
       padding: 12px;
     }
     
     .prediction-button {
-      font-size: 12px; /* ปรับขนาดฟอนต์ของคำแนะนำให้เล็กลง */
+      font-size: 12px; 
       padding: 12px;
     }
   
     .keyboard-row {
-      grid-template-columns: repeat(5, 1fr); /* ใช้ 5 คอลัมน์สำหรับหน้าจอเล็ก */
+      grid-template-columns: repeat(5, 1fr); 
     }
   }

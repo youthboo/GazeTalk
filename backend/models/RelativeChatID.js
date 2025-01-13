@@ -42,5 +42,4 @@ const RelativeChatID = sequelize.define('Relative_ChatID', {
   timestamps: false,
 });
 
-// Export model
 module.exports = RelativeChatID;

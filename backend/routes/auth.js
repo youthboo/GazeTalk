@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const moment = require('moment'); // ใช้ moment สำหรับคำนวณอายุ
 const nodemailer = require('nodemailer');
-const crypto = require('crypto'); // ใช้สำหรับสร้าง token
+const crypto = require('crypto'); 
 const Patient = require('../models/Users');
 const Admin = require('../models/Admin');
 require('dotenv').config(); 
@@ -45,7 +45,6 @@ router.post('/signup', async (req, res) => {
             return res.status(400).json({ message: 'Username or email already exists' });
         }
 
-        // เข้ารหัสรหัสผ่าน
         const hashedPassword = await bcrypt.hash(password, 10);
 
         if (userType === 'personnel') {
@@ -55,7 +54,7 @@ router.post('/signup', async (req, res) => {
             }
             await Admin.create({
                 username,
-                email, // เพิ่ม email
+                email, 
                 password: hashedPassword,
                 code,
             });
@@ -67,7 +66,7 @@ router.post('/signup', async (req, res) => {
             }
             await Patient.create({
                 username,
-                email, // เพิ่ม email
+                email, 
                 password: hashedPassword,
                 dateOfBirth,
                 gender,

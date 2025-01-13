@@ -5,13 +5,12 @@ import re
 from pythainlp import word_tokenize
 from collections import defaultdict
 from typing import List, Dict, Tuple
+from pathlib import Path
 
 app = Flask(__name__)
 
-# เปิดใช้งาน CORS สำหรับทุกเส้นทาง
 CORS(app)
 
-# คลาสสำหรับโมเดลทำนายคำ
 class ThaiPredictiveText:
     def __init__(self):
         self.word_transitions: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -51,7 +50,6 @@ class ThaiPredictiveText:
         if not candidates:
             return []
 
-        # คำนวณความน่าจะเป็น
         total_candidates = sum(candidates.values())
         predictions = [(word, count / total_candidates) for word, count in candidates.items()]
         predictions.sort(key=lambda x: x[1], reverse=True)
@@ -64,13 +62,10 @@ def load_model_from_json(file_path: str) -> ThaiPredictiveText:
             data = json.load(file)
         loaded_model = ThaiPredictiveText()
 
-        # แปลงข้อมูล word_transitions
         loaded_model.word_transitions = {k: defaultdict(int, v) for k, v in data.get("word_transitions", {}).items()}
 
-        # แปลงข้อมูล word_frequencies
         loaded_model.word_frequencies = defaultdict(int, data.get("word_frequencies", {}))
 
-        # คำนวณ total_words
         loaded_model.total_words = sum(loaded_model.word_frequencies.values())
         return loaded_model
     except Exception as e:
@@ -78,8 +73,10 @@ def load_model_from_json(file_path: str) -> ThaiPredictiveText:
         raise
 
 # โหลดโมเดลเมื่อเริ่มต้น
-model_path = "/Users/aqwerrrx/Desktop/clone/model_text/model_partial10p.json"
-model = load_model_from_json(model_path)
+current_dir = Path(__file__).resolve().parent
+model_path = current_dir / "model_partial10p.json"
+
+model = load_model_from_json(str(model_path))
 
 @app.route('/predict', methods=['POST'])
 def predict():

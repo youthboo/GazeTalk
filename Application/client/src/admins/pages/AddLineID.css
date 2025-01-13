@@ -23,7 +23,7 @@
 }
 
 .ant-modal {
-  z-index: 1050 !important; /* เพิ่ม z-index */
+  z-index: 1050 !important;
 }
 
 /* Title Styling */

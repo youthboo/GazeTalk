@@ -26,7 +26,7 @@ const App = () => {
       setIsLoggedIn(true);
       setUserRole(isAdmin ? 'admin' : 'patient');
       if (isAdmin) {
-        setAdminCode(adminCodeFromStorage); // ดึง adminCode จาก localStorage
+        setAdminCode(adminCodeFromStorage); 
       }
     }
   }, []);

@@ -4,20 +4,16 @@ import cv2
 import time
 from flask_cors import CORS
 
-# สร้างแอป Flask
 app = Flask(__name__)
-CORS(app)  # เปิดใช้งาน CORS
+CORS(app)  
 
-# สร้างออบเจกต์ GazeTracking
 gaze = GazeTracking()
 webcam = cv2.VideoCapture(0)
 
-# ตัวแปรสำหรับการตรวจจับ double blink
 blink_count = 0
 last_blink_time = 0
-DOUBLE_BLINK_THRESHOLD = 1  # วินาที
-BLINKING_RATIO_THRESHOLD = 4.5  # เกณฑ์สำหรับการกระพริบตา
-
+DOUBLE_BLINK_THRESHOLD = 1  
+BLINKING_RATIO_THRESHOLD = 4.5  
 
 @app.route('/gaze', methods=['GET'])
 def get_gaze_data():
@@ -34,10 +30,8 @@ def get_gaze_data():
                 "error": "Unable to access webcam. Please check the camera connection."
             }), 500
 
-        # ประมวลผลด้วย GazeTracking
         gaze.refresh(frame)
 
-        # ค่าเริ่มต้น
         gaze_direction = "center"
         blink_detected = False
 

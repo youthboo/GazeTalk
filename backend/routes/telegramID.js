@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-// ดึง token จาก .env
 const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
 const telegramApiUrl = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
 
-// ฟังก์ชันเพื่อส่ง Telegram ID กลับไปยังผู้ใช้
+// ส่ง Telegram ID กลับไปยังผู้ใช้
 const getUserID = async (chatId) => {
   try {
     const message = 'Your Telegram ID is: ' + chatId;
@@ -21,14 +20,15 @@ const getUserID = async (chatId) => {
 
 // รับ webhook จาก Telegram
 router.post('/telegram-webhook', (req, res) => {
+  
     const chatId = req.body.message.chat.id;
-    const text = req.body.message.text; // ดึงข้อความที่ส่งมา
+    const text = req.body.message.text; 
   
     if (text === '/start') {
-      getUserID(chatId);  // ส่ง Telegram ID กลับไปหาผู้ใช้
+      getUserID(chatId);  
     }
   
-    res.sendStatus(200);  // ตอบกลับสถานะ HTTP 200 OK
+    res.sendStatus(200);  
   });
   
 
