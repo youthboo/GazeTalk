@@ -12,7 +12,7 @@
 
 .signup_form_container {
     width: 1100px;
-    height: 700px;
+    height: 750px;
     display: flex;
     border-radius: 10px;
     box-shadow: 0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
@@ -33,6 +33,19 @@
     color: white;
     font-size: 35px;
     margin-bottom: 20px;
+}
+
+.left h1:hover {
+    transform: scale(1.05); /* ขยายเล็กน้อย */
+    transition: transform 0.3s ease-in-out; /* เพิ่ม transition */
+}
+
+.logologin {
+    width: 100px; 
+    height: auto; /* คงอัตราส่วนเดิม */
+    display: block; 
+    margin-left: auto; 
+    margin-right: auto;
 }
 
 .right {
@@ -60,7 +73,7 @@
 .user_type_container {
     display: flex;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: -20px;
 }
 
 .user_type_btn {

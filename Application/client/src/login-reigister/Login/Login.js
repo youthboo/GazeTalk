@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Login.module.css';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import Icon from "../../admins/assets/images/hospital.png"
 
 const Login = ({ onLogin }) => {
     const [loading, setLoading] = useState(false);
@@ -107,7 +108,8 @@ const Login = ({ onLogin }) => {
                     </Form>
                 </div>
                 <div className={styles.right}>
-                    <h1>New Here?</h1>
+                    <img src={Icon} alt="Hospital Logo" className={styles.logologin} />
+                    <h1>Get Started!</h1>
                     <Link to="/signup">
                         <Button className={styles.white_btn}>Sign Up</Button>
                     </Link>

@@ -3,6 +3,8 @@ import { Form, Input, Button, Select, Checkbox, DatePicker, message } from 'antd
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import axios from 'axios';
+import Icon from "../../admins/assets/images/hospital.png"
+
 
 const { Option } = Select;
 
@@ -54,7 +56,9 @@ const Signup = () => {
         <div className={styles.signup_container}>
             <div className={styles.signup_form_container}>
                 <div className={styles.left}>
+                    <img src={Icon} alt="Hospital Logo" className={styles.logologin} />
                     <h1>Welcome Back</h1>
+                    
                     <Link to="/login">
                         <Button type="default" className={styles.white_btn}>
                             Sign in

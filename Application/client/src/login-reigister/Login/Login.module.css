@@ -12,7 +12,7 @@
 
 .login_form_container {
     width: 1100px;
-    height: 700px;
+    height: 750px;
     display: flex;
     border-radius: 10px;
     box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
@@ -32,6 +32,20 @@
 .form_container h1 {
     font-size: 36px;
     margin-bottom: 20px;
+}
+
+.right h1:hover {
+    transform: scale(1.05); /* ขยายเล็กน้อย */
+    transition: transform 0.3s ease-in-out; /* เพิ่ม transition */
+}
+
+/* ปรับสไตล์ของโลโก้ */
+.logologin {
+    width: 100px; /* กำหนดขนาดของโลโก้ */
+    height: auto; 
+    display: block; /* จัดให้อยู่กึ่งกลาง */
+    margin-left: auto; 
+    margin-right: auto;
 }
 
 .forgot_password {
@@ -82,3 +96,4 @@
     font-weight: bold;
     cursor: pointer;
 }
+
