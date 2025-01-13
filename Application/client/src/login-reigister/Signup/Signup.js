@@ -8,7 +8,7 @@ const { Option } = Select;
 
 const Signup = () => {
     const [loading, setLoading] = useState(false);
-    const [userType, setUserType] = useState('patient'); // เก็บสถานะประเภทผู้ใช้
+    const [userType, setUserType] = useState('patient'); 
     const navigate = useNavigate();
 
     const onFinish = async (values) => {
@@ -36,7 +36,7 @@ const Signup = () => {
                 ...(userType === 'patient' && { gender, dateOfBirth: dateOfBirth.format('YYYY-MM-DD') }),
             };
 
-            await axios.post('http://localhost:3008/api/auth/signup', payload);
+            await axios.post('https://b60c-49-49-243-112.ngrok-free.app/api/auth/signup', payload);
             message.success('Signup successful!');
             navigate('/login');
         } catch (error) {

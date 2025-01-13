@@ -77,7 +77,6 @@ router.post('/relative-chat', async (req, res) => {
   }
 });
 
-
 // ลบข้อมูลญาติผู้ป่วยตาม telegramID
 router.delete('/relative/:telegramID', async (req, res) => {
   const { telegramID } = req.params;

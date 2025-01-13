@@ -8,7 +8,6 @@ from typing import List, Dict, Tuple
 from pathlib import Path
 
 app = Flask(__name__)
-
 CORS(app)
 
 class ThaiPredictiveText:
