@@ -73,7 +73,7 @@ def load_model_from_json(file_path: str) -> ThaiPredictiveText:
 
 # โหลดโมเดลเมื่อเริ่มต้น
 current_dir = Path(__file__).resolve().parent
-model_path = current_dir / "model_partial10p.json"
+model_path = current_dir / "model_med_pack.json"
 
 model = load_model_from_json(str(model_path))
 

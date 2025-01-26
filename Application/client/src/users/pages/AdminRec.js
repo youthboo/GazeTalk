@@ -1,147 +1,120 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import logo from "../assets/hospital.png";
 import Swal from "sweetalert2";
 import './BasicPage.css';
 import bellIcon from "../assets/bell.png";
 import deleteIcon from "../assets/delete.png";
+import VideoFeed from "../components/VideoFeed";
 import { GuideIcon, LogoutIcon } from "../components/HeaderIcons";
 
 const AdminRec = () => {
-  const videoRef = useRef(null);
-  const [stream, setStream] = useState(null);
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const [recommendedWords, setRecommendedWords] = useState([]); 
+  const [recommendedWords, setRecommendedWords] = useState([]);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const startWebcam = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-        setStream(stream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error("Error accessing webcam:", err);
-      }
-    };
-
-    startWebcam();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
-    // eslint-disable-next-line
-  }, []);
 
   useEffect(() => {
     const fetchRecommendedWords = async () => {
       try {
-        const patientGender = sessionStorage.getItem('patient_gender'); 
-        const patientAgeRange = sessionStorage.getItem('patient_age_range'); 
-  
+        const patientGender = sessionStorage.getItem('patient_gender');
+        const patientAgeRange = sessionStorage.getItem('patient_age_range');
+
         console.log('Fetching words with:', patientGender, patientAgeRange);
-  
+
         const response = await fetch(
           `http://localhost:3008/api/words?gender=${patientGender}&ageRange=${patientAgeRange}`
         );
-  
+
         if (!response.ok) {
           throw new Error('Error fetching words');
         }
-  
+
         const data = await response.json();
-        console.log('Fetched words:', data.words); 
+        console.log('Fetched words:', data.words);
         setRecommendedWords(data.words);
       } catch (error) {
         console.error('Error fetching recommended words:', error.message);
       }
     };
-  
+
     fetchRecommendedWords();
   }, []);
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-        return;
+      return;
     }
 
     const patient_id = sessionStorage.getItem('patient_id');
-    
+
     if (!patient_id) {
-        Swal.fire({
-            title: "เกิดข้อผิดพลาด!",
-            text: "ไม่พบข้อมูลผู้ป่วย กรุณาเข้าสู่ระบบใหม่",
-            icon: "error",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
-        return;
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่พบข้อมูลผู้ป่วย กรุณาเข้าสู่ระบบใหม่",
+        icon: "error",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return;
     }
 
     try {
-        // บันทึกข้อความลง DB
-        const dbResponse = await fetch('http://localhost:3008/api/messages/send-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                text: inputText,
-                patient_id 
-            }),
-        });
+      // บันทึกข้อความลง DB
+      const dbResponse = await fetch('http://localhost:3008/api/messages/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: inputText,
+          patient_id
+        }),
+      });
 
-        if (!dbResponse.ok) {
-            throw new Error('Failed to save message to database');
-        }
+      if (!dbResponse.ok) {
+        throw new Error('Failed to save message to database');
+      }
 
-        // ส่งข้อความไป Telegram
-        const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                message: inputText
-            }),
-        });
+      // ส่งข้อความไป Telegram
+      const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputText
+        }),
+      });
 
-        if (!telegramResponse.ok) {
-            throw new Error('Failed to send message to Telegram');
-        }
+      if (!telegramResponse.ok) {
+        throw new Error('Failed to send message to Telegram');
+      }
 
-        Swal.fire({
-            title: "ส่งข้อความสำเร็จ!",
-            text: `ข้อความที่ส่ง: ${inputText}`,
-            icon: "success",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
+      Swal.fire({
+        title: "ส่งข้อความสำเร็จ!",
+        text: `ข้อความที่ส่ง: ${inputText}`,
+        icon: "success",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
 
-        setInputText(""); 
+      setInputText("");
 
     } catch (error) {
-        console.error('Error sending message:', error);
-        Swal.fire({
-            title: "เกิดข้อผิดพลาด!",
-            text: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
-            icon: "error",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
+      console.error('Error sending message:', error);
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
+        icon: "error",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
-}, [inputText]);
+  }, [inputText]);
 
   const handleKeyInput = useCallback(
     (phrase) => {
@@ -212,7 +185,7 @@ const AdminRec = () => {
       </div>
 
       <div className="webcam-container">
-        <video ref={videoRef} autoPlay playsInline className="webcam-video" />
+        <VideoFeed width="100%" borderRadius="10px" />
       </div>
 
       <div className="header-logo">
@@ -231,17 +204,17 @@ const AdminRec = () => {
 
       <div className="keyboard">
         <div className="keyboard-row" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
-        <button
-          className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
-          onClick={() => handleKeyInput("กลับ")}
-          style={{ padding: "20px" }} // ลบ fontSize ออกถ้าไม่ใช้
-        >
-          <img 
-            src={require('../assets/back.png')} // ใส่ path ของไฟล์ back.png
-            alt="Back" 
-            style={{ width: "40px", height: "40px" }} // กำหนดขนาดของรูปภาพ
-          />
-        </button>
+          <button
+            className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
+            onClick={() => handleKeyInput("กลับ")}
+            style={{ padding: "20px" }} // ลบ fontSize ออกถ้าไม่ใช้
+          >
+            <img
+              src={require('../assets/back.png')} // ใส่ path ของไฟล์ back.png
+              alt="Back"
+              style={{ width: "40px", height: "40px" }} // กำหนดขนาดของรูปภาพ
+            />
+          </button>
           {recommendedWords.map((word, index) => (
             <button
               key={index}

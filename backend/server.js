@@ -20,6 +20,8 @@ app.use(cors({
     origin: '*',  
     credentials: true
 }));
+app.options('*', cors()); // เปิดใช้งาน CORS สำหรับ preflight requests
+
 app.use(express.json());
 
 // Routes

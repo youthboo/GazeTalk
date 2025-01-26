@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  frontend:
+    build:
+      context: ./Application/client
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Application/client:/app
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - FLASK_ENV=development
+
+
+  gazetracking:
+    build:
+      context: ./GazeTracking
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./GazeTracking:/app
+    environment:
+      - PYTHONUNBUFFERED=1

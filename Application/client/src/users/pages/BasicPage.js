@@ -1,44 +1,18 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import logo from "../assets/hospital.png";
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
 import Swal from "sweetalert2";
 import './BasicPage.css';
+import VideoFeed from "../components/VideoFeed";
 import { GuideIcon, LogoutIcon } from "../components/HeaderIcons";
 
 const BasicPage = () => {
-  const videoRef = useRef(null);
-  const [stream, setStream] = useState(null);
+
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const startWebcam = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false
-        });
-        setStream(stream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error("Error accessing webcam:", err);
-      }
-    };
-
-    startWebcam();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-    // eslint-disable-next-line
-  }, []);
 
   const commonPhrases = [
     "ใช่",
@@ -71,70 +45,70 @@ const BasicPage = () => {
     "ปวดท้อง": require("../assets/stomatch.png"),
     "ปวดหัว": require("../assets/headache.png"),
     "อยากฟังเพลง": require("../assets/music.png"),
-    
+
   };
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-        return; // ไม่ทำอะไรถ้าข้อความว่าง
+      return; // ไม่ทำอะไรถ้าข้อความว่าง
     }
-  
+
     const patient_id = sessionStorage.getItem('patient_id');
-    
+
     if (!patient_id) {
-        Swal.fire({
-            title: "เกิดข้อผิดพลาด!",
-            text: "ไม่พบข้อมูลผู้ป่วย กรุณาเข้าสู่ระบบใหม่",
-            icon: "error",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
-        return;
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่พบข้อมูลผู้ป่วย กรุณาเข้าสู่ระบบใหม่",
+        icon: "error",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return;
     }
-  
+
     const isEmergency = inputText.includes("แจ้งเตือนฉุกเฉิน");
-  
+
     try {
-        const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                message: inputText,
-                isEmergency 
-            }),
-        });
-  
-        if (!telegramResponse.ok) {
-            throw new Error('Failed to send message to Telegram');
-        }
-  
-        Swal.fire({
-            title: "ส่งข้อความสำเร็จ!",
-            text: `ข้อความที่ส่ง: ${inputText}`,
-            icon: "success",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
-  
-        setInputText(""); // ล้างข้อความหลังจากส่ง
-  
+      const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputText,
+          isEmergency
+        }),
+      });
+
+      if (!telegramResponse.ok) {
+        throw new Error('Failed to send message to Telegram');
+      }
+
+      Swal.fire({
+        title: "ส่งข้อความสำเร็จ!",
+        text: `ข้อความที่ส่ง: ${inputText}`,
+        icon: "success",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+
+      setInputText(""); // ล้างข้อความหลังจากส่ง
+
     } catch (error) {
-        console.error('Error sending message:', error);
-        Swal.fire({
-            title: "เกิดข้อผิดพลาด!",
-            text: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
-            icon: "error",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
+      console.error('Error sending message:', error);
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
+        icon: "error",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
   }, [inputText]);
-  
+
 
   const handleKeyInput = useCallback((phrase) => {
     switch (phrase) {
@@ -150,8 +124,8 @@ const BasicPage = () => {
       case "Advance":
         navigate("/advance");
         break;
-      case "อื่นๆ": 
-        navigate("/admin-rec"); 
+      case "อื่นๆ":
+        navigate("/admin-rec");
         break;
       default:
         setInputText(phrase);
@@ -200,21 +174,16 @@ const BasicPage = () => {
   return (
     <div className="basic-page">
       <div className="header-icons">
-      
-      <div className="header-icons">
-        <GuideIcon />
-        <LogoutIcon />
-      </div>
-      
+
+        <div className="header-icons">
+          <GuideIcon />
+          <LogoutIcon />
+        </div>
+
       </div>
 
       <div className="webcam-container">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="webcam-video"
-        />
+        <VideoFeed width="100%" borderRadius="10px" />
       </div>
 
       <div className="header-logo">
@@ -232,65 +201,64 @@ const BasicPage = () => {
       </div>
 
       <div className="keyboard">
-      <div className="keyboard">
-        {/* ปรับให้แถวหลักเป็น 5 คอลัมน์ */}
-        <div className="keyboard-row" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-        <button
-          className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
-          onClick={() => handleKeyInput("Advance")}
-          style={{ fontSize: '24px', padding: '20px' }}
-        >
-          Advance
-        </button>
-        {commonPhrases.map((phrase, index) => (
-          <button
-            key={index}
-            className={`key-button ${
-              phrase === "อื่นๆ"
-                ? `special-key ${highlightedIndex === index + 1 ? "highlighted" : ""}` // ใช้ className เฉพาะ
-                : `${highlightedIndex === index + 1 ? "highlighted" : ""}`
-            }`}
-            onClick={() => handleKeyInput(phrase)}
-            style={{ fontSize: '24px', padding: '20px' }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {imageMap[phrase] ? (
-                <img
-                  src={imageMap[phrase]}
-                  alt={phrase}
-                  className="button-image"
-                  style={{ width: '80%', height: 'auto', objectFit: 'contain' }}
-                />
-              ) : null}
-              <span style={{ marginTop: '10px', fontSize: '18px', color: '#333' }}>{phrase}</span>
-            </div>
-          </button>
-        ))}
-      </div>
+        <div className="keyboard">
+          {/* ปรับให้แถวหลักเป็น 5 คอลัมน์ */}
+          <div className="keyboard-row" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+            <button
+              className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
+              onClick={() => handleKeyInput("Advance")}
+              style={{ fontSize: '24px', padding: '20px' }}
+            >
+              Advance
+            </button>
+            {commonPhrases.map((phrase, index) => (
+              <button
+                key={index}
+                className={`key-button ${phrase === "อื่นๆ"
+                    ? `special-key ${highlightedIndex === index + 1 ? "highlighted" : ""}` // ใช้ className เฉพาะ
+                    : `${highlightedIndex === index + 1 ? "highlighted" : ""}`
+                  }`}
+                onClick={() => handleKeyInput(phrase)}
+                style={{ fontSize: '24px', padding: '20px' }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  {imageMap[phrase] ? (
+                    <img
+                      src={imageMap[phrase]}
+                      alt={phrase}
+                      className="button-image"
+                      style={{ width: '80%', height: 'auto', objectFit: 'contain' }}
+                    />
+                  ) : null}
+                  <span style={{ marginTop: '10px', fontSize: '18px', color: '#333' }}>{phrase}</span>
+                </div>
+              </button>
+            ))}
+          </div>
 
 
-        {/* ปรับแถวล่างให้กระจายตามจำนวนปุ่ม */}
-        <div className="keyboard-bottom" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-          <button
-            className={`key-button delete-key ${highlightedIndex === commonPhrases.length + 1 ? "highlighted" : ""}`}
-            onClick={() => handleKeyInput("ลบ")}
-          >
-            <img src={deleteIcon} alt="Delete" className="icon-image" />
-          </button>
-          <button
-            className={`key-button confirm-key ${highlightedIndex === commonPhrases.length + 2 ? "highlighted" : ""}`}
-            onClick={() => handleKeyInput("ตกลง")}
-          >
-            ตกลง
-          </button>
-          <button
-            className={`key-button alert-key ${highlightedIndex === commonPhrases.length + 3 ? "highlighted" : ""}`}
-            onClick={() => handleKeyInput("Alert")}
-          >
-            <img src={bellIcon} alt="Alert" className="icon-image" />
-          </button>
+          {/* ปรับแถวล่างให้กระจายตามจำนวนปุ่ม */}
+          <div className="keyboard-bottom" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+            <button
+              className={`key-button delete-key ${highlightedIndex === commonPhrases.length + 1 ? "highlighted" : ""}`}
+              onClick={() => handleKeyInput("ลบ")}
+            >
+              <img src={deleteIcon} alt="Delete" className="icon-image" />
+            </button>
+            <button
+              className={`key-button confirm-key ${highlightedIndex === commonPhrases.length + 2 ? "highlighted" : ""}`}
+              onClick={() => handleKeyInput("ตกลง")}
+            >
+              ตกลง
+            </button>
+            <button
+              className={`key-button alert-key ${highlightedIndex === commonPhrases.length + 3 ? "highlighted" : ""}`}
+              onClick={() => handleKeyInput("Alert")}
+            >
+              <img src={bellIcon} alt="Alert" className="icon-image" />
+            </button>
+          </div>
         </div>
-      </div>
 
       </div>
     </div>

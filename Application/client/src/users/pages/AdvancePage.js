@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import logo from "../assets/hospital.png";
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
@@ -6,11 +6,10 @@ import bin from "../assets/trash.png";
 import "./AdvancePage.css";
 import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
+import VideoFeed from "../components/VideoFeed";
 import { GuideIcon, LogoutIcon } from "../components/HeaderIcons";
 
 const AdvancePage = () => {
-  const videoRef = useRef(null);
-  const [stream, setStream] = useState(null);
   const [isShifted, setIsShifted] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [suggestHighlightedIndex, setSuggestHighlightedIndex] = useState(0);
@@ -18,32 +17,6 @@ const AdvancePage = () => {
   const [predictedWords, setPredictedWords] = useState([]);
   const [showCloseButton, setShowCloseButton] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const startWebcam = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true,
-          audio: false
-        });
-        setStream(stream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error("Error accessing webcam:", err);
-      }
-    };
-
-    startWebcam();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-    // eslint-disable-next-line
-  }, []);
 
   const consonants = useMemo(
     () => [
@@ -68,7 +41,7 @@ const AdvancePage = () => {
       setPredictedWords([]);
       return;
     }
-  
+
     try {
       const response = await fetch("http://localhost:5009/predict", {
         method: "POST",
@@ -87,7 +60,7 @@ const AdvancePage = () => {
       console.error("Error fetching predictions:", error);
     }
   };
-  
+
 
   const handleShift = useCallback(() => {
     setIsShifted(prev => !prev);
@@ -104,78 +77,78 @@ const AdvancePage = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-        return; // ไม่ทำอะไรถ้าข้อความว่าง
+      return; // ไม่ทำอะไรถ้าข้อความว่าง
     }
 
     const patient_id = sessionStorage.getItem('patient_id');
-    
+
     if (!patient_id) {
-        Swal.fire({
-            title: "เกิดข้อผิดพลาด!",
-            text: "ไม่พบข้อมูลผู้ป่วย กรุณาเข้าสู่ระบบใหม่",
-            icon: "error",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
-        return;
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่พบข้อมูลผู้ป่วย กรุณาเข้าสู่ระบบใหม่",
+        icon: "error",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return;
     }
 
     try {
-        // บันทึกข้อความลง DB
-        const dbResponse = await fetch('http://localhost:3008/api/messages/send-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                text: inputText,
-                patient_id 
-            }),
-        });
+      // บันทึกข้อความลง DB
+      const dbResponse = await fetch('http://localhost:3008/api/messages/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: inputText,
+          patient_id
+        }),
+      });
 
-        if (!dbResponse.ok) {
-            throw new Error('Failed to save message to database');
-        }
+      if (!dbResponse.ok) {
+        throw new Error('Failed to save message to database');
+      }
 
-        // ส่งข้อความไป Telegram
-        const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                message: inputText
-            }),
-        });
+      // ส่งข้อความไป Telegram
+      const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputText
+        }),
+      });
 
-        if (!telegramResponse.ok) {
-            throw new Error('Failed to send message to Telegram');
-        }
+      if (!telegramResponse.ok) {
+        throw new Error('Failed to send message to Telegram');
+      }
 
-        Swal.fire({
-            title: "ส่งข้อความสำเร็จ!",
-            text: `ข้อความที่ส่ง: ${inputText}`,
-            icon: "success",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
+      Swal.fire({
+        title: "ส่งข้อความสำเร็จ!",
+        text: `ข้อความที่ส่ง: ${inputText}`,
+        icon: "success",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
 
-        setInputText("");
+      setInputText("");
     } catch (error) {
-        console.error('Error sending message:', error);
-        Swal.fire({
-            title: "เกิดข้อผิดพลาด!",
-            text: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
-            icon: "error",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
+      console.error('Error sending message:', error);
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
+        icon: "error",
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
-}, [inputText]);
-  
+  }, [inputText]);
+
 
   const handleAlert = useCallback(() => {
     navigate("/alert", { state: { returnTo: "/advance" } });
@@ -212,7 +185,7 @@ const AdvancePage = () => {
     const currentSet = isShifted ? vowelsAndTones : consonants;
     return {
       row1: ["Basic", ...currentSet.slice(0, 7), "ลบ"],
-      row2: [...currentSet.slice(7, 16),"Shift"],
+      row2: [...currentSet.slice(7, 16), "Shift"],
       row3: currentSet.slice(16, 27),
       row4: currentSet.slice(27, 38),
 
@@ -226,7 +199,7 @@ const AdvancePage = () => {
     // eslint-disable-next-line
     const allKeys = Object.values(keyboardLayout).flat();
 
-    switch(key) {
+    switch (key) {
       case "Shift":
         handleShift();
         break;
@@ -262,7 +235,7 @@ const AdvancePage = () => {
         .then((data) => {
           const { direction, double_blink } = data;
           const allKeys = Object.values(keyboardLayout).flat();
-  
+
           if (predictedWords.length > 0) {
             if (direction === "right") {
               setSuggestHighlightedIndex(
@@ -274,7 +247,7 @@ const AdvancePage = () => {
                   prevIndex === 0 ? predictedWords.length : prevIndex - 1
               );
             }
-  
+
             if (double_blink) {
               if (suggestHighlightedIndex === predictedWords.length) {
                 handleClosePredictions();
@@ -290,7 +263,7 @@ const AdvancePage = () => {
                 prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
               );
             }
-  
+
             if (double_blink) {
               handleKeyInput(allKeys[highlightedIndex]);
             }
@@ -298,26 +271,20 @@ const AdvancePage = () => {
         })
         .catch((error) => console.error("Error fetching gaze data:", error));
     }, 500);
-  
+
     return () => clearInterval(interval);
   }, [keyboardLayout, predictedWords, highlightedIndex, suggestHighlightedIndex, handlePredictionClick, handleKeyInput, handleClosePredictions]);
 
 
   return (
     <div className="advance-page">
-      {/* ใช้ GuideIcon และ LogoutIcon */}
       <div className="header-icons">
         <GuideIcon />
         <LogoutIcon />
       </div>
 
       <div className="webcam-container">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="webcam-video"
-        />
+        <VideoFeed width="100%" borderRadius="10px" />
       </div>
 
       <div className="header-logo">
@@ -334,25 +301,21 @@ const AdvancePage = () => {
         />
       </div>
 
-      {predictedWords.length > 0 && showCloseButton && (
-        <div className="prediction-buttons">
-          {predictedWords.slice(0, 3).map((word, index) => (
-            <button
-              key={index}
-              className={`prediction-button ${index === suggestHighlightedIndex ? "highlighted" : ""}`}
-              onClick={() => handlePredictionClick(word)}
-            >
-              {word || " "}
-            </button>
-          ))}
+      <div className="prediction-buttons">
+        {Array.from({ length: 4 }, (_, index) => (
           <button
-            className={`prediction-button close-button ${suggestHighlightedIndex === predictedWords.length ? "highlighted" : ""}`}
-            onClick={handleClosePredictions}
+            key={index}
+            className={`prediction-button ${(index === 3 && suggestHighlightedIndex === 3) ||
+                (index !== 3 && predictedWords[index] && index === suggestHighlightedIndex)
+                ? "highlighted"
+                : ""
+              }`}
+            onClick={() => index === 3 ? handleClosePredictions() : handlePredictionClick(predictedWords[index] || "")}
           >
-            <img src={require("../assets/close.png")} alt="Close" className="icon-image" />
+            {predictedWords[index] !== undefined ? predictedWords[index] : (index === 3 ? "❌" : "")}
           </button>
-        </div>
-      )}
+        ))}
+      </div>
 
       <div className="keyboard">
         <div className="keyboard-row">
@@ -366,36 +329,35 @@ const AdvancePage = () => {
             </button>
           ))}
         </div>
-        
-        {[ keyboardLayout.row2, keyboardLayout.row3, keyboardLayout.row4,].map((row, rowIndex) => (
-        <div key={rowIndex} className="keyboard-row">
+
+        {[keyboardLayout.row2, keyboardLayout.row3, keyboardLayout.row4,].map((row, rowIndex) => (
+          <div key={rowIndex} className="keyboard-row">
             {row.map((key, index) => {
-            const currentIndex = 
+              const currentIndex =
                 keyboardLayout.row1.length +
                 (rowIndex >= 1 ? keyboardLayout.row2.length : 0) +
                 (rowIndex >= 2 ? keyboardLayout.row3.length : 0) +
                 (rowIndex >= 3 ? keyboardLayout.row4.length : 0) +
                 index;
-            return (
+              return (
                 <button
-                key={index}
-                className={`key-button ${
-                  currentIndex === highlightedIndex ? "highlighted" : ""
-                } ${key === "Shift" ? "shift-key" : ""}`} // เพิ่ม className "shift-key"
-                onClick={() => handleKeyInput(key)}
+                  key={index}
+                  className={`key-button ${currentIndex === highlightedIndex ? "highlighted" : ""
+                    } ${key === "Shift" ? "shift-key" : ""}`} // เพิ่ม className "shift-key"
+                  onClick={() => handleKeyInput(key)}
                 >
-                {key}
+                  {key}
                 </button>
-            );
+              );
             })}
-        </div>
+          </div>
         ))}
 
         <div className="keyboard-row">
           {keyboardLayout.row5.map((key, index) => {
-            const currentIndex = index + keyboardLayout.row1.length + 
-              keyboardLayout.row2.length + keyboardLayout.row3.length + 
-              keyboardLayout.row4.length  ;
+            const currentIndex = index + keyboardLayout.row1.length +
+              keyboardLayout.row2.length + keyboardLayout.row3.length +
+              keyboardLayout.row4.length;
             return (
               <button
                 key={index}
@@ -410,25 +372,25 @@ const AdvancePage = () => {
 
         <div className="keyboard-bottom">
           {keyboardLayout.bottomRow.map((key, index) => {
-            const totalPreviousKeys = 
+            const totalPreviousKeys =
               keyboardLayout.row1.length +
               keyboardLayout.row2.length +
               keyboardLayout.row3.length +
               keyboardLayout.row4.length +
-              keyboardLayout.row5.length ;
-            
+              keyboardLayout.row5.length;
+
             const isHighlighted = (index + totalPreviousKeys) === highlightedIndex;
-            
+
             return (
               <button
                 key={index}
                 className={`key-button ${key === "delete" ? "delete-key" : key === "ตกลง" ? "confirm-key" : key === "Clear" ? "clear-key" : key === "Alert" ? "alert-key" : ""} ${isHighlighted ? "highlighted" : ""}`}
                 onClick={() => handleKeyInput(key)}
               >
-                {key === "delete" ? <img src={deleteIcon} alt="Delete" className="icon-image" /> : 
-                key === "Clear" ? <img src={bin} alt="Clear" className="icon-image" /> :
-                 key === "Alert" ? <img src={bellIcon} alt="Alert" className="icon-image" /> : key}
-                 
+                {key === "delete" ? <img src={deleteIcon} alt="Delete" className="icon-image" /> :
+                  key === "Clear" ? <img src={bin} alt="Clear" className="icon-image" /> :
+                    key === "Alert" ? <img src={bellIcon} alt="Alert" className="icon-image" /> : key}
+
               </button>
             );
           })}
