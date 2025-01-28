@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
-import logo from "../assets/hospital.png";
 import Swal from "sweetalert2";
 import './BasicPage.css';
 import bellIcon from "../assets/bell.png";
 import deleteIcon from "../assets/delete.png";
 import VideoFeed from "../components/VideoFeed";
-import { GuideIcon, LogoutIcon } from "../components/HeaderIcons";
+import Header from "../components/Header";
+import dingSound from "../assets/pick.mp3";
 
 const AdminRec = () => {
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [recommendedWords, setRecommendedWords] = useState([]);
   const navigate = useNavigate();
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); // ✅ เก็บค่าปุ่มที่ถูกเลือกก่อนหน้า
+  const [isEyeClosed, setIsEyeClosed] = useState(false);
+
 
   useEffect(() => {
     const fetchRecommendedWords = async () => {
@@ -40,6 +43,11 @@ const AdminRec = () => {
 
     fetchRecommendedWords();
   }, []);
+
+  const playDingSound = () => {
+        const audio = new Audio(dingSound);
+        audio.play();
+      };
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
@@ -118,6 +126,7 @@ const AdminRec = () => {
 
   const handleKeyInput = useCallback(
     (phrase) => {
+      playDingSound();
       switch (phrase) {
         case "ลบ":
           setInputText("");
@@ -146,19 +155,25 @@ const AdminRec = () => {
       fetch("http://localhost:5006/gaze")
         .then((response) => response.json())
         .then((data) => {
-          const { direction, double_blink } = data;
-
-          if (direction === "right") {
-            setHighlightedIndex((prevIndex) => (prevIndex + 1) % totalButtons);
-          } else if (direction === "left") {
-            setHighlightedIndex((prevIndex) =>
-              prevIndex === 0 ? totalButtons - 1 : prevIndex - 1
-            );
+          const { direction, double_blink, eye_closed } = data;
+  
+          setIsEyeClosed(eye_closed); // ✅ อัพเดตสถานะการปิดตา
+  
+          if (!eye_closed) { // ✅ ป้องกันการเปลี่ยนตำแหน่งเมื่อหลับตา
+            setHighlightedIndex((prevIndex) => {
+              if (direction === "right") {
+                return (prevIndex + 1) % totalButtons;
+              } else if (direction === "left") {
+                return prevIndex === 0 ? totalButtons - 1 : prevIndex - 1;
+              }
+              return prevIndex;
+            });
           }
-
-          if (double_blink) {
+  
+          if (double_blink && highlightedIndex !== lastSelectedIndex) { 
+            setLastSelectedIndex(highlightedIndex); // ✅ อัปเดตค่า index ที่ถูกเลือกล่าสุด
             if (highlightedIndex === 0) {
-              handleKeyInput("กลับ");
+              handleKeyInput("Advance");
             } else if (highlightedIndex <= recommendedWords.length) {
               handleKeyInput(recommendedWords[highlightedIndex - 1]);
             } else if (highlightedIndex === recommendedWords.length + 1) {
@@ -172,25 +187,17 @@ const AdminRec = () => {
         })
         .catch((error) => console.error("Error fetching gaze data:", error));
     }, 500);
-
+  
     return () => clearInterval(interval);
     // eslint-disable-next-line
   }, [highlightedIndex, handleKeyInput, recommendedWords.length]);
+  
 
   return (
     <div className="basic-page">
-      <div className="header-icons">
-        <GuideIcon />
-        <LogoutIcon />
-      </div>
-
+      <Header />
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" />
-      </div>
-
-      <div className="header-logo">
-        <img src={logo} alt="Logo" className="logo-image" />
-        <h1 className="logo-text">GazeTalk</h1>
       </div>
 
       <div className="input-container">

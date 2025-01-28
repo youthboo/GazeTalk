@@ -17,6 +17,7 @@ class GazeTracking(object):
         self.frame = None
         self.eye_left = None
         self.eye_right = None
+        self.eye_closed = False  # เพิ่มตัวแปรเก็บสถานะการปิดตา
         self.calibration = Calibration()
 
         # _face_detector is used to detect faces
@@ -62,6 +63,15 @@ class GazeTracking(object):
         self.frame = frame
         self._analyze()
 
+        # ตรวจสอบว่ามีการตรวจจับดวงตาหรือไม่
+        if self.eye_left is not None and self.eye_right is not None:
+            blinking_left = self.eye_left.blinking or 0.0
+            blinking_right = self.eye_right.blinking or 0.0
+            blinking_ratio = (blinking_left + blinking_right) / 2
+
+            # ตั้งค่าให้ self.eye_closed เป็น True ถ้ากระพริบตาเกิน threshold
+            self.eye_closed = blinking_ratio > 5.5  # 🔹 ปรับค่า threshold ตามต้องการ
+
     def pupil_left_coords(self):
         """Returns the coordinates of the left pupil"""
         if self.pupils_located:
@@ -97,28 +107,25 @@ class GazeTracking(object):
             return (pupil_left + pupil_right) / 2
 
     def is_right(self):
-        """Returns true if the user is looking to the right"""
-        if self.pupils_located:
+        """คืนค่า True ถ้าผู้ใช้มองไปทางขวา"""
+        if self.pupils_located and not self.eye_closed:  # 🔹 หยุดถ้าหลับตา
             return self.horizontal_ratio() <= 0.53
 
     def is_left(self):
-        """Returns true if the user is looking to the left"""
-        if self.pupils_located:
+        """คืนค่า True ถ้าผู้ใช้มองไปทางซ้าย"""
+        if self.pupils_located and not self.eye_closed:  # 🔹 หยุดถ้าหลับตา
             return self.horizontal_ratio() >= 0.70
 
     def is_center(self):
-        """Returns true if the user is looking to the center"""
-        if self.pupils_located:
+        """คืนค่า True ถ้าผู้ใช้มองตรงกลาง"""
+        if self.pupils_located and not self.eye_closed:  # 🔹 หยุดถ้าหลับตา
             horizontal = self.horizontal_ratio()
-            # เพิ่มช่วงสำหรับการพักสายตา
             return 0.53 <= horizontal <= 0.70
 
 
     def is_blinking(self):
-        """Returns true if the user closes his eyes"""
-        if self.pupils_located:
-            blinking_ratio = (self.eye_left.blinking + self.eye_right.blinking) / 2
-            return blinking_ratio > 4.5
+        """คืนค่า True ถ้าผู้ใช้หลับตา"""
+        return self.eye_closed
 
     def annotated_frame(self):
         """Returns the main frame with pupils highlighted"""

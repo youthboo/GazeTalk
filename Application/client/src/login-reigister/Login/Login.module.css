@@ -11,7 +11,7 @@
 }
 
 .login_form_container {
-    width: 1100px;
+    width: 70%;
     height: 750px;
     display: flex;
     border-radius: 10px;

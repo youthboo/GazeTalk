@@ -1,23 +1,51 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
-import { GuideIcon, LogoutIcon } from "../components/HeaderIcons"; 
 import "./AlertPage.css";
+import Header from "../components/Header";
+import dingSound from "../assets/pick.mp3";
 
 const AlertPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [highlightedButton, setHighlightedButton] = useState("ใช่");
-  
-  // เพิ่ม state นี้เพื่อป้องกันการเรียกซ้ำ
   const [isEmergencySent, setIsEmergencySent] = useState(false);
 
-  const handleYesClick = async () => {
-    setIsEmergencySent(true);
+  const playDingSound = () => {
+    const audio = new Audio(dingSound);
+    audio.play();
+  };
 
-    const patient_id = sessionStorage.getItem('patient_id');
-    
+  // ตรวจสอบเวลาการแจ้งเตือนล่าสุดจาก localStorage
+  const canSendEmergencyAlert = () => {
+    const lastSent = localStorage.getItem("lastEmergencySent");
+    if (!lastSent) return true; // ถ้าไม่มีข้อมูล สามารถส่งได้เลย
+
+    const lastSentTime = parseInt(lastSent, 10);
+    const currentTime = Date.now();
+    return currentTime - lastSentTime >= 60000; 
+  };
+
+  const handleYesClick = async () => {
+    if (isEmergencySent) return; // ป้องกันการส่งซ้ำ
+    playDingSound();
+    if (!canSendEmergencyAlert()) {
+      Swal.fire({
+        title: "แจ้งเตือนซ้ำเร็วเกินไป!",
+        text: "กรุณารอ 1 นาที ก่อนแจ้งเตือนอีกครั้ง",
+        icon: "warning",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    setIsEmergencySent(true);
+    localStorage.setItem("lastEmergencySent", Date.now().toString()); // บันทึกเวลาส่งแจ้งเตือน
+
+    const patient_id = sessionStorage.getItem("patient_id");
+
     if (!patient_id) {
       Swal.fire({
         title: "เกิดข้อผิดพลาด!",
@@ -30,25 +58,23 @@ const AlertPage = () => {
     }
 
     try {
-      // ส่งข้อความแจ้งเตือนฉุกเฉินไป Telegram
       const response = await fetch(
-        `http://localhost:3008/api/patients/${patient_id}/send-message`, 
+        `http://localhost:3008/api/patients/${patient_id}/send-message`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ 
-            message: "🚨 แจ้งเตือนฉุกเฉิน: ต้องการความช่วยเหลือด่วน!"
+          body: JSON.stringify({
+            message: "🚨 แจ้งเตือนฉุกเฉิน: ต้องการความช่วยเหลือด่วน!",
           }),
         }
       );
 
       if (!response.ok) {
-        throw new Error('Failed to send emergency alert');
+        throw new Error("Failed to send emergency alert");
       }
 
-      // แสดง success message และ redirect กลับหน้าที่แล้ว
       Swal.fire({
         title: "แจ้งเตือนสำเร็จ!",
         text: "ระบบจะกลับไปยังหน้าก่อนหน้าใน 3 วินาที",
@@ -60,9 +86,8 @@ const AlertPage = () => {
           navigate(returnPath);
         },
       });
-
     } catch (error) {
-      console.error('Error sending emergency alert:', error);
+      console.error("Error sending emergency alert:", error);
       Swal.fire({
         title: "เกิดข้อผิดพลาด!",
         text: "ไม่สามารถส่งการแจ้งเตือนได้ กรุณาลองใหม่อีกครั้ง",
@@ -74,7 +99,7 @@ const AlertPage = () => {
   };
 
   const handleNoClick = () => {
-    // เมื่อคลิกหรือกระพริบตาสองครั้งแล้ว ตัดโอกาสไม่ให้กดซ้ำ
+    if (isEmergencySent) return; // ป้องกันการกดซ้ำ
     setIsEmergencySent(true);
 
     const returnPath = location.state?.returnTo || "/";
@@ -106,15 +131,11 @@ const AlertPage = () => {
     }, 500);
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line
   }, [highlightedButton, isEmergencySent]);
 
   return (
     <div className="alert-page">
-      <div className="header-icons">
-        <GuideIcon />
-        <LogoutIcon />
-      </div>
+      <Header />
 
       <h1>ยืนยันการแจ้งเตือน</h1>
       <p>คุณต้องการส่งการแจ้งเตือนหรือไม่?</p>

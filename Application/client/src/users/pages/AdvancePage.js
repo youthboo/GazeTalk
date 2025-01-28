@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import logo from "../assets/hospital.png";
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
 import bin from "../assets/trash.png";
@@ -7,7 +6,8 @@ import "./AdvancePage.css";
 import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
 import VideoFeed from "../components/VideoFeed";
-import { GuideIcon, LogoutIcon } from "../components/HeaderIcons";
+import Header from "../components/Header";
+import dingSound from "../assets/pick.mp3";
 
 const AdvancePage = () => {
   const [isShifted, setIsShifted] = useState(false);
@@ -17,6 +17,7 @@ const AdvancePage = () => {
   const [predictedWords, setPredictedWords] = useState([]);
   const [showCloseButton, setShowCloseButton] = useState(false);
   const navigate = useNavigate();
+  
 
   const consonants = useMemo(
     () => [
@@ -35,6 +36,11 @@ const AdvancePage = () => {
     ],
     []
   );
+
+  const playDingSound = () => {
+      const audio = new Audio(dingSound);
+      audio.play();
+    };
 
   const fetchPredictions = async (text) => {
     if (!text.trim()) {
@@ -196,6 +202,7 @@ const AdvancePage = () => {
   }, [isShifted, consonants, vowelsAndTones]);
 
   const handleKeyInput = useCallback((key) => {
+    playDingSound();
     // eslint-disable-next-line
     const allKeys = Object.values(keyboardLayout).flat();
 
@@ -278,18 +285,9 @@ const AdvancePage = () => {
 
   return (
     <div className="advance-page">
-      <div className="header-icons">
-        <GuideIcon />
-        <LogoutIcon />
-      </div>
-
+      <Header />
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" />
-      </div>
-
-      <div className="header-logo">
-        <img src={logo} alt="Logo" className="logo-image" />
-        <h1 className="logo-text">GazeTalk</h1>
       </div>
 
       <div className="input-container">

@@ -1,161 +1,165 @@
-from flask import Flask, jsonify, Response
+import logging
+from flask import Flask, jsonify
 from gaze_tracking import GazeTracking
 import cv2
 import time
 import atexit
 from flask_cors import CORS
 import threading
+import numpy as np
+
+# ตั้งค่าการบันทึกล็อก
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
 gaze = GazeTracking()
 
-# ฟังก์ชันตรวจสอบและเปิดใช้งานกล้อง
-def initialize_webcam():
-    """
-    ตรวจสอบและเปิดใช้งานกล้องที่พร้อมใช้งาน
-    """
-    for camera_id in [1, 0]:  
-        webcam = cv2.VideoCapture(camera_id)
-        if webcam.isOpened():
-            print(f"Camera {camera_id} is active.")
-            return webcam
-        webcam.release()
-    print("No cameras available.")
+# ฟังก์ชันตรวจสอบและเปิดใช้งานกล้องอย่างปลอดภัย
+def safe_initialize_webcam():
+    camera_ids = [1, 0, -1]  
+    for camera_id in camera_ids:
+        try:
+            webcam = cv2.VideoCapture(camera_id)
+            webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            webcam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            
+            ret, frame = webcam.read()
+            if ret and frame is not None and frame.size > 0:
+                logger.info(f"Camera {camera_id} initialized successfully.")
+                return webcam
+            
+            webcam.release()
+        except Exception as e:
+            logger.error(f"Failed to initialize camera {camera_id}: {e}")
+    
+    logger.error("No available cameras found.")
     return None
 
-# ฟังก์ชันที่พยายามเปิดกล้องใหม่เมื่อปิด
-def ensure_webcam_running():
-    global webcam
-    while True:
-        if webcam is None or not webcam.isOpened():
-            print("Attempting to reinitialize the webcam...")
-            webcam = initialize_webcam()
-        time.sleep(5)  # ตรวจสอบทุกๆ 5 วินาที
+def safe_read_frame(webcam):
+    try:
+        ret, frame = webcam.read()
+        if not ret or frame is None or frame.size == 0:
+            logger.warning("Frame capture failed, retrying...")
+            return False, None
+        return ret, frame
+    except cv2.error as e:
+        logger.error(f"OpenCV error: {e}")
+        webcam.release()
+        time.sleep(1)
+        webcam = safe_initialize_webcam()
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+    return False, None
 
-webcam = initialize_webcam()  # เริ่มต้นการใช้งานกล้อง
+# โหลด Haar Cascade Classifier สำหรับตรวจจับใบหน้า
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# เริ่ม Thread เพื่อตรวจสอบการเชื่อมต่อกล้อง
-threading.Thread(target=ensure_webcam_running, daemon=True).start()
+def select_nearest_face(faces):
+    """เลือกใบหน้าที่ใกล้ที่สุด"""
+    if len(faces) > 0:
+        return max(faces, key=lambda f: f[2] * f[3])
+    return None
+
+webcam = safe_initialize_webcam()
 
 blink_count = 0
 last_blink_time = 0
 DOUBLE_BLINK_THRESHOLD = 1  
-BLINKING_RATIO_THRESHOLD = 4.5  
-
-@app.route('/video_feed')
-def video_feed():
-    """
-    Endpoint สำหรับแสดงวิดีโอสดจากกล้อง
-    """
-    def generate_frames():
-        while True:
-            if webcam is None or not webcam.isOpened():
-                continue  # รอจนกว่าจะเชื่อมต่อกล้องได้ใหม่
-            success, frame = webcam.read()
-            if not success:
-                continue
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-    
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+BLINKING_RATIO_THRESHOLD = 5.5  
 
 @app.route('/gaze', methods=['GET'])
 def get_gaze_data():
-    """
-    Endpoint สำหรับตรวจสอบข้อมูลทิศทางสายตาและ double blink
-    """
     global blink_count, last_blink_time
 
     if webcam is None or not webcam.isOpened():
         return jsonify({"error": "No active webcam available."}), 500
 
-    ret, frame = webcam.read()
-    if not ret or frame is None:
-        return jsonify({
-            "error": "Unable to access webcam. Please check the camera connection."
-        }), 500
+    ret, frame = safe_read_frame(webcam)
+    if not ret:
+        return jsonify({"error": "Unable to access webcam. Please check the camera connection."}), 500
 
-    gaze.refresh(frame)
-
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+    nearest_face = select_nearest_face(faces)
+    
     gaze_direction = "center"
     blink_detected = False
+    eye_closed = False  # เพิ่มตัวแปรนี้
 
-    if gaze.eye_left is not None and gaze.eye_right is not None:
-        blinking_left = gaze.eye_left.blinking or 0.0
-        blinking_right = gaze.eye_right.blinking or 0.0
-        blinking_ratio = (blinking_left + blinking_right) / 2
+    if nearest_face is not None:
+        x, y, w, h = nearest_face
+        roi = frame[y:y+h, x:x+w]
+        gaze.refresh(roi)
 
-        if blinking_ratio > BLINKING_RATIO_THRESHOLD:
-            current_time = time.time()
-            if current_time - last_blink_time <= DOUBLE_BLINK_THRESHOLD:
-                blink_count += 1
-            else:
-                blink_count = 1
-            last_blink_time = current_time
+        if gaze.eye_left is not None and gaze.eye_right is not None:
+            blinking_left = gaze.eye_left.blinking or 0.0
+            blinking_right = gaze.eye_right.blinking or 0.0
+            blinking_ratio = (blinking_left + blinking_right) / 2
 
-        if blink_count == 2:
-            blink_detected = True
-            print("Double blink detected!")
-            blink_count = 0
+            eye_closed = blinking_ratio > BLINKING_RATIO_THRESHOLD  # กำหนดค่าหลับตา
 
-    if gaze.is_right():
-        gaze_direction = "right"
-    elif gaze.is_left():
-        gaze_direction = "left"
-    elif gaze.is_center():
-        gaze_direction = "center"
+            if blinking_ratio > BLINKING_RATIO_THRESHOLD:
+                current_time = time.time()
+                if current_time - last_blink_time <= DOUBLE_BLINK_THRESHOLD:
+                    blink_count += 1
+                else:
+                    blink_count = 1
+                last_blink_time = current_time
+
+            if blink_count == 2:
+                blink_detected = True
+                logger.info("Double blink detected.")
+                blink_count = 0
+
+        # ป้องกันการเคลื่อนที่ของ gaze ถ้าหลับตาอยู่
+        if not eye_closed:
+            if gaze.is_right():
+                gaze_direction = "right"
+            elif gaze.is_left():
+                gaze_direction = "left"
+            elif gaze.is_center():
+                gaze_direction = "center"
 
     return jsonify({
         "direction": gaze_direction,
-        "double_blink": blink_detected
+        "double_blink": blink_detected,
+        "eye_closed": eye_closed  # ✅ ส่งค่า eye_closed ไปที่ frontend ด้วย
     })
 
 
 @app.route('/status', methods=['GET'])
 def status():
-    """
-    Endpoint สำหรับตรวจสอบสถานะของเซิร์ฟเวอร์และกล้อง
-    """
     return jsonify({
         "status": "Server is running",
         "camera_connected": webcam.isOpened() if webcam else False
     })
 
-
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
-    """
-    Endpoint สำหรับปิดเซิร์ฟเวอร์และปล่อยทรัพยากรของกล้อง
-    """
     try:
         if webcam and webcam.isOpened():
             webcam.release()
-            print("Camera released on shutdown request.")
+            logger.info("Camera released on shutdown request.")
         return jsonify({"message": "Server shutting down..."}), 200
     except Exception as e:
+        logger.error(f"Shutdown error: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ฟังก์ชันปล่อยทรัพยากรกล้องเมื่อเซิร์ฟเวอร์ปิด
 def release_resources():
+    global webcam
     if webcam and webcam.isOpened():
         webcam.release()
-        print("Camera resource released on exit.")
+        logger.info("Released camera resources.")
 
 atexit.register(release_resources)
 
 if __name__ == "__main__":
-    try:
-        if not webcam:
-            print("No available cameras. Exiting.")
-        else:
-            app.run(host="0.0.0.0", port=5006, debug=False)
-    except KeyboardInterrupt:
-        print("Shutting down server...")
-    finally:
-        release_resources()
-        print("Cleanup completed.")
+    if not webcam:
+        logger.error("No available cameras. Exiting.")
+    else:
+        app.run(host="0.0.0.0", port=5006, debug=False)

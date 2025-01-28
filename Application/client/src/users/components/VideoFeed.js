@@ -1,44 +1,48 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 
-const VideoFeed = ({ src, width, borderRadius }) => {
-  const [timestamp, setTimestamp] = useState(Date.now());
+const VideoFeed = ({ width, borderRadius }) => {
+  const videoRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
 
   useEffect(() => {
-    // ตรวจสอบสถานะของกล้องทุกๆ 5 วินาที
-    const checkCameraStatus = () => {
-      fetch("http://localhost:5006/status")
-        .then((response) => response.json())
-        .then((data) => {
-          if (!data.camera_connected) {
-            setIsCameraActive(false);
-            console.warn("Webcam disconnected. Refreshing...");
-            setTimestamp(Date.now()); // รีเฟรชกล้องโดยอัปเดต timestamp
-          } else {
-            setIsCameraActive(true);
-          }
-        })
-        .catch((error) => {
-          console.error("Error checking camera status:", error);
-          setIsCameraActive(false);
-          setTimestamp(Date.now());
-        });
+    // ฟังก์ชันเปิดกล้อง
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setIsCameraActive(true);
+      } catch (error) {
+        console.error("Error accessing webcam:", error);
+        setIsCameraActive(false);
+      }
     };
 
-    const intervalId = setInterval(checkCameraStatus, 5000); // ตรวจสอบทุก 5 วินาที
+    startCamera();
 
-    return () => clearInterval(intervalId); // ล้าง interval เมื่อ component ถูก unmount
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+    };
   }, []);
 
   return (
     <div className="video-feed-container" style={{ textAlign: "center", marginTop: "20px" }}>
       {isCameraActive ? (
-        <img
-          src={`${src || "http://localhost:5006/video_feed"}?t=${timestamp}`}
-          alt="Webcam Stream"
-          className="video-feed"
-          style={{ width: width || "100%", borderRadius: borderRadius || "20px", border: "2px solid #ccc" }}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{
+            width: width || "100%",
+            borderRadius: borderRadius || "20px",
+            border: "2px solid #ccc",
+            transform: "scaleX(-1)"  // พลิกภาพแนวนอนเหมือนในเดิม
+          }}
         />
       ) : (
         <div style={{ color: "red", fontSize: "18px", fontWeight: "bold" }}>
@@ -50,7 +54,6 @@ const VideoFeed = ({ src, width, borderRadius }) => {
 };
 
 VideoFeed.propTypes = {
-  src: PropTypes.string,         
   width: PropTypes.string,       
   borderRadius: PropTypes.string 
 };

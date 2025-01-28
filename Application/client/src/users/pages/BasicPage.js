@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
-import logo from "../assets/hospital.png";
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
 import Swal from "sweetalert2";
 import './BasicPage.css';
 import VideoFeed from "../components/VideoFeed";
-import { GuideIcon, LogoutIcon } from "../components/HeaderIcons";
+import dingSound from "../assets/pick.mp3";
+import Header from "../components/Header";
 
 const BasicPage = () => {
 
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
+  const [isEyeClosed, setIsEyeClosed] = useState(false);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); // ✅ เก็บค่าปุ่มที่ถูกเลือกก่อนหน้า
+
 
   const commonPhrases = [
     "ใช่",
@@ -46,6 +49,11 @@ const BasicPage = () => {
     "ปวดหัว": require("../assets/headache.png"),
     "อยากฟังเพลง": require("../assets/music.png"),
 
+  };
+
+  const playDingSound = () => {
+    const audio = new Audio(dingSound);
+    audio.play();
   };
 
   const handleSubmit = useCallback(async () => {
@@ -111,6 +119,8 @@ const BasicPage = () => {
 
 
   const handleKeyInput = useCallback((phrase) => {
+    playDingSound();
+
     switch (phrase) {
       case "ลบ":
         setInputText("");
@@ -140,17 +150,23 @@ const BasicPage = () => {
       fetch("http://localhost:5006/gaze")
         .then((response) => response.json())
         .then((data) => {
-          const { direction, double_blink } = data;
-
-          if (direction === "right") {
-            setHighlightedIndex((prevIndex) => (prevIndex + 1) % totalButtons);
-          } else if (direction === "left") {
-            setHighlightedIndex((prevIndex) =>
-              prevIndex === 0 ? totalButtons - 1 : prevIndex - 1
-            );
+          const { direction, double_blink, eye_closed } = data;
+  
+          setIsEyeClosed(eye_closed); // ✅ อัพเดต state
+  
+          if (!eye_closed) { // ✅ ใช้ eye_closed ที่เพิ่งได้จาก API ไม่ใช่ isEyeClosed
+            setHighlightedIndex((prevIndex) => {
+              if (direction === "right") {
+                return (prevIndex + 1) % totalButtons;
+              } else if (direction === "left") {
+                return prevIndex === 0 ? totalButtons - 1 : prevIndex - 1;
+              }
+              return prevIndex;
+            });
           }
-
-          if (double_blink) {
+  
+          if (double_blink && highlightedIndex !== lastSelectedIndex) { 
+            setLastSelectedIndex(highlightedIndex); // ✅ อัปเดตค่า index ที่ถูกเลือกล่าสุด
             if (highlightedIndex === 0) {
               handleKeyInput("Advance");
             } else if (highlightedIndex <= commonPhrases.length) {
@@ -166,31 +182,16 @@ const BasicPage = () => {
         })
         .catch((error) => console.error("Error fetching gaze data:", error));
     }, 500);
-
+  
     return () => clearInterval(interval);
-    // eslint-disable-next-line
   }, [highlightedIndex, handleKeyInput, commonPhrases.length]);
 
   return (
     <div className="basic-page">
-      <div className="header-icons">
-
-        <div className="header-icons">
-          <GuideIcon />
-          <LogoutIcon />
-        </div>
-
-      </div>
-
+      <Header />
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" />
       </div>
-
-      <div className="header-logo">
-        <img src={logo} alt="Logo" className="logo-image" />
-        <h1 className="logo-text">GazeTalk</h1>
-      </div>
-
       <div className="input-container">
         <input
           type="text"
@@ -235,7 +236,6 @@ const BasicPage = () => {
               </button>
             ))}
           </div>
-
 
           {/* ปรับแถวล่างให้กระจายตามจำนวนปุ่ม */}
           <div className="keyboard-bottom" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
