@@ -29,7 +29,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3008/api/dashboard/dashboard")
+      .get(`${process.env.REACT_APP_GAZETALK_URL}/api/dashboard/dashboard`)
       .then((response) => {
         const { patientData } = response.data;
         setPatientData(patientData);

@@ -29,8 +29,8 @@ const EditWord = () => {
 
     try {
       const [messagesResponse, summaryResponse] = await Promise.all([
-        fetch(`http://localhost:3008/api/words?gender=${gender}&ageRange=${ageRange}`),
-        fetch(`http://localhost:3008/api/messages/messages?gender=${gender}&ageRange=${ageRange}`)
+        fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words?gender=${gender}&ageRange=${ageRange}`),
+        fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}`)
       ]);
 
       const messagesData = await messagesResponse.json();
@@ -60,7 +60,7 @@ const EditWord = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3008/api/words/update', {
+      const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

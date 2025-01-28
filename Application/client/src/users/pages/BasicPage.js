@@ -78,7 +78,7 @@ const BasicPage = () => {
     const isEmergency = inputText.includes("แจ้งเตือนฉุกเฉิน");
 
     try {
-      const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
+      const telegramResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patient_id}/send-message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ const BasicPage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch("http://localhost:5006/gaze")
+      fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
           const { direction, double_blink, eye_closed } = data;

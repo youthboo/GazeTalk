@@ -20,7 +20,7 @@ const PatientDetail = () => {
   useEffect(() => {
     const fetchRelatives = async () => {
       try {
-        const response = await axios.get(`http://localhost:3008/api/relative/patients/${id}/relatives`);
+        const response = await axios.get(`${process.env.REACT_APP_GAZETALK_URL}/api/relative/patients/${id}/relatives`);
         setRelatedPeople(response.data);
       } catch (error) {
         console.error('มีข้อผิดพลาดในการดึงข้อมูลญาติ:', error);
@@ -54,7 +54,7 @@ const PatientDetail = () => {
 
   const handleUpdate = async (values) => {
     try {
-      const response = await axios.put(`http://localhost:3008/api/relative/relative/${selectedRelative.telegramID}`, values);
+      const response = await axios.put(`${process.env.REACT_APP_GAZETALK_URL}/api/relative/relative/${selectedRelative.telegramID}`, values);
       message.success('อัพเดตข้อมูลสำเร็จ');
 
       setRelatedPeople((prev) =>
@@ -84,7 +84,7 @@ const PatientDetail = () => {
       cancelText: 'ยกเลิก',
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:3008/api/relative/relative/${telegramID}`);
+          await axios.delete(`${process.env.REACT_APP_GAZETALK_URL}/api/relative/relative/${telegramID}`);
           message.success('ลบข้อมูลสำเร็จ');
           setRelatedPeople((prev) =>
             prev.filter((relative) => relative.telegramID !== telegramID)

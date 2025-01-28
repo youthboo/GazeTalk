@@ -22,7 +22,7 @@ const AddLineID = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3008/api/patients');
+      const response = await axios.get(`${process.env.REACT_APP_GAZETALK_URL}/api/patients`);
       setPatients(response.data);
       setFilteredPatients(response.data);
       setLoading(false);
@@ -58,7 +58,7 @@ const AddLineID = () => {
       cancelText: 'ยกเลิก',
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:3008/api/patients/${patientId}`);
+          await axios.delete(`${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patientId}`);
           const updatedPatients = patients.filter((patient) => patient.patient_id !== patientId);
           setPatients(updatedPatients);
           setFilteredPatients(updatedPatients);

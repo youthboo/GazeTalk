@@ -59,7 +59,7 @@ const AlertPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3008/api/patients/${patient_id}/send-message`,
+        `${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patient_id}/send-message`,
         {
           method: "POST",
           headers: {
@@ -108,7 +108,7 @@ const AlertPage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch("http://localhost:5006/gaze")
+      fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
           const { direction, double_blink } = data;

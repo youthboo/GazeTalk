@@ -38,7 +38,7 @@ const Signup = () => {
                 ...(userType === 'patient' && { gender, dateOfBirth: dateOfBirth.format('YYYY-MM-DD') }),
             };
 
-            await axios.post('http://localhost:3008/api/auth/signup', payload);
+            await axios.post(`${process.env.REACT_APP_GAZETALK_URL}/api/auth/signup`, payload);
             message.success('Signup successful!');
             navigate('/login');
         } catch (error) {

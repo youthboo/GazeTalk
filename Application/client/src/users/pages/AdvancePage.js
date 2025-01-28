@@ -49,7 +49,7 @@ const AdvancePage = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5009/predict", {
+      const response = await fetch(`${process.env.REACT_APP_WORDMODEL_URL}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,7 +102,7 @@ const AdvancePage = () => {
 
     try {
       // บันทึกข้อความลง DB
-      const dbResponse = await fetch('http://localhost:3008/api/messages/send-message', {
+      const dbResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/send-message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const AdvancePage = () => {
       }
 
       // ส่งข้อความไป Telegram
-      const telegramResponse = await fetch(`http://localhost:3008/api/patients/${patient_id}/send-message`, {
+      const telegramResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patient_id}/send-message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +237,7 @@ const AdvancePage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch("http://localhost:5006/gaze")
+      fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
           const { direction, double_blink } = data;

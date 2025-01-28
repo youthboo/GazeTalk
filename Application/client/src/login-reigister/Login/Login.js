@@ -14,7 +14,7 @@ const Login = ({ onLogin }) => {
         const { username, password, code, remember } = values;
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:3008/api/auth/login', {
+            const response = await axios.post(`${process.env.REACT_APP_GAZETALK_URL}/api/auth/login`, {
                 username,
                 password,
                 code,

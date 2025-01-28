@@ -39,7 +39,7 @@ const AddLineIDForm = ({ onSubmit }) => {
     };
 
     try {
-      await axios.post('http://localhost:3008/api/relative/relative-chat', dataToSend);
+      await axios.post(`${process.env.REACT_APP_GAZETALK_URL}/api/relative/relative-chat`, dataToSend);
 
       notification.success({
         message: 'Success',
