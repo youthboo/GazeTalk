@@ -18,7 +18,7 @@ const BasicPage = () => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null); 
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false); 
-  const EYE_CLOSED_TIMEOUT = 60000;
+  const EYE_CLOSED_TIMEOUT = 500;
 
   const commonPhrases = useMemo(() => [
     "ใช่",
@@ -150,12 +150,13 @@ const BasicPage = () => {
       fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
-          const { direction, double_blink, eye_closed } = data;
-          const totalButtons = 1 + commonPhrases.length + 3; // ย้ายมาไว้ในที่ที่ใช้งานจริง
+    
+          const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+          const totalButtons = 1 + commonPhrases.length + 3; 
   
           setIsEyeClosed(eye_closed);
+          setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดต state
   
-          // ⏳ ถ้าหลับตา เริ่มจับเวลา
           if (eye_closed) {
             if (!eyeClosedStartTime) {
               setEyeClosedStartTime(Date.now()); 
@@ -202,10 +203,10 @@ const BasicPage = () => {
   }, [
     highlightedIndex, 
     handleKeyInput, 
-    commonPhrases, // เพิ่ม dependency
+    commonPhrases,
     lastSelectedIndex, 
     eyeClosedTooLong,
-    eyeClosedStartTime // เพิ่ม dependency
+    eyeClosedStartTime 
   ]);
 
   return (

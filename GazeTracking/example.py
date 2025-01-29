@@ -70,11 +70,11 @@ webcam = safe_initialize_webcam()
 
 blink_count = 0
 last_blink_time = 0
-DOUBLE_BLINK_THRESHOLD = 0.8  
+DOUBLE_BLINK_THRESHOLD = 0.6  
 BLINKING_RATIO_THRESHOLD = 6  
 
 eye_closed_start_time = None  
-EYE_CLOSED_TIMEOUT = 60  
+EYE_CLOSED_TIMEOUT = 0.5  
 
 @app.route('/gaze', methods=['GET'])
 def get_gaze_data():
@@ -113,6 +113,7 @@ def get_gaze_data():
                     eye_closed_start_time = time.time()  # เริ่มจับเวลาหลับตา
                 elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
                     eye_closed_too_long = True  # ✅ ตรวจจับว่าหลับตานานเกินไป
+                    print("User has closed eyes for too long!") 
             else:
                 eye_closed_start_time = None  # รีเซ็ตเวลาถ้าลืมตา
 

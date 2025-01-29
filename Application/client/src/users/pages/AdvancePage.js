@@ -26,6 +26,12 @@ const AdvancePage = () => {
   const [lastClickTime, setLastClickTime] = useState(0);
   const CLICK_DELAY = 500; 
   const [isNavigationLocked, setIsNavigationLocked] = useState(true);
+  const [isPredictionSelectionLocked, setIsPredictionSelectionLocked] = useState(false);
+  const [isSelectionDelayed, setIsSelectionDelayed] = useState(false);
+
+  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
+  const EYE_CLOSED_TIMEOUT = 500;
+
 
 
   const consonants = useMemo(
@@ -194,6 +200,11 @@ const AdvancePage = () => {
     setInputText(word);
     setPredictedWords([]);
     setShowCloseButton(false);
+
+    setIsSelectionDelayed(true);
+    setTimeout(() => {
+      setIsSelectionDelayed(false);
+    }, 1000);
   }, []);
 
   const handleClear = useCallback(() => {
@@ -253,76 +264,97 @@ const AdvancePage = () => {
           fetchPredictions(newText);
           return newText;
         });
-    }
-  }, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
-        .then((response) => response.json())
-        .then((data) => {
-          const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
-          const allKeys = Object.values(keyboardLayout).flat();
-  
-          setIsEyeClosed(eye_closed);
-          setEyeClosedTooLong(eye_closed_too_long); 
-  
-          if (!eye_closed && !eyeClosedTooLong) {
+    // 🔹 ล็อกไม่ให้เลือกคำแนะนำ
+      setIsPredictionSelectionLocked(true);
+      setTimeout(() => {
+        setIsPredictionSelectionLocked(false);
+      }, 300);
+  }
+}, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
+      .then((response) => response.json())
+      .then((data) => {
+        const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+        const allKeys = Object.values(keyboardLayout).flat();
+
+        setIsEyeClosed(eye_closed);
+        setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดตค่าจาก API
+
+        if (eye_closed) {
+          if (!eyeClosedStartTime) {
+            setEyeClosedStartTime(Date.now());
+          } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
+            setEyeClosedTooLong(true); // ✅ บังคับให้หยุดไฮไลท์
+          }
+        } else {
+          setEyeClosedStartTime(null);
+          setEyeClosedTooLong(false);
+        }
+
+        // ✅ ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
+        if (eyeClosedTooLong) return; // 🔴 หยุดทำงานทันทีถ้าหลับตานานเกินไป
+
+        if (!eye_closed && !eyeClosedTooLong) {
+          if (predictedWords.length > 0 && !isPredictionSelectionLocked) {
+            if (direction === "right") {
+              setSuggestHighlightedIndex((prevIndex) =>
+                (prevIndex + 1) % (predictedWords.length + 1) // +1 รวมปุ่ม ❌
+              );
+            } else if (direction === "left") {
+              setSuggestHighlightedIndex((prevIndex) =>
+                prevIndex === 0 ? predictedWords.length : prevIndex - 1
+              );
+            }
+          
+          } else {
+            if (direction === "right") {
+              setHighlightedIndex((prevIndex) => (prevIndex + 1) % allKeys.length);
+            } else if (direction === "left") {
+              setHighlightedIndex((prevIndex) =>
+                prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
+              );
+            }
+          }
+        }
+
+        // ✅ ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
+        if (double_blink && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
+          const now = Date.now();
+          if (now - lastClickTime > CLICK_DELAY) { 
             if (predictedWords.length > 0) {
-              if (direction === "right") {
-                setSuggestHighlightedIndex(
-                  (prevIndex) => (prevIndex + 1) % (predictedWords.length + 1)
-                );
-              } else if (direction === "left") {
-                setSuggestHighlightedIndex(
-                  (prevIndex) =>
-                    prevIndex === 0 ? predictedWords.length : prevIndex - 1
-                );
+              if (suggestHighlightedIndex === predictedWords.length) {
+                handleClosePredictions();
+              } else {
+                handlePredictionClick(predictedWords[suggestHighlightedIndex]);
               }
             } else {
-              if (direction === "right") {
-                setHighlightedIndex((prevIndex) => (prevIndex + 1) % allKeys.length);
-              } else if (direction === "left") {
-                setHighlightedIndex((prevIndex) =>
-                  prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
-                );
-              }
+              setLastSelectedIndex(highlightedIndex);
+              setLastClickTime(now); 
+              handleKeyInput(allKeys[highlightedIndex]);
             }
           }
-  
-          if (double_blink && !eyeClosedTooLong) {
-            const now = Date.now();
-            if (now - lastClickTime > CLICK_DELAY) { 
-              if (predictedWords.length > 0) {
-                if (suggestHighlightedIndex === predictedWords.length) {
-                  handleClosePredictions();
-                } else {
-                  handlePredictionClick(predictedWords[suggestHighlightedIndex]);
-                }
-              } else {
-                setLastSelectedIndex(highlightedIndex);
-                setLastClickTime(now); 
-                handleKeyInput(allKeys[highlightedIndex]);
-              }
-            }
-          }
-        })
-        .catch((error) => console.error("Error fetching gaze data:", error));
-    }, 500);
-  
-    return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [
-    keyboardLayout, 
-    predictedWords, 
-    highlightedIndex, 
-    suggestHighlightedIndex, 
-    handlePredictionClick, 
-    handleKeyInput, 
-    handleClosePredictions, 
-    lastSelectedIndex, 
-    eyeClosedTooLong 
-  ]);
+        }
+      })
+      .catch((error) => console.error("Error fetching gaze data:", error));
+  }, 500);
+
+  return () => clearInterval(interval);
+  // eslint-disable-next-line
+}, [
+  keyboardLayout, 
+  predictedWords, 
+  highlightedIndex, 
+  suggestHighlightedIndex, 
+  handlePredictionClick, 
+  handleKeyInput, 
+  handleClosePredictions, 
+  lastSelectedIndex, 
+  eyeClosedTooLong 
+]);
   
   return (
     <div className="advance-page">
@@ -341,19 +373,16 @@ const AdvancePage = () => {
       </div>
 
       <div className="prediction-buttons">
-        {Array.from({ length: 4 }, (_, index) => (
-          <button
-            key={index}
-            className={`prediction-button ${(index === 3 && suggestHighlightedIndex === 3) ||
-                (index !== 3 && predictedWords[index] && index === suggestHighlightedIndex)
-                ? "highlighted"
-                : ""
-              }`}
-            onClick={() => index === 3 ? handleClosePredictions() : handlePredictionClick(predictedWords[index] || "")}
-          >
-            {predictedWords[index] !== undefined ? predictedWords[index] : (index === 3 ? "❌" : "")}
-          </button>
-        ))}
+        {predictedWords.length > 0 &&
+          Array.from({ length: predictedWords.length + 1 }, (_, index) => (
+            <button
+              key={index}
+              className={`prediction-button ${index === suggestHighlightedIndex ? "highlighted" : ""}`}
+              onClick={() => index === predictedWords.length ? handleClosePredictions() : handlePredictionClick(predictedWords[index] || "")}
+            >
+              {index === predictedWords.length ? "❌" : predictedWords[index]}
+            </button>
+          ))}
       </div>
 
       <div className="keyboard">

@@ -105,14 +105,19 @@
 }
 
 /*--------------------------------------------------------------------------------------*/
-/* ปุ่มที่ถูกไฮไลท์ให้ขยายขึ้น พร้อมเอฟเฟกต์เงาและโค้งมน */
 .basic-page .key-button.highlighted {
   background-color: #4285f4 !important;
   color: white !important;
   border-color: #4285f4 !important;
   transform: scale(1.15); /* ขยายขนาดปุ่ม */
-  transition: transform 0.3s ease-out, background-color 0.3s ease-out, box-shadow 0.3s ease-out;
-  box-shadow: 0px 10px 25px rgba(66, 133, 244, 0.4); /* เพิ่มเงานุ่มๆ */
+  font-size: 40px; /* ขยายขนาดตัวอักษร */
+  font-weight: bold; /* ทำให้ตัวหนาชัดขึ้น */
+  transition: 
+    transform 0.3s ease-out, 
+    background-color 0.3s ease-out, 
+    box-shadow 0.3s ease-out, 
+    font-size 0.3s ease-out; /* เพิ่ม transition ให้กับ font-size */
+  box-shadow: 0px 10px 25px rgba(66, 133, 244, 0.4); /* เพิ่มเงา */
   border-radius: 15px; /* ทำให้มุมมน */
 }
 
@@ -152,7 +157,7 @@
 
 
 .basic-page .webcam-container {
-  width: 11%;
+  width: 10%;
   max-width: 640px;
   margin: 0 auto 1px;
   text-align: center;

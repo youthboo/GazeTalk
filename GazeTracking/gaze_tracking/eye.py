@@ -81,7 +81,7 @@ class Eye(object):
         try:
             ratio = eye_width / eye_height
             # เพิ่มการกรองสัญญาณรบกวน
-            if ratio > 8.0:  # กรองค่าที่ผิดปกติ
+            if ratio > 9.0:  # กรองค่าที่ผิดปกติ
                 return None
             return ratio
         except ZeroDivisionError:

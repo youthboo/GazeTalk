@@ -17,7 +17,7 @@ const AdminRec = () => {
 
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
-  const EYE_CLOSED_TIMEOUT = 60000; // 1 นาที (60,000 มิลลิวินาที)
+  const EYE_CLOSED_TIMEOUT = 500;
 
 
   useEffect(() => {
@@ -156,9 +156,11 @@ const AdminRec = () => {
       fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
-          const { direction, double_blink, eye_closed } = data;
+          const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
           const totalButtons = 1 + recommendedWords.length + 3; 
           
+          setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดต state
+
           if (eye_closed) {
             if (!eyeClosedStartTime) {
               setEyeClosedStartTime(Date.now());
@@ -182,7 +184,7 @@ const AdminRec = () => {
             });
           }
   
-          // ป้องกันไม่ให้เลือกปุ่มถ้าหลับตานานเกินไป
+          // ✅ ป้องกันไม่ให้เลือกปุ่มถ้าหลับตานานเกินไป
           if (double_blink && !eyeClosedTooLong) {
             if (highlightedIndex !== lastSelectedIndex) { 
               setLastSelectedIndex(highlightedIndex);
