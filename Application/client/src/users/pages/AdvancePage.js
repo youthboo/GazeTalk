@@ -15,6 +15,7 @@ const AdvancePage = () => {
   const [suggestHighlightedIndex, setSuggestHighlightedIndex] = useState(0);
   const [inputText, setInputText] = useState("");
   const [predictedWords, setPredictedWords] = useState([]);
+  // eslint-disable-next-line
   const [showCloseButton, setShowCloseButton] = useState(false);
   const navigate = useNavigate();
   

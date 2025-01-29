@@ -14,6 +14,7 @@ const AdminRec = () => {
   const [recommendedWords, setRecommendedWords] = useState([]);
   const navigate = useNavigate();
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null); // ✅ เก็บค่าปุ่มที่ถูกเลือกก่อนหน้า
+  // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
 
 

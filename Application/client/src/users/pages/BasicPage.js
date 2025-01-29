@@ -13,6 +13,7 @@ const BasicPage = () => {
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
+  // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null); // ✅ เก็บค่าปุ่มที่ถูกเลือกก่อนหน้า
 
@@ -184,6 +185,7 @@ const BasicPage = () => {
     }, 500);
   
     return () => clearInterval(interval);
+    // eslint-disable-next-line
   }, [highlightedIndex, handleKeyInput, commonPhrases.length]);
 
   return (

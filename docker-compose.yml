@@ -1,33 +1,61 @@
-version: '3.4'
-
 services:
-  frontend:
-    build:
-      context: ./Application/client
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./Application/client:/app
+  db:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: gazetalk-db
     environment:
-      - NODE_ENV=development
+      MYSQL_ROOT_PASSWORD: Aqwer.2002
+      MYSQL_DATABASE: GazeTalk
+      MYSQL_ROOT_HOST: '%'
+      TZ: "Asia/Bangkok"
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --bind-address=0.0.0.0
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   backend:
     build:
       context: ./backend
+    container_name: gazetalk-backend
     ports:
-      - "5000:5000"
+      - "3008:3008"
     volumes:
       - ./backend:/app
+      - /app/node_modules
     environment:
-      - FLASK_ENV=development
+      DB_NAME: GazeTalk
+      DB_USER: root
+      DB_PASSWORD: Aqwer.2002
+      DB_HOST: db
+      DB_PORT: 3306
+      PORT: 3008
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
 
-
-  gazetracking:
+  frontend:
     build:
-      context: ./GazeTracking
+      context: ./Application/client
+    container_name: gazetalk-frontend
     ports:
-      - "8000:8000"
+      - "3000:3000"
     volumes:
-      - ./GazeTracking:/app
+      - ./Application/client:/app
+      - /app/node_modules
+    env_file:
+    - ./Application/client/.env 
     environment:
-      - PYTHONUNBUFFERED=1
+      NODE_ENV: development
+
+volumes:
+  mysql_data:

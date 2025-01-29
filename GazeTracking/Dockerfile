@@ -1,11 +1,14 @@
-# ใช้ base image
-FROM ubuntu:18.04
+# ใช้ base image ที่เบากว่า (Python Slim)
+FROM python:3.8-slim
 
-# อัปเดตระบบและติดตั้ง dependencies
+# ตั้งค่า environment variables เพื่อหลีกเลี่ยงปัญหาการ prompt ของ apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ติดตั้ง dependencies ที่จำเป็น
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
     cmake \
+    gcc \
+    g++ \
     libsm6 \
     libxext6 \
     libxrender1 \
@@ -13,17 +16,20 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# อัปเดต pip ให้เป็นเวอร์ชันล่าสุด
-RUN pip3 install --no-cache-dir --upgrade pip
+# อัพเกรด pip
+RUN pip3 install --upgrade pip
 
-# คัดลอกไฟล์โค้ดทั้งหมดลงใน container
-COPY . /home/GazeTracking
+# คัดลอก requirements.txt ก่อน
+COPY requirements.txt /home/GazeTracking/
 
-# ตั้งค่าโฟลเดอร์ทำงาน
+# กำหนด working directory
 WORKDIR /home/GazeTracking
 
-# ติดตั้ง Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+# ติดตั้ง Python dependencies โดยใช้ cache
+RUN pip3 install -r requirements.txt --no-cache-dir -i https://pypi.org/simple
 
-# รันคำสั่งเริ่มต้น
+# คัดลอกไฟล์โค้ดทั้งหมด
+COPY . /home/GazeTracking
+
+# กำหนด command เริ่มต้น (สามารถเปลี่ยนได้ตามความต้องการ)
 CMD ["python3", "example.py"]

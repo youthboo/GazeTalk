@@ -24,6 +24,7 @@ const VideoFeed = ({ width, borderRadius }) => {
 
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
+        // eslint-disable-next-line
         const tracks = videoRef.current.srcObject.getTracks();
         tracks.forEach(track => track.stop());
       }

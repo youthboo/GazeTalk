@@ -131,6 +131,7 @@ const AlertPage = () => {
     }, 500);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line
   }, [highlightedButton, isEmergencySent]);
 
   return (

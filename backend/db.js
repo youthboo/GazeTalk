@@ -10,8 +10,51 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT || 3306,
-        dialect: 'mysql'
+        define: {
+            charset: 'utf8mb4',
+            collate: 'utf8mb4_unicode_ci'
+        },
+        dialect: 'mysql',
+        logging: false, // ปิด log query ถ้าไม่จำเป็น
+        retry: {
+            match: [
+                /ETIMEDOUT/,
+                /ECONNREFUSED/,
+                /EHOSTUNREACH/,
+                /PROTOCOL_CONNECTION_LOST/,
+                /SequelizeConnectionError/,
+                /SequelizeHostNotFoundError/,
+            ],
+            max: 5 // ลองเชื่อมต่อใหม่สูงสุด 5 ครั้ง
+        },
+        pool: {
+            max: 5, // เชื่อมต่อสูงสุดพร้อมกัน 5 connections
+            min: 0,
+            acquire: 30000, // เวลารอรับ connection 30 วินาที
+            idle: 10000 // Connection ที่ไม่ใช้ จะถูกปิดหลัง 10 วินาที
+        }
     }
 );
+
+const connectWithRetry = async () => {
+    let retries = 5; // จำนวนครั้งสูงสุดที่ลองเชื่อมต่อ
+    while (retries) {
+        try {
+            await sequelize.authenticate();
+            console.log('Database connection established successfully');
+            break; // เชื่อมต่อสำเร็จ ออกจาก loop
+        } catch (error) {
+            console.error('Failed to connect to the database. Retrying...', retries, error.message);
+            retries -= 1;
+            if (retries === 0) {
+                console.error('Could not establish a connection to the database');
+                throw error; // โยน error ออกไปหากหมด retries
+            }
+            await new Promise(res => setTimeout(res, 5000)); // รอ 5 วินาที ก่อนลองใหม่
+        }
+    }
+};
+
+connectWithRetry();
 
 module.exports = sequelize;
