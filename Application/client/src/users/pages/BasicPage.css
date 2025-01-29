@@ -116,6 +116,10 @@
   border-radius: 15px; /* ทำให้มุมมน */
 }
 
+.basic-page .key-button.highlighted span {
+  color: white !important; /* เปลี่ยนสีของข้อความให้เป็นสีขาว */
+}
+
 /* ไอคอนภายในปุ่มที่ถูกไฮไลท์ */
 .basic-page .key-button.highlighted .button-image {
   max-width: 22%;
@@ -148,7 +152,7 @@
 
 
 .basic-page .webcam-container {
-  width: 12%;
+  width: 11%;
   max-width: 640px;
   margin: 0 auto 1px;
   text-align: center;

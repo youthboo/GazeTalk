@@ -18,7 +18,15 @@ const AdvancePage = () => {
   // eslint-disable-next-line
   const [showCloseButton, setShowCloseButton] = useState(false);
   const navigate = useNavigate();
-  
+
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); //ป้องกันดับเบิ้ลคลิก
+  // eslint-disable-next-line
+  const [isEyeClosed, setIsEyeClosed] = useState(false);
+  const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const CLICK_DELAY = 500; 
+  const [isNavigationLocked, setIsNavigationLocked] = useState(true);
+
 
   const consonants = useMemo(
     () => [
@@ -161,16 +169,28 @@ const AdvancePage = () => {
     navigate("/alert", { state: { returnTo: "/advance" } });
   }, [navigate]);
 
+  useEffect(() => {
+    const unlockTimeout = setTimeout(() => {
+      setIsNavigationLocked(false);
+    }, 1000);
+  
+    return () => clearTimeout(unlockTimeout); 
+  }, []);
+
   const handleBasic = useCallback(() => {
-    navigate("/");
-  }, [navigate]);
+    if (!isNavigationLocked) {  
+      navigate("/");
+    }
+  }, [navigate, isNavigationLocked]);
 
   const handleClosePredictions = useCallback(() => {
+    playDingSound();
     setPredictedWords([]);
     setShowCloseButton(false);
   }, []);
 
   const handlePredictionClick = useCallback((word) => {
+    playDingSound();
     setInputText(word);
     setPredictedWords([]);
     setShowCloseButton(false);
@@ -241,49 +261,69 @@ const AdvancePage = () => {
       fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
-          const { direction, double_blink } = data;
+          const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
           const allKeys = Object.values(keyboardLayout).flat();
-
-          if (predictedWords.length > 0) {
-            if (direction === "right") {
-              setSuggestHighlightedIndex(
-                (prevIndex) => (prevIndex + 1) % (predictedWords.length + 1)
-              );
-            } else if (direction === "left") {
-              setSuggestHighlightedIndex(
-                (prevIndex) =>
-                  prevIndex === 0 ? predictedWords.length : prevIndex - 1
-              );
-            }
-
-            if (double_blink) {
-              if (suggestHighlightedIndex === predictedWords.length) {
-                handleClosePredictions();
-              } else {
-                handlePredictionClick(predictedWords[suggestHighlightedIndex]);
+  
+          setIsEyeClosed(eye_closed);
+          setEyeClosedTooLong(eye_closed_too_long); 
+  
+          if (!eye_closed && !eyeClosedTooLong) {
+            if (predictedWords.length > 0) {
+              if (direction === "right") {
+                setSuggestHighlightedIndex(
+                  (prevIndex) => (prevIndex + 1) % (predictedWords.length + 1)
+                );
+              } else if (direction === "left") {
+                setSuggestHighlightedIndex(
+                  (prevIndex) =>
+                    prevIndex === 0 ? predictedWords.length : prevIndex - 1
+                );
+              }
+            } else {
+              if (direction === "right") {
+                setHighlightedIndex((prevIndex) => (prevIndex + 1) % allKeys.length);
+              } else if (direction === "left") {
+                setHighlightedIndex((prevIndex) =>
+                  prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
+                );
               }
             }
-          } else {
-            if (direction === "right") {
-              setHighlightedIndex((prevIndex) => (prevIndex + 1) % allKeys.length);
-            } else if (direction === "left") {
-              setHighlightedIndex((prevIndex) =>
-                prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
-              );
-            }
-
-            if (double_blink) {
-              handleKeyInput(allKeys[highlightedIndex]);
+          }
+  
+          if (double_blink && !eyeClosedTooLong) {
+            const now = Date.now();
+            if (now - lastClickTime > CLICK_DELAY) { 
+              if (predictedWords.length > 0) {
+                if (suggestHighlightedIndex === predictedWords.length) {
+                  handleClosePredictions();
+                } else {
+                  handlePredictionClick(predictedWords[suggestHighlightedIndex]);
+                }
+              } else {
+                setLastSelectedIndex(highlightedIndex);
+                setLastClickTime(now); 
+                handleKeyInput(allKeys[highlightedIndex]);
+              }
             }
           }
         })
         .catch((error) => console.error("Error fetching gaze data:", error));
     }, 500);
-
+  
     return () => clearInterval(interval);
-  }, [keyboardLayout, predictedWords, highlightedIndex, suggestHighlightedIndex, handlePredictionClick, handleKeyInput, handleClosePredictions]);
-
-
+    // eslint-disable-next-line
+  }, [
+    keyboardLayout, 
+    predictedWords, 
+    highlightedIndex, 
+    suggestHighlightedIndex, 
+    handlePredictionClick, 
+    handleKeyInput, 
+    handleClosePredictions, 
+    lastSelectedIndex, 
+    eyeClosedTooLong 
+  ]);
+  
   return (
     <div className="advance-page">
       <Header />

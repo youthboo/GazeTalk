@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Table, Input, Button, message, Modal, Layout, Row, Typography, Card } from 'antd';
+import { Table, Input, Button, message, Modal, Layout, Typography, Card } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
 import './AddLineID.css';
 
@@ -13,16 +13,24 @@ const AddLineID = () => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth); // ✅ State เก็บขนาดหน้าจอ
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchPatients();
   }, []);
 
+  useEffect(() => {
+    // ✅ บังคับให้ Table รี-render เมื่อขนาดจอเปลี่ยน
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${process.env.REACT_APP_GAZETALK_URL}/api/patients`);
+      const response = await axios.get('http://localhost:3008/api/patients');
       setPatients(response.data);
       setFilteredPatients(response.data);
       setLoading(false);
@@ -50,7 +58,6 @@ const AddLineID = () => {
   };
 
   const handleDeletePatient = (patientId) => {
-    console.log('Patient ID to delete:', patientId); // เพิ่มตรงนี้
     Modal.confirm({
       title: 'ยืนยันการลบข้อมูล',
       content: 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลผู้ป่วยนี้?',
@@ -58,7 +65,7 @@ const AddLineID = () => {
       cancelText: 'ยกเลิก',
       onOk: async () => {
         try {
-          await axios.delete(`${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patientId}`);
+          await axios.delete(`http://localhost:3008/api/patients/${patientId}`);
           const updatedPatients = patients.filter((patient) => patient.patient_id !== patientId);
           setPatients(updatedPatients);
           setFilteredPatients(updatedPatients);
@@ -70,7 +77,7 @@ const AddLineID = () => {
       },
     });
   };
-  
+
   const columns = [
     {
       title: 'Username',
@@ -120,52 +127,50 @@ const AddLineID = () => {
       align: 'center',
     },
   ];
-  
+
   return (
     <Layout className="patient-list-container bg-gray-100 min-h-screen">
       <Content className="p-6">
-        <Row gutter={[16, 16]} justify="center">
-            <Card 
-              className="shadow-lg rounded-lg"
-              title={
-                <div className="flex justify-between items-center">
-                  <Title level={3} className="mb-0 text-primary">
-                    <UserAddOutlined className="mr-2" />
-                    เพิ่มญาติ (Add Relative ID)
-                  </Title>
-                 
-                </div>
-              }
-            >
-              <div className="search-wrapper mb-4">
-                <Input
-                  className="patient-search-input"
-                  placeholder="ค้นหาจากชื่อผู้ใช้หรือเพศ"
-                  prefix={<SearchOutlined />}
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  allowClear
-                  size="large"
-                />
+        <div className="patient-container">
+          <Card 
+            className="shadow-lg rounded-lg"
+            title={
+              <div className="flex justify-between items-center">
+                <Title level={3} className="mb-0 text-primary">
+                  <UserAddOutlined className="mr-2" />
+                  เพิ่มญาติ (Add Relative ID)
+                </Title>
               </div>
-              
-              <Table
-                columns={columns}
-                dataSource={filteredPatients}
-                rowKey="patient_id"
-                loading={loading}
-                pagination={{
-                  pageSize: 5,
-                  showSizeChanger: true,
-                  showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`
-                }}
-                className="patient-table"
-                scroll={{ x: '100%', y: 1000 }}
-                size="middle"
+            }
+          >
+            <div className="search-wrapper mb-4">
+              <Input
+                className="patient-search-input"
+                placeholder="ค้นหาจากชื่อผู้ใช้หรือเพศ"
+                prefix={<SearchOutlined />}
+                value={searchTerm}
+                onChange={handleSearch}
+                allowClear
+                size="large"
               />
-            </Card>
-
-        </Row>
+            </div>
+            
+            <Table
+              key={windowWidth} 
+              columns={columns}
+              dataSource={filteredPatients}
+              rowKey="patient_id"
+              loading={loading}
+              pagination={{
+                pageSize: 5,
+                showSizeChanger: true,
+                showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`
+              }}
+              className="patient-table"
+              size="middle"
+            />
+          </Card>
+        </div>
       </Content>
     </Layout>
   );

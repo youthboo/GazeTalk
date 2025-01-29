@@ -11,6 +11,7 @@ const AlertPage = () => {
 
   const [highlightedButton, setHighlightedButton] = useState("ใช่");
   const [isEmergencySent, setIsEmergencySent] = useState(false);
+  const [isPageReady, setIsPageReady] = useState(false);  
 
   const playDingSound = () => {
     const audio = new Audio(dingSound);
@@ -20,15 +21,15 @@ const AlertPage = () => {
   // ตรวจสอบเวลาการแจ้งเตือนล่าสุดจาก localStorage
   const canSendEmergencyAlert = () => {
     const lastSent = localStorage.getItem("lastEmergencySent");
-    if (!lastSent) return true; // ถ้าไม่มีข้อมูล สามารถส่งได้เลย
+    if (!lastSent) return true;
 
     const lastSentTime = parseInt(lastSent, 10);
     const currentTime = Date.now();
-    return currentTime - lastSentTime >= 60000; 
+    return currentTime - lastSentTime >= 60000;
   };
 
   const handleYesClick = async () => {
-    if (isEmergencySent) return; // ป้องกันการส่งซ้ำ
+    if (isEmergencySent || !isPageReady) return; // เพิ่มเงื่อนไข !isPageReady
     playDingSound();
     if (!canSendEmergencyAlert()) {
       Swal.fire({
@@ -42,7 +43,7 @@ const AlertPage = () => {
     }
 
     setIsEmergencySent(true);
-    localStorage.setItem("lastEmergencySent", Date.now().toString()); // บันทึกเวลาส่งแจ้งเตือน
+    localStorage.setItem("lastEmergencySent", Date.now().toString());
 
     const patient_id = sessionStorage.getItem("patient_id");
 
@@ -99,12 +100,22 @@ const AlertPage = () => {
   };
 
   const handleNoClick = () => {
-    if (isEmergencySent) return; // ป้องกันการกดซ้ำ
+    if (isEmergencySent || !isPageReady) return; // เพิ่มเงื่อนไข !isPageReady
+    playDingSound();
     setIsEmergencySent(true);
 
     const returnPath = location.state?.returnTo || "/";
     navigate(returnPath);
   };
+
+  // เพิ่ม useEffect สำหรับการหน่วงเวลาเริ่มต้น
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageReady(true);
+    }, 700); // หน่วงเวลา
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -119,7 +130,7 @@ const AlertPage = () => {
             setHighlightedButton("ใช่");
           }
 
-          if (double_blink && !isEmergencySent) {
+          if (double_blink && !isEmergencySent && isPageReady) { // เพิ่มเงื่อนไข isPageReady
             if (highlightedButton === "ใช่") {
               handleYesClick();
             } else if (highlightedButton === "ไม่ใช่") {
@@ -132,7 +143,7 @@ const AlertPage = () => {
 
     return () => clearInterval(interval);
     // eslint-disable-next-line
-  }, [highlightedButton, isEmergencySent]);
+  }, [highlightedButton, isEmergencySent, isPageReady]); 
 
   return (
     <div className="alert-page">

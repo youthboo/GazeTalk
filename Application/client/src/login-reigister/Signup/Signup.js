@@ -3,15 +3,59 @@ import { Form, Input, Button, Select, Checkbox, DatePicker, message } from 'antd
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import axios from 'axios';
-import Icon from "../../admins/assets/images/hospital.png"
-
+import Icon from "../../admins/assets/images/hospital.png";
+import PrivacyTermsModal from '../../../src/admins/components/PrivacyTermsModal';
 
 const { Option } = Select;
 
 const Signup = () => {
     const [loading, setLoading] = useState(false);
-    const [userType, setUserType] = useState('patient'); 
+    const [userType, setUserType] = useState('patient');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalType, setModalType] = useState(null);
     const navigate = useNavigate();
+
+    // Add debounced username/email check
+    const checkExistingField = async (field, value, userType = null) => {
+        try {
+            let url = `${process.env.REACT_APP_GAZETALK_URL}/api/auth/check-${field}`;
+            if (field === 'email' && userType) {
+                url += `?email=${value}&userType=${userType}`;
+            } else {
+                url += `?${field}=${value}`;
+            }
+            
+            const response = await axios.get(url);
+            return response.data.exists;
+        } catch (error) {
+            console.error(`Error checking ${field}:`, error);
+            return false;
+        }
+    };
+
+    // Password validation rules
+    const validatePassword = (_, value) => {
+        const requirements = {
+            minLength: value.length >= 8,
+            hasUpperCase: /[A-Z]/.test(value),
+            hasLowerCase: /[a-z]/.test(value),
+            hasNumber: /\d/.test(value),
+            hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(value),
+        };
+
+        if (Object.values(requirements).every(Boolean)) {
+            return Promise.resolve();
+        }
+
+        let errorMsg = 'Password must contain:';
+        if (!requirements.minLength) errorMsg += ' at least 8 characters,';
+        if (!requirements.hasUpperCase) errorMsg += ' uppercase letter,';
+        if (!requirements.hasLowerCase) errorMsg += ' lowercase letter,';
+        if (!requirements.hasNumber) errorMsg += ' number,';
+        if (!requirements.hasSpecialChar) errorMsg += ' special character,';
+
+        return Promise.reject(new Error(errorMsg.slice(0, -1)));
+    };
 
     const onFinish = async (values) => {
         const { username, email, password, gender, dateOfBirth, code, privacyAgreement } = values;
@@ -29,9 +73,27 @@ const Signup = () => {
         try {
             setLoading(true);
 
+            // Final check for username and email existence before submission
+            const [usernameExists, emailExists] = await Promise.all([
+                checkExistingField('username', username),
+                checkExistingField('email', email)
+            ]);
+
+            if (usernameExists) {
+                message.error('Username is already taken.');
+                setLoading(false);
+                return;
+            }
+
+            if (emailExists) {
+                message.error('Email is already registered.');
+                setLoading(false);
+                return;
+            }
+
             const payload = {
                 username,
-                email, // เพิ่ม email ใน payload
+                email,
                 password,
                 userType,
                 ...(userType === 'personnel' && { code }),
@@ -58,7 +120,6 @@ const Signup = () => {
                 <div className={styles.left}>
                     <img src={Icon} alt="Hospital Logo" className={styles.logologin} />
                     <h1>Welcome Back</h1>
-                    
                     <Link to="/login">
                         <Button type="default" className={styles.white_btn}>
                             Sign in
@@ -94,7 +155,20 @@ const Signup = () => {
                         <Form.Item
                             name="username"
                             label="Username"
-                            rules={[{ required: true, message: 'Please enter your username!' }]}
+                            rules={[
+                                { required: true, message: 'Please enter your username!' },
+                                {
+                                    validator: async (_, value) => {
+                                        if (value) {
+                                            const exists = await checkExistingField('username', value);
+                                            if (exists) {
+                                                throw new Error('This username is already taken');
+                                            }
+                                        }
+                                    },
+                                },
+                            ]}
+                            validateTrigger="onBlur"
                         >
                             <Input placeholder="Username" />
                         </Form.Item>
@@ -105,7 +179,18 @@ const Signup = () => {
                             rules={[
                                 { required: true, message: 'Please enter your email!' },
                                 { type: 'email', message: 'Please enter a valid email!' },
+                                {
+                                    validator: async (_, value) => {
+                                        if (value) {
+                                            const exists = await checkExistingField('email', value);
+                                            if (exists) {
+                                                throw new Error('This email is already registered');
+                                            }
+                                        }
+                                    },
+                                },
                             ]}
+                            validateTrigger="onBlur"
                         >
                             <Input placeholder="Email" />
                         </Form.Item>
@@ -113,7 +198,11 @@ const Signup = () => {
                         <Form.Item
                             name="password"
                             label="Password"
-                            rules={[{ required: true, message: 'Please enter your password!' }]}
+                            rules={[
+                                { required: true, message: 'Please enter your password!' },
+                                { validator: validatePassword }
+                            ]}
+                            validateTrigger={['onChange', 'onBlur']}
                         >
                             <Input.Password placeholder="Password" />
                         </Form.Item>
@@ -166,7 +255,10 @@ const Signup = () => {
                             ]}
                         >
                             <Checkbox>
-                                I accept the <Link to="/privacy-policy">Privacy Policy</Link> and <Link to="/terms">Terms</Link>.
+                                I accept the 
+                                <span style={{ color: 'blue', cursor: 'pointer', marginLeft: '5px' }} onClick={() => { setModalType('privacy'); setIsModalOpen(true); }}>Privacy Policy</span> 
+                                and 
+                                <span style={{ color: 'blue', cursor: 'pointer', marginLeft: '5px' }} onClick={() => { setModalType('terms'); setIsModalOpen(true); }}>Terms</span>.
                             </Checkbox>
                         </Form.Item>
 
@@ -178,7 +270,10 @@ const Signup = () => {
                     </Form>
                 </div>
             </div>
+
+            <PrivacyTermsModal isOpen={isModalOpen} type={modalType} onClose={() => setIsModalOpen(false)} />
         </div>
+   
     );
 };
 

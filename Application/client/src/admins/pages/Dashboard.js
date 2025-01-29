@@ -26,10 +26,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tool
 const Dashboard = () => {
   const [patientData, setPatientData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [windowSize, setWindowSize] = useState(window.innerWidth); // ติดตามขนาดหน้าจอ
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_GAZETALK_URL}/api/dashboard/dashboard`)
+      .get("http://localhost:3008/api/dashboard/dashboard")
       .then((response) => {
         const { patientData } = response.data;
         setPatientData(patientData);
@@ -41,6 +42,15 @@ const Dashboard = () => {
       });
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize(window.innerWidth); // รีเรนเดอร์เมื่อหน้าจอเปลี่ยนขนาด
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -49,6 +59,12 @@ const Dashboard = () => {
     );
   }
 
+  // Chart Options (แก้ไขให้ responsive)
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+  };
+
   // Chart Data
   const genderChartData = {
     labels: ["Male", "Female", "Other"],
@@ -56,16 +72,8 @@ const Dashboard = () => {
       {
         label: "Patient Count by Gender",
         data: [patientData.male || 0, patientData.female || 0, patientData.other || 0],
-        backgroundColor: [
-          "rgba(75, 192, 192, 0.2)",
-          "rgba(255, 99, 132, 0.2)",
-          "rgba(153, 102, 255, 0.2)",
-        ],
-        borderColor: [
-          "rgba(75, 192, 192, 1)",
-          "rgba(255, 99, 132, 1)",
-          "rgba(153, 102, 255, 1)",
-        ],
+        backgroundColor: ["rgba(75, 192, 192, 0.2)", "rgba(255, 99, 132, 0.2)", "rgba(153, 102, 255, 0.2)"],
+        borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)", "rgba(153, 102, 255, 1)"],
         borderWidth: 1,
       },
     ],
@@ -125,21 +133,23 @@ const Dashboard = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
         <Col xs={24} md={12}>
           <Row gutter={[16, 16]}>
-    
             <Col span={24}>
               <Card bordered title="QR Code สแกนเพื่อเชื่อมต่อกับผู้ป่วยผ่าน GazeTalk Bot">
                 <p>พิมพ์ /start ในช่องแชทเพื่อรับ Telegram ID</p>
                 <img
                   src={QrCode}
                   alt="QR Code"
+                  className="qr-code-img"
                   style={{ width: "300px", display: "block", margin: "0 auto" }}
                 />
               </Card>
             </Col>
 
             <Col span={24}>
-              <Card title="Patient Count by Gender" bordered >
-                <Bar data={genderChartData} />
+              <Card title="Patient Count by Gender" bordered>
+                <div className="chart-container">
+                  <Bar key={windowSize} data={genderChartData} options={chartOptions} />
+                </div>
               </Card>
             </Col>
           </Row>
@@ -147,7 +157,9 @@ const Dashboard = () => {
 
         <Col xs={24} md={12}>
           <Card title="Patient Count by Age Range" bordered style={{ marginTop: 20 }}>
-            <Doughnut data={ageChartData} />
+            <div className="chart-container">
+              <Doughnut key={windowSize} data={ageChartData} options={chartOptions} />
+            </div>
           </Card>
         </Col>
       </Row>

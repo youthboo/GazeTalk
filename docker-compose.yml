@@ -57,5 +57,19 @@ services:
     environment:
       NODE_ENV: development
 
+  model_text:
+    build:
+      context: ./model_text
+    ports:
+      - "5009:5009"
+    volumes:
+      - ./model_text:/app
+    environment:
+      - FLASK_ENV=development
+    depends_on:
+      - db
+
+
+
 volumes:
   mysql_data:

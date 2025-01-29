@@ -6,12 +6,15 @@ const VideoFeed = ({ width, borderRadius }) => {
   const [isCameraActive, setIsCameraActive] = useState(true);
 
   useEffect(() => {
+    let videoElement = videoRef.current; // เก็บค่า ref ไว้ในตัวแปร
+    let stream = null; // ตัวแปรสำหรับเก็บ stream
+
     // ฟังก์ชันเปิดกล้อง
     const startCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoElement) {
+          videoElement.srcObject = stream;
         }
         setIsCameraActive(true);
       } catch (error) {
@@ -23,9 +26,8 @@ const VideoFeed = ({ width, borderRadius }) => {
     startCamera();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        // eslint-disable-next-line
-        const tracks = videoRef.current.srcObject.getTracks();
+      if (videoElement && videoElement.srcObject) {
+        const tracks = videoElement.srcObject.getTracks();
         tracks.forEach(track => track.stop());
       }
     };
@@ -42,7 +44,7 @@ const VideoFeed = ({ width, borderRadius }) => {
             width: width || "100%",
             borderRadius: borderRadius || "20px",
             border: "2px solid #ccc",
-            transform: "scaleX(-1)"  // พลิกภาพแนวนอนเหมือนในเดิม
+            transform: "scaleX(-1)"  // พลิกภาพแนวนอน
           }}
         />
       ) : (

@@ -18,6 +18,7 @@ CORS(app)
 
 gaze = GazeTracking()
 
+
 # ฟังก์ชันตรวจสอบและเปิดใช้งานกล้องอย่างปลอดภัย
 def safe_initialize_webcam():
     camera_ids = [1, 0, -1]  
@@ -69,12 +70,15 @@ webcam = safe_initialize_webcam()
 
 blink_count = 0
 last_blink_time = 0
-DOUBLE_BLINK_THRESHOLD = 1  
-BLINKING_RATIO_THRESHOLD = 5.5  
+DOUBLE_BLINK_THRESHOLD = 0.8  
+BLINKING_RATIO_THRESHOLD = 6  
+
+eye_closed_start_time = None  
+EYE_CLOSED_TIMEOUT = 60  
 
 @app.route('/gaze', methods=['GET'])
 def get_gaze_data():
-    global blink_count, last_blink_time
+    global blink_count, last_blink_time, eye_closed_start_time
 
     if webcam is None or not webcam.isOpened():
         return jsonify({"error": "No active webcam available."}), 500
@@ -86,10 +90,11 @@ def get_gaze_data():
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
     nearest_face = select_nearest_face(faces)
-    
+
     gaze_direction = "center"
     blink_detected = False
-    eye_closed = False  # เพิ่มตัวแปรนี้
+    eye_closed = False  
+    eye_closed_too_long = False  # เพิ่มตัวแปรตรวจจับว่าหลับตานานเกินไปหรือไม่
 
     if nearest_face is not None:
         x, y, w, h = nearest_face
@@ -101,7 +106,15 @@ def get_gaze_data():
             blinking_right = gaze.eye_right.blinking or 0.0
             blinking_ratio = (blinking_left + blinking_right) / 2
 
-            eye_closed = blinking_ratio > BLINKING_RATIO_THRESHOLD  # กำหนดค่าหลับตา
+            eye_closed = blinking_ratio > BLINKING_RATIO_THRESHOLD  
+
+            if eye_closed:
+                if eye_closed_start_time is None:
+                    eye_closed_start_time = time.time()  # เริ่มจับเวลาหลับตา
+                elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
+                    eye_closed_too_long = True  # ✅ ตรวจจับว่าหลับตานานเกินไป
+            else:
+                eye_closed_start_time = None  # รีเซ็ตเวลาถ้าลืมตา
 
             if blinking_ratio > BLINKING_RATIO_THRESHOLD:
                 current_time = time.time()
@@ -116,8 +129,8 @@ def get_gaze_data():
                 logger.info("Double blink detected.")
                 blink_count = 0
 
-        # ป้องกันการเคลื่อนที่ของ gaze ถ้าหลับตาอยู่
-        if not eye_closed:
+        # ✅ ป้องกันไม่ให้ gaze เคลื่อนที่หรือเลือกปุ่มถ้าหลับตานานเกิน 1 นาที
+        if not eye_closed and not eye_closed_too_long:
             if gaze.is_right():
                 gaze_direction = "right"
             elif gaze.is_left():
@@ -128,9 +141,9 @@ def get_gaze_data():
     return jsonify({
         "direction": gaze_direction,
         "double_blink": blink_detected,
-        "eye_closed": eye_closed  # ✅ ส่งค่า eye_closed ไปที่ frontend ด้วย
+        "eye_closed": eye_closed,
+        "eye_closed_too_long": eye_closed_too_long  # ✅ ส่งค่า eye_closed_too_long ไปที่ frontend
     })
-
 
 @app.route('/status', methods=['GET'])
 def status():

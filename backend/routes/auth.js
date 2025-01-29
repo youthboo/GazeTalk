@@ -1,12 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const moment = require('moment'); // ใช้ moment สำหรับคำนวณอายุ
+const moment = require('moment');
 const nodemailer = require('nodemailer');
-const crypto = require('crypto'); 
+const crypto = require('crypto');
 const Patient = require('../models/Users');
 const Admin = require('../models/Admin');
-require('dotenv').config(); 
+require('dotenv').config();
 
 const router = express.Router();
 
@@ -28,6 +28,72 @@ const authorizeAdmin = (allowedCodes) => {
         }
     };
 };
+
+// Endpoint สำหรับตรวจสอบ username
+router.get('/check-username', async (req, res) => {
+    const { username } = req.query;
+
+    try {
+        if (!username) {
+            return res.status(400).json({ message: 'Username is required' });
+        }
+
+        // ตรวจสอบใน table Admin และ Patient
+        const existingAdmin = await Admin.findOne({ where: { username } });
+        const existingPatient = await Patient.findOne({ where: { username } });
+
+        // ส่งผลลัพธ์กลับไป
+        res.json({
+            exists: !!(existingAdmin || existingPatient)
+        });
+    } catch (error) {
+        console.error('Check username error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Endpoint สำหรับตรวจสอบ email
+router.get('/check-email', async (req, res) => {
+    const { email, userType } = req.query;
+
+    try {
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        let exists = false;
+
+        // ถ้าไม่ระบุ userType จะตรวจสอบทั้งสองตาราง
+        if (!userType) {
+            const existingAdmin = await Admin.findOne({ where: { email } });
+            const existingPatient = await Patient.findOne({ where: { email } });
+            exists = !!(existingAdmin || existingPatient);
+        } 
+        // ถ้าระบุ userType เป็น personnel จะตรวจสอบเฉพาะตาราง Admin
+        else if (userType === 'personnel') {
+            const existingAdmin = await Admin.findOne({ where: { email } });
+            exists = !!existingAdmin;
+        } 
+        // ถ้าระบุ userType เป็น patient จะตรวจสอบเฉพาะตาราง Patient
+        else if (userType === 'patient') {
+            const existingPatient = await Patient.findOne({ where: { email } });
+            exists = !!existingPatient;
+        } 
+        else {
+            return res.status(400).json({ message: 'Invalid user type' });
+        }
+
+        // ส่งผลลัพธ์กลับไป
+        res.json({
+            exists,
+            checkedType: userType || 'all'
+        });
+        
+    } catch (error) {
+        console.error('Check email error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 // ลงทะเบียนผู้ใช้ใหม่
 router.post('/signup', async (req, res) => {
@@ -165,96 +231,6 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         console.error('Login error:', error);
         return res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Forgot Password
-router.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
-
-    try {
-        // ตรวจสอบว่าอีเมลมีอยู่หรือไม่
-        const user = 
-            await Admin.findOne({ where: { email } }) || 
-            await Patient.findOne({ where: { email } });
-        
-        if (!user) {
-            return res.status(404).json({ message: 'Email not found.' });
-        }
-
-        // สร้าง reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-
-        // กำหนด token ให้ user และตั้งค่าหมดอายุ (ตัวอย่าง: 1 ชั่วโมง)
-        user.resetToken = resetToken;
-        user.resetTokenExpiration = Date.now() + 3600000; // 1 ชั่วโมง
-        await user.save();
-
-        // ส่งอีเมล
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail', // หรือบริการอื่น เช่น SendGrid
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
-
-        const resetLink = `http://localhost:3008/reset-password/${resetToken}`;
-
-        await transporter.sendMail({
-            to: email,
-            from: 'yourapp@example.com',
-            subject: 'Password Reset',
-            html: `
-                <p>You requested a password reset</p>
-                <p>Click this <a href="${resetLink}">link</a> to set a new password.</p>
-            `,
-        });
-
-        res.status(200).json({ message: 'Password reset link has been sent to your email.' });
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.post('/reset-password', async (req, res) => {
-    const { token, password } = req.body;
-
-    try {
-        // ค้นหา user จาก resetToken
-        const user = 
-            await Admin.findOne({ 
-                where: { 
-                    resetToken: token,
-                    resetTokenExpiration: { [Op.gt]: Date.now() }
-                }
-            }) || 
-            await Patient.findOne({ 
-                where: { 
-                    resetToken: token,
-                    resetTokenExpiration: { [Op.gt]: Date.now() }
-                }
-            });
-
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
-        }
-
-        // อัปเดตรหัสผ่านใหม่
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // อัปเดตข้อมูลและล้าง token
-        await user.update({ 
-            password: hashedPassword,
-            resetToken: null,
-            resetTokenExpiration: null
-        });
-
-        res.status(200).json({ message: 'Password has been reset successfully' });
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({ message: 'Internal server error' });
     }
 });
 

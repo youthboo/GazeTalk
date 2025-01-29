@@ -6,7 +6,7 @@ dotenv.config();
 const sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
-    process.env.DB_PASSWORD,
+    process.env.DB_PASSWORD || "",
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT || 3306,
@@ -28,10 +28,10 @@ const sequelize = new Sequelize(
             max: 5 // ลองเชื่อมต่อใหม่สูงสุด 5 ครั้ง
         },
         pool: {
-            max: 5, // เชื่อมต่อสูงสุดพร้อมกัน 5 connections
+            max: 5, 
             min: 0,
-            acquire: 30000, // เวลารอรับ connection 30 วินาที
-            idle: 10000 // Connection ที่ไม่ใช้ จะถูกปิดหลัง 10 วินาที
+            acquire: 30000, 
+            idle: 10000 
         }
     }
 );
@@ -48,7 +48,7 @@ const connectWithRetry = async () => {
             retries -= 1;
             if (retries === 0) {
                 console.error('Could not establish a connection to the database');
-                throw error; // โยน error ออกไปหากหมด retries
+                throw error; 
             }
             await new Promise(res => setTimeout(res, 5000)); // รอ 5 วินาที ก่อนลองใหม่
         }

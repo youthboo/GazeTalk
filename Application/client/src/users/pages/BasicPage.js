@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
@@ -15,10 +15,12 @@ const BasicPage = () => {
   const navigate = useNavigate();
   // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); // ✅ เก็บค่าปุ่มที่ถูกเลือกก่อนหน้า
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
+  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null); 
+  const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false); 
+  const EYE_CLOSED_TIMEOUT = 60000;
 
-
-  const commonPhrases = [
+  const commonPhrases = useMemo(() => [
     "ใช่",
     "ไม่",
     "ขอบคุณ",
@@ -33,9 +35,9 @@ const BasicPage = () => {
     "ปวดหัว",
     "อยากฟังเพลง",
     "อื่นๆ"
-  ];
+  ], []);
 
-  const imageMap = {
+  const imageMap = useMemo(() => ({
     "ใช่": require("../assets/yes.png"),
     "ไม่": require("../assets/no.png"),
     "ขอบคุณ": require("../assets/thank.png"),
@@ -49,8 +51,7 @@ const BasicPage = () => {
     "ปวดท้อง": require("../assets/stomatch.png"),
     "ปวดหัว": require("../assets/headache.png"),
     "อยากฟังเพลง": require("../assets/music.png"),
-
-  };
+  }), []);
 
   const playDingSound = () => {
     const audio = new Audio(dingSound);
@@ -144,18 +145,29 @@ const BasicPage = () => {
     // eslint-disable-next-line
   }, [inputText, navigate, handleSubmit]);
 
-  const totalButtons = 1 + commonPhrases.length + 3;
-
   useEffect(() => {
     const interval = setInterval(() => {
       fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
         .then((response) => response.json())
         .then((data) => {
           const { direction, double_blink, eye_closed } = data;
+          const totalButtons = 1 + commonPhrases.length + 3; // ย้ายมาไว้ในที่ที่ใช้งานจริง
   
-          setIsEyeClosed(eye_closed); // ✅ อัพเดต state
+          setIsEyeClosed(eye_closed);
   
-          if (!eye_closed) { // ✅ ใช้ eye_closed ที่เพิ่งได้จาก API ไม่ใช่ isEyeClosed
+          // ⏳ ถ้าหลับตา เริ่มจับเวลา
+          if (eye_closed) {
+            if (!eyeClosedStartTime) {
+              setEyeClosedStartTime(Date.now()); 
+            } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
+              setEyeClosedTooLong(true);
+            }
+          } else {
+            setEyeClosedStartTime(null);
+            setEyeClosedTooLong(false);
+          }
+  
+          if (!eye_closed && !eyeClosedTooLong) {
             setHighlightedIndex((prevIndex) => {
               if (direction === "right") {
                 return (prevIndex + 1) % totalButtons;
@@ -166,18 +178,20 @@ const BasicPage = () => {
             });
           }
   
-          if (double_blink && highlightedIndex !== lastSelectedIndex) { 
-            setLastSelectedIndex(highlightedIndex); // ✅ อัปเดตค่า index ที่ถูกเลือกล่าสุด
-            if (highlightedIndex === 0) {
-              handleKeyInput("Advance");
-            } else if (highlightedIndex <= commonPhrases.length) {
-              handleKeyInput(commonPhrases[highlightedIndex - 1]);
-            } else if (highlightedIndex === commonPhrases.length + 1) {
-              handleKeyInput("ลบ");
-            } else if (highlightedIndex === commonPhrases.length + 2) {
-              handleKeyInput("ตกลง");
-            } else if (highlightedIndex === commonPhrases.length + 3) {
-              handleKeyInput("Alert");
+          if (double_blink && !eyeClosedTooLong) {
+            if (highlightedIndex !== lastSelectedIndex) { 
+              setLastSelectedIndex(highlightedIndex);
+              if (highlightedIndex === 0) {
+                handleKeyInput("Advance");
+              } else if (highlightedIndex <= commonPhrases.length) {
+                handleKeyInput(commonPhrases[highlightedIndex - 1]);
+              } else if (highlightedIndex === commonPhrases.length + 1) {
+                handleKeyInput("ลบ");
+              } else if (highlightedIndex === commonPhrases.length + 2) {
+                handleKeyInput("ตกลง");
+              } else if (highlightedIndex === commonPhrases.length + 3) {
+                handleKeyInput("Alert");
+              }
             }
           }
         })
@@ -185,8 +199,14 @@ const BasicPage = () => {
     }, 500);
   
     return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [highlightedIndex, handleKeyInput, commonPhrases.length]);
+  }, [
+    highlightedIndex, 
+    handleKeyInput, 
+    commonPhrases, // เพิ่ม dependency
+    lastSelectedIndex, 
+    eyeClosedTooLong,
+    eyeClosedStartTime // เพิ่ม dependency
+  ]);
 
   return (
     <div className="basic-page">

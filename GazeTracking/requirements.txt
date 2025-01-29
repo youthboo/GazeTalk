@@ -1,6 +1,6 @@
 dlib==19.24.4
-numpy==1.26.4
+numpy==1.19.5
 opencv-python==4.10.0.82
-setuptools==70.0.0
-
-
+flask
+flask-cors
+#setuptools==70.0.0

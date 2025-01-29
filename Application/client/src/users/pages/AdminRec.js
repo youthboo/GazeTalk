@@ -13,9 +13,11 @@ const AdminRec = () => {
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [recommendedWords, setRecommendedWords] = useState([]);
   const navigate = useNavigate();
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); // ✅ เก็บค่าปุ่มที่ถูกเลือกก่อนหน้า
-  // eslint-disable-next-line
-  const [isEyeClosed, setIsEyeClosed] = useState(false);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
+
+  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
+  const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
+  const EYE_CLOSED_TIMEOUT = 60000; // 1 นาที (60,000 มิลลิวินาที)
 
 
   useEffect(() => {
@@ -46,9 +48,9 @@ const AdminRec = () => {
   }, []);
 
   const playDingSound = () => {
-        const audio = new Audio(dingSound);
-        audio.play();
-      };
+    const audio = new Audio(dingSound);
+    audio.play();
+  };
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
@@ -145,11 +147,9 @@ const AdminRec = () => {
           setInputText(phrase);
       }
     },
-    // eslint-disable-next-line
-    [inputText, navigate, handleSubmit]
+    [navigate, handleSubmit] // ลบ inputText ออกจาก dependencies เพราะมันไม่ได้ใช้ในฟังก์ชันนี้
   );
 
-  const totalButtons = 1 + recommendedWords.length + 3;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -157,10 +157,21 @@ const AdminRec = () => {
         .then((response) => response.json())
         .then((data) => {
           const { direction, double_blink, eye_closed } = data;
+          const totalButtons = 1 + recommendedWords.length + 3; 
+          
+          if (eye_closed) {
+            if (!eyeClosedStartTime) {
+              setEyeClosedStartTime(Date.now());
+            } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
+              setEyeClosedTooLong(true); 
+            }
+          } else {
+            setEyeClosedStartTime(null);
+            setEyeClosedTooLong(false); 
+          }
   
-          setIsEyeClosed(eye_closed); // ✅ อัพเดตสถานะการปิดตา
-  
-          if (!eye_closed) { // ✅ ป้องกันการเปลี่ยนตำแหน่งเมื่อหลับตา
+          // ✅ ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
+          if (!eye_closed && !eyeClosedTooLong) {
             setHighlightedIndex((prevIndex) => {
               if (direction === "right") {
                 return (prevIndex + 1) % totalButtons;
@@ -171,29 +182,37 @@ const AdminRec = () => {
             });
           }
   
-          if (double_blink && highlightedIndex !== lastSelectedIndex) { 
-            setLastSelectedIndex(highlightedIndex); // ✅ อัปเดตค่า index ที่ถูกเลือกล่าสุด
-            if (highlightedIndex === 0) {
-              handleKeyInput("Advance");
-            } else if (highlightedIndex <= recommendedWords.length) {
-              handleKeyInput(recommendedWords[highlightedIndex - 1]);
-            } else if (highlightedIndex === recommendedWords.length + 1) {
-              handleKeyInput("ลบ");
-            } else if (highlightedIndex === recommendedWords.length + 2) {
-              handleKeyInput("ตกลง");
-            } else if (highlightedIndex === recommendedWords.length + 3) {
-              handleKeyInput("Alert");
+          // ป้องกันไม่ให้เลือกปุ่มถ้าหลับตานานเกินไป
+          if (double_blink && !eyeClosedTooLong) {
+            if (highlightedIndex !== lastSelectedIndex) { 
+              setLastSelectedIndex(highlightedIndex);
+              if (highlightedIndex === 0) {
+                handleKeyInput("กลับ");
+              } else if (highlightedIndex <= recommendedWords.length) {
+                handleKeyInput(recommendedWords[highlightedIndex - 1]);
+              } else if (highlightedIndex === recommendedWords.length + 1) {
+                handleKeyInput("ลบ");
+              } else if (highlightedIndex === recommendedWords.length + 2) {
+                handleKeyInput("ตกลง");
+              } else if (highlightedIndex === recommendedWords.length + 3) {
+                handleKeyInput("Alert");
+              }
             }
           }
         })
         .catch((error) => console.error("Error fetching gaze data:", error));
-    }, 500);
+    }, 500); 
   
     return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [highlightedIndex, handleKeyInput, recommendedWords.length]);
+  }, [
+    highlightedIndex, 
+    handleKeyInput, 
+    recommendedWords, 
+    lastSelectedIndex, 
+    eyeClosedTooLong, 
+    eyeClosedStartTime
+  ]);
   
-
   return (
     <div className="basic-page">
       <Header />
