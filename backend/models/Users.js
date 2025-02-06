@@ -31,6 +31,14 @@ const Patient = sequelize.define('Patient', {
     gender: {
         type: DataTypes.STRING,
     },
+    resetToken: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    resetTokenExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
     tableName: 'Patients'
 });

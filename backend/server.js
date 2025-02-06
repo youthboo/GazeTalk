@@ -12,6 +12,7 @@ const relativeRoutes = require('./routes/relativeRoutes');
 const dashboardRoutes = require("./routes/dashboardRoutes"); 
 const sendMessageRoute = require('./routes/sendMessageRoute');
 const wordsRoute = require('./routes/words');
+const passwordResetRoutes = require('./routes/passwordReset');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/relative', relativeRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use('/api', sendMessageRoute);
 app.use('/api/words', wordsRoute);
+app.use('/api/auth', passwordResetRoutes);
 
 // Function to create database if not exists
 const createDatabaseIfNotExists = async () => {

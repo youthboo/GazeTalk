@@ -28,6 +28,15 @@ const Admin = sequelize.define('Admin', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    resetToken: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    resetTokenExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    
 }, {
     tableName: 'Admins'
 });

@@ -91,8 +91,8 @@ const App = () => {
         <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/" />} />
 
         {/* New Forgot Password Route */}
-        <Route path="/forgot-password" element={!isLoggedIn ? <ForgotPassword /> : <Navigate to="/" />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token/:userType" element={<ResetPassword />} />
 
         {/* Admin Routes */}
         <Route

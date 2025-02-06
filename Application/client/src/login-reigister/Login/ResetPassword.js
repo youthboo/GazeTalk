@@ -5,20 +5,21 @@ import axios from 'axios';
 import styles from './ResetPassword.module.css';
 
 const ResetPassword = () => {
-    const { token } = useParams(); // ดึง token จาก URL
+    const { token, userType } = useParams(); // รับค่าจาก URL
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const onFinish = async (values) => {
-        const { password } = values;
+        const { newPassword } = values;
         try {
             setLoading(true);
-            await axios.post('http://localhost:3008/api/auth/reset-password', {
+            await axios.post(`${process.env.REACT_APP_GAZETALK_URL}/api/auth/reset-password`, {
                 token,
-                password,
+                userType,
+                newPassword,
             });
             message.success('Password has been reset successfully!');
-            navigate('/login'); // นำผู้ใช้กลับไปยังหน้า login
+            navigate('/login'); // นำผู้ใช้กลับไปยังหน้า Login
         } catch (error) {
             message.error(error.response?.data?.message || 'Failed to reset password.');
         } finally {
@@ -28,14 +29,10 @@ const ResetPassword = () => {
 
     return (
         <div className={styles.reset_password_container}>
-            <Form
-                layout="vertical"
-                className={styles.form_container}
-                onFinish={onFinish}
-            >
+            <Form layout="vertical" className={styles.form_container} onFinish={onFinish}>
                 <h1>Reset Password</h1>
                 <Form.Item
-                    name="password"
+                    name="newPassword"
                     label="New Password"
                     rules={[
                         { required: true, message: 'Please enter your new password!' },
