@@ -33,8 +33,11 @@ const Signup = () => {
         }
     };
 
-    // Password validation rules
     const validatePassword = (_, value) => {
+        if (!value) {
+            return Promise.reject(new Error('Password is required'));
+        }
+    
         const requirements = {
             minLength: value.length >= 8,
             hasUpperCase: /[A-Z]/.test(value),
@@ -42,55 +45,57 @@ const Signup = () => {
             hasNumber: /\d/.test(value),
             hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(value),
         };
-
+    
         if (Object.values(requirements).every(Boolean)) {
             return Promise.resolve();
         }
-
+    
         let errorMsg = 'Password must contain:';
         if (!requirements.minLength) errorMsg += ' at least 8 characters,';
         if (!requirements.hasUpperCase) errorMsg += ' uppercase letter,';
         if (!requirements.hasLowerCase) errorMsg += ' lowercase letter,';
         if (!requirements.hasNumber) errorMsg += ' number,';
         if (!requirements.hasSpecialChar) errorMsg += ' special character,';
-
+    
         return Promise.reject(new Error(errorMsg.slice(0, -1)));
     };
-
+    
     const onFinish = async (values) => {
         const { username, email, password, gender, dateOfBirth, code, privacyAgreement } = values;
-
+    
+        // Check if the privacyAgreement is accepted
         if (!privacyAgreement) {
             message.error('You must accept the Privacy Policy and Terms.');
             return;
         }
-
+    
+        // For personnel, check the code
         if (userType === 'personnel' && (!code || (code !== 'SecretCodeAdmin' && code !== 'SKCode55'))) {
             message.error('Invalid code for personnel.');
             return;
         }
-
+    
         try {
             setLoading(true);
-
+    
             // Final check for username and email existence before submission
             const [usernameExists, emailExists] = await Promise.all([
                 checkExistingField('username', username),
                 checkExistingField('email', email)
             ]);
-
+    
             if (usernameExists) {
                 message.error('Username is already taken.');
                 setLoading(false);
                 return;
             }
-
+    
             if (emailExists) {
                 message.error('Email is already registered.');
                 setLoading(false);
                 return;
             }
-
+    
             const payload = {
                 username,
                 email,
@@ -99,7 +104,7 @@ const Signup = () => {
                 ...(userType === 'personnel' && { code }),
                 ...(userType === 'patient' && { gender, dateOfBirth: dateOfBirth.format('YYYY-MM-DD') }),
             };
-
+    
             await axios.post(`${process.env.REACT_APP_GAZETALK_URL}/api/auth/signup`, payload);
             message.success('Signup successful!');
             navigate('/login');
@@ -109,6 +114,7 @@ const Signup = () => {
             setLoading(false);
         }
     };
+    
 
     const handleUserTypeChange = (type) => {
         setUserType(type);
