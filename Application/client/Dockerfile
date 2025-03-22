@@ -2,8 +2,8 @@ FROM node:lts-alpine
 ENV NODE_ENV=development
 WORKDIR /usr/src/app
 
-# Set the PORT environment variable to 85
-ENV PORT=85
+# Set the PORT environment variable to 80
+ENV PORT=80
 
 # Copy package files
 COPY package.json package-lock.json* ./
@@ -17,8 +17,8 @@ RUN npm install --save-dev @babel/plugin-proposal-private-property-in-object@7.2
 # Copy rest of the application
 COPY . .
 
-# Expose the port 85
-EXPOSE 85
+# Expose the port 80
+EXPOSE 80
 
 # Run the app
 CMD ["npm", "start"]

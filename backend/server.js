@@ -29,7 +29,7 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"], // การเข้าถึงจากแหล่งตัวเอง
     imgSrc: ["'self'", "http://202.44.40.178"], // เพิ่ม IP ที่ให้เข้าถึงได้
-    connectSrc: ["'self'", "http://202.44.40.178:80"], // ให้ backend ติดต่อได้
+    connectSrc: ["'self'", "http://202.44.40.178:85"], // ให้ backend ติดต่อได้
     styleSrc: ["'self'"],  // การโหลดจากแหล่งตัวเอง
     fontSrc: ["'self'"]    // การโหลดฟอนต์จากแหล่งตัวเอง
   }
@@ -75,7 +75,7 @@ createDatabaseIfNotExists()
     .then(() => sequelize.sync())
     .then(() => {
         console.log('Database synchronized');
-        const PORT = process.env.PORT || 80;
+        const PORT = process.env.PORT || 85;
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server running on port ${PORT}`);
         });

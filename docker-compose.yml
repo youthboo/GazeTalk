@@ -27,7 +27,7 @@ services:
       context: ./backend
     container_name: gazetalk-backend
     ports:
-      - "80:80"
+      - "85:85"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -37,7 +37,7 @@ services:
       DB_PASSWORD: Aqwer.2002
       DB_HOST: db
       DB_PORT: 3306
-      PORT: 80
+      PORT: 85
     depends_on:
       db:
         condition: service_healthy
@@ -48,7 +48,7 @@ services:
       context: ./Application/client
     container_name: gazetalk-frontend
     ports:
-      - "85:85"
+      - "80:80"
     volumes:
       - ./Application/client:/app
       - /app/node_modules
