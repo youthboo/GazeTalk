@@ -29,8 +29,10 @@ const Dashboard = () => {
   const [windowSize, setWindowSize] = useState(window.innerWidth); // ติดตามขนาดหน้าจอ
 
   useEffect(() => {
+    // ใช้ URL จาก .env
+    const apiUrl = process.env.REACT_APP_API_URL; // URL API จาก .env
     axios
-      .get("http://localhost:3008/api/dashboard/dashboard")
+      .get(`${apiUrl}/api/dashboard/dashboard`) // เชื่อมต่อ API ผ่านค่าจาก .env
       .then((response) => {
         const { patientData } = response.data;
         setPatientData(patientData);
@@ -41,7 +43,6 @@ const Dashboard = () => {
         setIsLoading(false);
       });
   }, []);
-
   useEffect(() => {
     const handleResize = () => {
       setWindowSize(window.innerWidth); // รีเรนเดอร์เมื่อหน้าจอเปลี่ยนขนาด
