@@ -77,17 +77,31 @@ const BasicPage = () => {
       return;
     }
 
-    const isEmergency = inputText.includes("แจ้งเตือนฉุกเฉิน");
-
     try {
+      // บันทึกข้อความลง DB
+      const dbResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: inputText,
+          patient_id
+        }),
+      });
+
+      if (!dbResponse.ok) {
+        throw new Error('Failed to save message to database');
+      }
+
+      // ส่งข้อความไป Telegram
       const telegramResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patient_id}/send-message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputText,
-          isEmergency
+          message: inputText
         }),
       });
 
@@ -105,7 +119,6 @@ const BasicPage = () => {
       });
 
       setInputText(""); // ล้างข้อความหลังจากส่ง
-
     } catch (error) {
       console.error('Error sending message:', error);
       Swal.fire({
@@ -118,7 +131,6 @@ const BasicPage = () => {
       });
     }
   }, [inputText]);
-
 
   const handleKeyInput = useCallback((phrase) => {
     playDingSound();

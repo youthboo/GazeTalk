@@ -23,19 +23,19 @@ const EditWord = () => {
       setMessages([]);
       return;
     }
-  
+
     setLoading(true);
     setError(null);
-  
+
     try {
       const [messagesResponse, summaryResponse] = await Promise.all([
-        fetch(`http://202.44.40.178:85/api/words?gender=${gender}&ageRange=${ageRange}`),
-        fetch(`http://202.44.40.178:85/api/messages/messages?gender=${gender}&ageRange=${ageRange}`)
+        fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words?gender=${gender}&ageRange=${ageRange}`),
+        fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}`)
       ]);
-  
+
       const messagesData = await messagesResponse.json();
       const summaryData = await summaryResponse.json();
-  
+
       setMessages(messagesData.words || []);
       setSummary(summaryData.summary || []);
     } catch (error) {
@@ -47,7 +47,7 @@ const EditWord = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line
