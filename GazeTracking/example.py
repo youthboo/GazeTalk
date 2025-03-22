@@ -18,7 +18,6 @@ CORS(app)
 
 gaze = GazeTracking()
 
-
 # ฟังก์ชันตรวจสอบและเปิดใช้งานกล้องอย่างปลอดภัย
 def safe_initialize_webcam():
     camera_ids = [1, 0, -1]  
@@ -112,7 +111,7 @@ def get_gaze_data():
                 if eye_closed_start_time is None:
                     eye_closed_start_time = time.time()  # เริ่มจับเวลาหลับตา
                 elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
-                    eye_closed_too_long = True  # ✅ ตรวจจับว่าหลับตานานเกินไป
+                    eye_closed_too_long = True  # ตรวจจับว่าหลับตานานเกินไป
                     print("User has closed eyes for too long!") 
             else:
                 eye_closed_start_time = None  # รีเซ็ตเวลาถ้าลืมตา
@@ -130,7 +129,7 @@ def get_gaze_data():
                 logger.info("Double blink detected.")
                 blink_count = 0
 
-        # ✅ ป้องกันไม่ให้ gaze เคลื่อนที่หรือเลือกปุ่มถ้าหลับตานานเกิน 1 นาที
+        # ป้องกันไม่ให้ gaze เคลื่อนที่หรือเลือกปุ่มถ้าหลับตานานเกิน 1 นาที
         if not eye_closed and not eye_closed_too_long:
             if gaze.is_right():
                 gaze_direction = "right"
@@ -143,7 +142,7 @@ def get_gaze_data():
         "direction": gaze_direction,
         "double_blink": blink_detected,
         "eye_closed": eye_closed,
-        "eye_closed_too_long": eye_closed_too_long  # ✅ ส่งค่า eye_closed_too_long ไปที่ frontend
+        "eye_closed_too_long": eye_closed_too_long  
     })
 
 @app.route('/status', methods=['GET'])
