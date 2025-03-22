@@ -30,7 +30,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_API_URL}/api/dashboard/dashboard`) // ใช้ค่า API URL จาก .env
+      .get("http://202.44.40.178:85/api/dashboard/dashboard")
       .then((response) => {
         const { patientData } = response.data;
         setPatientData(patientData);
