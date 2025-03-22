@@ -12,7 +12,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # เปิดพอร์ตที่ Flask ใช้
-EXPOSE 5009
+EXPOSE 83
 
 # คำสั่งรันแอป
 CMD ["python", "app.py"]

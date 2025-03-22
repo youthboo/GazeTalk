@@ -13,5 +13,5 @@ RUN npm install --save-dev @babel/plugin-proposal-private-property-in-object@7.2
 
 # Copy rest of the application
 COPY . .
-EXPOSE 3000
+EXPOSE 85
 CMD ["npm", "start"]
