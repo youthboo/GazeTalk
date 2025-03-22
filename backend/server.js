@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
 const mysql = require('mysql2/promise'); 
@@ -22,6 +23,17 @@ app.use(cors({
     credentials: true
 }));
 app.options('*', cors()); // เปิดใช้งาน CORS สำหรับ preflight requests
+
+// Use helmet to add security headers including Content Security Policy
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"], // การเข้าถึงจากแหล่งตัวเอง
+    imgSrc: ["'self'", "http://202.44.40.178"], // เพิ่ม IP ที่ให้เข้าถึงได้
+    connectSrc: ["'self'", "http://202.44.40.178:80"], // ให้ backend ติดต่อได้
+    styleSrc: ["'self'"],  // การโหลดจากแหล่งตัวเอง
+    fontSrc: ["'self'"]    // การโหลดฟอนต์จากแหล่งตัวเอง
+  }
+}));
 
 app.use(express.json());
 
