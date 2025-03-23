@@ -1,5 +1,4 @@
-# ใช้ base image ที่เบากว่า
-FROM python:3.8-slim
+FROM python:3.9-slim
 
 # ตั้งค่า environment variables เพื่อหลีกเลี่ยงปัญหาการ prompt ของ apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -22,16 +21,21 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install --upgrade pip
 
 # คัดลอก requirements.txt ก่อน
-COPY requirements.txt /home/GazeTracking/
+COPY requirements.txt /GazeTracking/
 
 # กำหนด working directory
-WORKDIR /home/GazeTracking
+WORKDIR /GazeTracking
 
 # ติดตั้ง Python dependencies โดยใช้ cache
 RUN pip3 install -r requirements.txt --no-cache-dir -i https://pypi.org/simple
 
 # คัดลอกไฟล์โค้ดทั้งหมด
-COPY . /home/GazeTracking
+COPY . /GazeTracking
+
+EXPOSE 81
 
 # กำหนด command เริ่มต้น
 CMD ["python3", "example.py"]
+
+
+

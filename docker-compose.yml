@@ -69,5 +69,20 @@ services:
     depends_on:
       - db
 
+  gaze_tracking:
+    build:
+      context: ./GazeTracking
+    container_name: gazetalk-gaze-tracking
+    ports:
+      - "81:81"
+    volumes:
+      - ./GazeTracking:/app
+    environment:
+      - FLASK_ENV=development
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+
 volumes:
   mysql_data:

@@ -302,7 +302,7 @@ useEffect(() => {
           if (predictedWords.length > 0 && !isPredictionSelectionLocked) {
             if (direction === "right") {
               setSuggestHighlightedIndex((prevIndex) =>
-                (prevIndex + 1) % (predictedWords.length + 1) // +1 รวมปุ่ม ❌
+                (prevIndex + 1) % (predictedWords.length + 1) 
               );
             } else if (direction === "left") {
               setSuggestHighlightedIndex((prevIndex) =>

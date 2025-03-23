@@ -167,7 +167,7 @@ const BasicPage = () => {
           const totalButtons = 1 + commonPhrases.length + 3; 
   
           setIsEyeClosed(eye_closed);
-          setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดต state
+          setEyeClosedTooLong(eye_closed_too_long); // อัปเดต state
   
           if (eye_closed) {
             if (!eyeClosedStartTime) {
