@@ -23,8 +23,6 @@ const ForgotPassword = () => {
         }
     };
 
-
-
     const closeForm = () => {
         navigate('/');  // หรือหน้าที่คุณต้องการให้กลับไป
     };
