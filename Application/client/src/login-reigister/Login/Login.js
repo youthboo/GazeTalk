@@ -87,7 +87,7 @@ const Login = ({ onLogin }) => {
                             />
                         </Form.Item>
                         <Form.Item name="code">
-                            <Input placeholder="Code (Only Personnel, optional)" />
+                            <Input placeholder="Code (Only Caretaker, optional)" />
                         </Form.Item>
                         <div className={styles.extra_options}>
                             <Form.Item name="remember" valuePropName="checked" noStyle>
@@ -103,7 +103,7 @@ const Login = ({ onLogin }) => {
                             className={styles.green_btn}
                             loading={loading}
                         >
-                            Sign In
+                            Log In
                         </Button>
                     </Form>
                 </div>

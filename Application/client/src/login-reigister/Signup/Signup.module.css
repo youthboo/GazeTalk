@@ -117,3 +117,113 @@
 .modal_overlay {
     z-index: 1000;
 }
+
+@media (max-width: 1335px) {
+    .left h1 {
+        font-size: 28px;
+        margin-left: 0;
+
+    }
+}
+
+/* Media Queries สำหรับการทำให้ responsive */
+@media (max-width: 1170px) {
+    .signup_form_container {
+        width: 80%;
+        height: auto;
+        flex-direction: column;
+    }
+
+    .logologin {
+        margin-top: 20px;
+    }
+
+    .right {
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+
+    }
+    .left { 
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+
+    }
+
+    .right {
+        padding: 10px;
+    }
+
+    .right h1 {
+        font-size: 30px;
+        margin-left: 0;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .signup_form_container {
+        width: 90%;
+    }
+
+    .left h1 {
+        font-size: 28px;
+    }
+
+    .right h1 {
+        font-size: 24px;
+    }
+
+    .form_container {
+        max-width: 300px;
+    }
+
+    .user_type_btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .green_btn {
+        font-size: 14px;
+    }
+
+    .white_btn {
+        width: 150px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .signup_form_container {
+        width: 100%;
+    }
+
+    .left h1 {
+        font-size: 24px;
+    }
+
+    .right h1 {
+        font-size: 20px;
+    }
+
+    .form_container {
+        max-width: 100%;
+    }
+
+    .user_type_btn {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+
+    .green_btn {
+        font-size: 12px;
+    }
+
+    .white_btn {
+        width: 120px;
+        font-size: 10px;
+    }
+}

@@ -128,7 +128,7 @@ const Signup = () => {
                     <h1>Welcome Back</h1>
                     <Link to="/login">
                         <Button type="default" className={styles.white_btn}>
-                            Sign in
+                            Log In
                         </Button>
                     </Link>
                 </div>
@@ -154,7 +154,7 @@ const Signup = () => {
                                 className={`${styles.user_type_btn} ${userType === 'personnel' ? styles.active : ''}`}
                                 onClick={() => handleUserTypeChange('personnel')}
                             >
-                                Personnel
+                                Caretaker
                             </button>
                         </div>
 

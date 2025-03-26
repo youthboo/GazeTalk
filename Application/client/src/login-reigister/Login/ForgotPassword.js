@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message, Select } from 'antd';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import styles from './ForgotPassword.module.css';
 
 const { Option } = Select;
 
 const ForgotPassword = () => {
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const onFinish = async (values) => {
         const { email, userType } = values;
@@ -21,41 +23,51 @@ const ForgotPassword = () => {
         }
     };
 
+
+
+    const closeForm = () => {
+        navigate('/');  // หรือหน้าที่คุณต้องการให้กลับไป
+    };
+
     return (
         <div className={styles.forgot_password_container}>
-            <Form
-                layout="vertical"
-                className={styles.form_container}
-                onFinish={onFinish}
-            >
-                <h1>Forgot Password</h1>
-
-                <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                        { required: true, message: 'Please enter your email!' },
-                        { type: 'email', message: 'Please enter a valid email!' },
-                    ]}
+            <div className={styles.form_container}>
+                {/* ย้ายปุ่มกากบาทมาไว้ข้างในกรอบฟอร์ม */}
+                <div className={styles.close_button} onClick={closeForm}>×</div> 
+                <Form
+                    layout="vertical"
+                    onFinish={onFinish}
                 >
-                    <Input placeholder="Enter your email" />
-                </Form.Item>
+                    <h1>Forgot Password</h1>
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            { required: true, message: 'Please enter your email!' },
+                            { type: 'email', message: 'Please enter a valid email!' },
+                        ]}
+                    >
+                        <Input placeholder="Enter your email" />
+                    </Form.Item>
 
-                <Form.Item
-                    name="userType"
-                    label="User Type"
-                    rules={[{ required: true, message: 'Please select user type!' }]}
-                >
-                    <Select placeholder="Select user type">
-                        <Option value="patient">Patient</Option>
-                        <Option value="personnel">Personnel</Option>
-                    </Select>
-                </Form.Item>
+                    <Form.Item
+                        name="userType"
+                        label="User Type"
+                        rules={[{ required: true, message: 'Please select user type!' }]}
+                    >
+                        <Select placeholder="Select user type">
+                            <Option value="patient">Patient</Option>
+                            <Option value="personnel">Caretaker</Option>
+                        </Select>
+                    </Form.Item>
 
-                <Button type="primary" htmlType="submit" loading={loading} className={styles.green_btn}>
-                    Send Reset Link
-                </Button>
-            </Form>
+                    <Button type="primary" htmlType="submit" loading={loading} className={styles.green_btn}>
+                        Send Reset Link
+                    </Button>
+
+
+                </Form>
+            </div>
         </div>
     );
 };

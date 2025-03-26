@@ -1,3 +1,4 @@
+/* Container หลักของหน้า Login */
 .login_container {
     width: 100%;
     min-height: 100vh;
@@ -10,6 +11,7 @@
     background-size: cover;
 }
 
+/* ฟอร์มที่ใช้สำหรับ Login */
 .login_form_container {
     width: 70%;
     height: 750px;
@@ -18,6 +20,7 @@
     box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
 }
 
+/* ส่วนที่เป็นฝั่งซ้าย */
 .left {
     flex: 2;
     display: flex;
@@ -27,50 +30,25 @@
     background-color: white;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
+    
 }
 
+/* ฟอนต์สำหรับหัวข้อ */
 .form_container h1 {
     font-size: 36px;
     margin-bottom: 20px;
 }
 
-.right h1:hover {
-    transform: scale(1.05); /* ขยายเล็กน้อย */
-    transition: transform 0.3s ease-in-out; /* เพิ่ม transition */
-}
-
-/* ปรับสไตล์ของโลโก้ */
+/* โลโก้ของหน้า Login */
 .logologin {
-    width: 100px; /* กำหนดขนาดของโลโก้ */
-    height: auto; 
-    display: block; /* จัดให้อยู่กึ่งกลาง */
-    margin-left: auto; 
+    width: 100px;
+    height: auto;
+    display: block;
+    margin-left: auto;
     margin-right: auto;
 }
 
-.forgot_password {
-    float: right;
-    color: #01579b;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.extra_options {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 20px;
-}
-
-.green_btn {
-    width: 100%;
-    background-color: #01579b;
-    color: white;
-    border-radius: 5px;
-    font-size: 16px;
-    height: 40px;
-}
-
+/* ส่วนที่เป็นฝั่งขวา */
 .right {
     flex: 1;
     display: flex;
@@ -81,11 +59,24 @@
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
 }
+
 .right h1 {
     color: white;
     font-size: 40px;
 }
 
+/* ปุ่ม Login */
+.green_btn {
+    width: 100%;
+    background-color: #01579b;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+    height: 40px;
+    margin-bottom: 30px;
+}
+
+/* ปุ่มผู้ใช้ประเภท */
 .white_btn {
     width: 180px;
     background-color: white;
@@ -97,3 +88,135 @@
     cursor: pointer;
 }
 
+/* ฟังก์ชัน Forgot Password */
+.forgot_password {
+    float: right;
+    color: #01579b;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.ant-btn {
+    margin-bottom: 20px; /* เพิ่มระยะห่างจากขอบล่าง */
+  }
+  a {
+    padding-bottom: 20px; /* เพิ่มระยะห่างจากขอบล่าง */
+  }
+  
+@media (max-width: 1260px) {
+    .right h1 {
+        font-size: 30px;
+        margin-left: 0;
+
+    }
+}
+  
+/* ปรับการแสดงผลเมื่อขนาดหน้าจอลดลง */
+@media (max-width: 1100px) {
+    .login_form_container {
+        width: 80%;
+        height: auto;
+        flex-direction: column;
+
+    }
+
+    .logologin {
+        margin-top: 20px;
+    }
+
+    .right {
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+
+    }
+    .left { 
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+
+    }
+
+    .right h1 {
+        font-size: 30px;
+        margin-left: 0;
+
+    }
+
+    /* ทำให้ getstart อยู่ด้านบน */
+    .right {
+        flex: 1;
+        order: -1; /* ทำให้ .right อยู่ด้านบน */
+    }
+    
+    .left {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .login_form_container {
+        width: 90%;
+    }
+
+    .left h1 {
+        font-size: 28px;
+    }
+
+    .right h1 {
+        font-size: 24px;
+    }
+
+    .form_container {
+        max-width: 300px;
+    }
+
+    .user_type_btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .green_btn {
+        font-size: 14px;
+    }
+
+    .forgot_password {
+        font-size: 12px;
+    }
+
+
+    
+}
+
+@media (max-width: 480px) {
+    .login_form_container {
+        width: 100%;
+    }
+
+    .left h1 {
+        font-size: 24px;
+    }
+
+    .right h1 {
+        font-size: 20px;
+    }
+
+    .form_container {
+        max-width: 100%;
+    }
+
+    .white_btn {
+        width: 100%;
+    }
+
+    .green_btn {
+        font-size: 12px;
+    }
+
+    .forgot_password {
+        font-size: 10px;
+    }
+
+}
