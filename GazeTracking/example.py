@@ -1,5 +1,6 @@
 import logging
 from flask import Flask, jsonify, request
+from flask_socketio import SocketIO, emit
 from gaze_tracking import GazeTracking
 import cv2
 import time
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")  # เปิดใช้ WebSocket
 
 gaze = GazeTracking()
 
@@ -41,21 +43,14 @@ BLINKING_RATIO_THRESHOLD = 6
 eye_closed_start_time = None  
 EYE_CLOSED_TIMEOUT = 0.5  
 
-@app.route('/upload-frame', methods=['POST'])
-def upload_frame():
+@socketio.on('send_frame')
+def handle_frame(data):
     global latest_frame
     
-    if 'frame' not in request.files:
-        return jsonify({"error": "No frame part"}), 400
-        
-    file = request.files['frame']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    
     try:
-        # อ่านภาพจาก request
-        image_bytes = file.read()
-        image = Image.open(io.BytesIO(image_bytes))
+        # รับเฟรมจาก client
+        image_bytes = io.BytesIO(data)
+        image = Image.open(image_bytes)
         
         # แปลงเป็น OpenCV format
         frame = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
@@ -63,31 +58,16 @@ def upload_frame():
         # อัพเดทเฟรมล่าสุด
         with frame_lock:
             latest_frame = frame
-            
-        return jsonify({"status": "success"}), 200
-    except Exception as e:
-        logger.error(f"Error processing uploaded frame: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/gaze', methods=['GET'])
-def get_gaze_data():
-    global blink_count, last_blink_time, eye_closed_start_time, latest_frame
-
-    with frame_lock:
-        frame = latest_frame
-    
-    if frame is None:
-        return jsonify({"error": "No frame available. Please ensure camera is streaming."}), 500
-
-    try:
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-        nearest_face = select_nearest_face(faces)
-
+        
+        # ประมวลผล gaze
         gaze_direction = "center"
         blink_detected = False
         eye_closed = False  
         eye_closed_too_long = False
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+        nearest_face = select_nearest_face(faces)
 
         if nearest_face is not None:
             x, y, w, h = nearest_face
@@ -131,15 +111,17 @@ def get_gaze_data():
                     elif gaze.is_center():
                         gaze_direction = "center"
 
-        return jsonify({
+        # ส่งผลลัพธ์กลับไปที่ client
+        emit('gaze_data', {
             "direction": gaze_direction,
             "double_blink": blink_detected,
             "eye_closed": eye_closed,
             "eye_closed_too_long": eye_closed_too_long
         })
+        
     except Exception as e:
-        logger.error(f"Error processing gaze data: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error processing frame: {e}")
+        emit('error', {"error": str(e)})
 
 @app.route('/status', methods=['GET'])
 def status():
@@ -149,4 +131,4 @@ def status():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=81, debug=False)  
+    socketio.run(app, host="0.0.0.0", port=81, debug=False)
