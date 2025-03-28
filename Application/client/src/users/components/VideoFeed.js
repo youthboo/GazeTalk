@@ -1,39 +1,46 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { io } from "socket.io-client"; // นำเข้า socket.io-client
+import { io } from "socket.io-client";
 
-const VideoFeed = ({ width, borderRadius }) => {
+const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const frameIntervalRef = useRef(null); // ใช้ useRef แทน let
+  const frameIntervalRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
-  const [cameraError, setCameraError] = useState(""); // เก็บข้อความข้อผิดพลาดจากการเข้าถึงกล้อง
-
-  // สร้างการเชื่อมต่อกับ socket server
-  const socket = useRef(null); 
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
+  const socket = useRef(null);
 
   useEffect(() => {
-    let videoElement = videoRef.current;
-    let stream = null;
-
-    // เชื่อมต่อกับ backend ผ่าน WebSocket
-    const connectSocket = () => {
-      socket.current = io(`${process.env.REACT_APP_GAZEMODEL_URL}`, {
-        transports: ["websocket"], // ใช้ websocket transport
-      });
+    if (!socket.current) {
+      // สร้าง WebSocket ครั้งเดียว
+      socket.current = io(`${process.env.REACT_APP_GAZEMODEL_URL}`);
 
       socket.current.on("connect", () => {
         console.log("Connected to server via WebSocket");
       });
 
-      socket.current.on("disconnect", () => {
-        console.log("Disconnected from server");
+      socket.current.on("gaze-data", (data) => {
+        if (onGazeDataReceived) {
+          onGazeDataReceived(data);
+        }
       });
 
-      socket.current.on("connect_error", (error) => {
-        console.error("WebSocket connection error:", error);
+      socket.current.on("error", (error) => {
+        console.error("Error from server:", error);
       });
+    }
+
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+        socket.current = null;
+      }
     };
+  }, [onGazeDataReceived]); // แค่เพิ่ม callback ที่อัปเดต
+
+  useEffect(() => {
+    let videoElement = videoRef.current;
+    let stream = null;
 
     const startCamera = async () => {
       try {
@@ -41,8 +48,8 @@ const VideoFeed = ({ width, borderRadius }) => {
           video: {
             width: 640,
             height: 480,
-            frameRate: { ideal: 10 } // ลดเฟรมเรทเพื่อประหยัด bandwidth
-          }
+            frameRate: { ideal: 10 },
+          },
         });
 
         if (videoElement) {
@@ -50,62 +57,57 @@ const VideoFeed = ({ width, borderRadius }) => {
         }
         setIsCameraActive(true);
 
-        // เริ่มส่งเฟรมไปยัง backend
+        const canvas = canvasRef.current;
+        if (canvas) {
+          setIsCanvasReady(true);
+        }
+
         startSendingFrames();
       } catch (error) {
         console.error("Error accessing webcam:", error);
         setIsCameraActive(false);
-        setCameraError("ไม่สามารถเข้าถึงกล้องได้ กรุณาตรวจสอบการเชื่อมต่อหรืออนุญาตการเข้าถึงกล้อง");
       }
     };
 
     const startSendingFrames = () => {
       const canvas = canvasRef.current;
+      if (!canvas) {
+        console.log("Canvas is not available");
+        return;
+      }
+
       const context = canvas.getContext("2d");
 
       frameIntervalRef.current = setInterval(() => {
-        if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-          // วาดภาพจากวิดีโอลงบน canvas
+        const videoElement = videoRef.current;
+        if (videoElement && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
           context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-          // แปลง canvas เป็น blob
-          canvas.toBlob(async (blob) => {
-            try {
-              if (socket.current) {
-                // ส่งภาพไปยัง backend ผ่าน WebSocket
-                socket.current.emit("frame", blob); // ส่ง blob ไปยัง backend
-              }
-            } catch (error) {
-              console.error("Error sending frame:", error);
-            }
-          }, "image/jpeg", 0.6); // คุณภาพ 70% เพื่อลดขนาดข้อมูล
+          // แปลงภาพเป็น base64
+          const frameData = canvas.toDataURL("image/jpeg", 0.3);
+
+          if (socket.current) {
+            socket.current.emit("upload-frame", { frame: frameData });
+          }
         }
-      }, 200); // ส่งทุก 200ms (5 fps)
+      }, 500);
     };
 
-    connectSocket(); // เรียกใช้ฟังก์ชันเชื่อมต่อ WebSocket
     startCamera();
 
     return () => {
       if (frameIntervalRef.current) {
-        clearInterval(frameIntervalRef.current); // เคลียร์ interval อย่างถูกต้อง
+        clearInterval(frameIntervalRef.current);
       }
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
-      if (socket.current) {
-        socket.current.disconnect(); // ปิดการเชื่อมต่อเมื่อ Component ถูกทำลาย
-      }
     };
-  }, []);
+  }, []); // ใช้ [] เพื่อให้รันครั้งเดียวตอน mount
 
   return (
     <div className="video-feed-container" style={{ textAlign: "center", marginTop: "20px" }}>
-      {cameraError ? (
-        <div style={{ color: "red", fontSize: "18px", fontWeight: "bold" }}>
-          {cameraError}
-        </div>
-      ) : isCameraActive ? (
+      {isCameraActive ? (
         <>
           <video
             ref={videoRef}
@@ -115,23 +117,25 @@ const VideoFeed = ({ width, borderRadius }) => {
               width: width || "100%",
               borderRadius: borderRadius || "20px",
               border: "2px solid #ccc",
-              transform: "scaleX(-1)"
+              transform: "scaleX(-1)",
             }}
           />
-          <canvas ref={canvasRef} width="640" height="480" style={{ display: "none" }} />
+          <canvas ref={canvasRef} width="320" height="240" style={{ display: "none" }} />
         </>
       ) : (
         <div style={{ color: "red", fontSize: "18px", fontWeight: "bold" }}>
           ไม่พบกล้อง กรุณาตรวจสอบการเชื่อมต่อ...
         </div>
       )}
+      {!isCanvasReady && <div>กำลังเริ่มต้นกล้อง...</div>}
     </div>
   );
 };
 
 VideoFeed.propTypes = {
   width: PropTypes.string,
-  borderRadius: PropTypes.string
+  borderRadius: PropTypes.string,
+  onGazeDataReceived: PropTypes.func.isRequired,
 };
 
 export default VideoFeed;

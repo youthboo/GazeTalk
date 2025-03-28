@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Import useCallback
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./AlertPage.css";
 import Header from "../components/Header";
 import dingSound from "../assets/pick.mp3";
+import VideoFeed from "../components/VideoFeed";
 
 const AlertPage = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const AlertPage = () => {
 
   const [highlightedButton, setHighlightedButton] = useState("ใช่");
   const [isEmergencySent, setIsEmergencySent] = useState(false);
-  const [isPageReady, setIsPageReady] = useState(false);  
+  const [isPageReady, setIsPageReady] = useState(false);
 
   const playDingSound = () => {
     const audio = new Audio(dingSound);
@@ -117,40 +118,34 @@ const AlertPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
-        .then((response) => response.json())
-        .then((data) => {
-          const { direction, double_blink } = data;
+  // Fix here by properly passing the parameter `data`
+  const handleGazeData = useCallback((data) => {
+    const { direction, double_blink } = data;
 
-          if (direction === "right") {
-            setHighlightedButton("ไม่ใช่");
-          } else if (direction === "left") {
-            setHighlightedButton("ใช่");
-          }
+    if (direction === "right") {
+      setHighlightedButton("ไม่ใช่");
+    } else if (direction === "left") {
+      setHighlightedButton("ใช่");
+    }
 
-          if (double_blink && !isEmergencySent && isPageReady) { // เพิ่มเงื่อนไข isPageReady
-            if (highlightedButton === "ใช่") {
-              handleYesClick();
-            } else if (highlightedButton === "ไม่ใช่") {
-              handleNoClick();
-            }
-          }
-        })
-        .catch((error) => console.error("Error fetching gaze data:", error));
-    }, 500);
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [highlightedButton, isEmergencySent, isPageReady]); 
+    if (double_blink && !isEmergencySent && isPageReady) { // เพิ่มเงื่อนไข isPageReady
+      if (highlightedButton === "ใช่") {
+        handleYesClick();
+      } else if (highlightedButton === "ไม่ใช่") {
+        handleNoClick();
+      }
+    }
+  }, [highlightedButton, isEmergencySent, isPageReady]); // Now correctly uses `useCallback`
 
   return (
     <div className="alert-page">
       <Header />
-
+      <div className="webcam-container">
+        <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
+      </div>
       <h1>ยืนยันการแจ้งเตือน</h1>
       <p>คุณต้องการส่งการแจ้งเตือนหรือไม่?</p>
+      
       <div className="alert-buttons">
         <button
           className={`alert-button ${highlightedButton === "ใช่" ? "highlighted" : ""}`}

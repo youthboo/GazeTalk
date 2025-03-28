@@ -273,11 +273,7 @@ const AdvancePage = () => {
   }
 }, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
-      .then((response) => response.json())
-      .then((data) => {
+  const handleGazeData = useCallback((data) => {
         const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
         const allKeys = Object.values(keyboardLayout).flat();
 
@@ -338,11 +334,7 @@ useEffect(() => {
             }
           }
         }
-      })
-      .catch((error) => console.error("Error fetching gaze data:", error));
-  }, 500);
-
-  return () => clearInterval(interval);
+     
   // eslint-disable-next-line
 }, [
   keyboardLayout, 
@@ -360,7 +352,7 @@ useEffect(() => {
     <div className="advance-page">
       <Header />
       <div className="webcam-container">
-        <VideoFeed width="100%" borderRadius="10px" />
+        <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData}/>
       </div>
 
       <div className="input-container">

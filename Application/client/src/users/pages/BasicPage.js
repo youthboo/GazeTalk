@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
@@ -7,18 +7,18 @@ import './BasicPage.css';
 import VideoFeed from "../components/VideoFeed";
 import dingSound from "../assets/pick.mp3";
 import Header from "../components/Header";
-import { io } from "socket.io-client";  // นำเข้า socket.io-client
 
 const BasicPage = () => {
+
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
+  // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null); 
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false); 
   const EYE_CLOSED_TIMEOUT = 500;
-  const socket = useRef(null); // ใช้ useRef สำหรับเก็บ socket
 
   const commonPhrases = useMemo(() => [
     "ใช่",
@@ -60,7 +60,7 @@ const BasicPage = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-      return;
+      return; // ไม่ทำอะไรถ้าข้อความว่าง
     }
 
     const patient_id = sessionStorage.getItem('patient_id');
@@ -78,6 +78,7 @@ const BasicPage = () => {
     }
 
     try {
+      // บันทึกข้อความลง DB
       const dbResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/send-message`, {
         method: 'POST',
         headers: {
@@ -93,6 +94,7 @@ const BasicPage = () => {
         throw new Error('Failed to save message to database');
       }
 
+      // ส่งข้อความไป Telegram
       const telegramResponse = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patient_id}/send-message`, {
         method: 'POST',
         headers: {
@@ -116,7 +118,7 @@ const BasicPage = () => {
         showConfirmButton: false,
       });
 
-      setInputText(""); 
+      setInputText(""); // ล้างข้อความหลังจากส่ง
     } catch (error) {
       console.error('Error sending message:', error);
       Swal.fire({
@@ -152,77 +154,68 @@ const BasicPage = () => {
       default:
         setInputText(phrase);
     }
+    // eslint-disable-next-line
   }, [inputText, navigate, handleSubmit]);
 
-  useEffect(() => {
-    socket.current = io(`${process.env.REACT_APP_GAZEMODEL_URL}`, {
-      transports: ["websocket"],
-    });
+  const handleGazeData = useCallback((data) => {
+    const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+    const totalButtons = 1 + commonPhrases.length + 3; 
 
-    socket.current.on("connect", () => {
-      console.log("Connected to backend via WebSocket");
-    });
+    setIsEyeClosed(eye_closed);
+    setEyeClosedTooLong(eye_closed_too_long);
 
-    socket.current.on("send_frame", (data) => {
-      const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
-      const totalButtons = 1 + commonPhrases.length + 3; 
-  
-      setIsEyeClosed(eye_closed);
-      setEyeClosedTooLong(eye_closed_too_long);
-  
-      if (eye_closed) {
-        if (!eyeClosedStartTime) {
-          setEyeClosedStartTime(Date.now()); 
-        } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
-          setEyeClosedTooLong(true);
+    if (eye_closed) {
+      if (!eyeClosedStartTime) {
+        setEyeClosedStartTime(Date.now()); 
+      } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
+        setEyeClosedTooLong(true);
+      }
+    } else {
+      setEyeClosedStartTime(null);
+      setEyeClosedTooLong(false);
+    }
+
+    if (!eye_closed && !eyeClosedTooLong) {
+      setHighlightedIndex((prevIndex) => {
+        if (direction === "right") {
+          return (prevIndex + 1) % totalButtons;
+        } else if (direction === "left") {
+          return prevIndex === 0 ? totalButtons - 1 : prevIndex - 1;
         }
-      } else {
-        setEyeClosedStartTime(null);
-        setEyeClosedTooLong(false);
-      }
-  
-      if (!eye_closed && !eyeClosedTooLong) {
-        setHighlightedIndex((prevIndex) => {
-          if (direction === "right") {
-            return (prevIndex + 1) % totalButtons;
-          } else if (direction === "left") {
-            return prevIndex === 0 ? totalButtons - 1 : prevIndex - 1;
-          }
-          return prevIndex;
-        });
-      }
-  
-      if (double_blink && !eyeClosedTooLong) {
-        if (highlightedIndex !== lastSelectedIndex) { 
-          setLastSelectedIndex(highlightedIndex);
-          if (highlightedIndex === 0) {
-            handleKeyInput("Advance");
-          } else if (highlightedIndex <= commonPhrases.length) {
-            handleKeyInput(commonPhrases[highlightedIndex - 1]);
-          } else if (highlightedIndex === commonPhrases.length + 1) {
-            handleKeyInput("ลบ");
-          } else if (highlightedIndex === commonPhrases.length + 2) {
-            handleKeyInput("ตกลง");
-          } else if (highlightedIndex === commonPhrases.length + 3) {
-            handleKeyInput("Alert");
-          }
+        return prevIndex;
+      });
+    }
+
+    if (double_blink && !eyeClosedTooLong) {
+      if (highlightedIndex !== lastSelectedIndex) { 
+        setLastSelectedIndex(highlightedIndex);
+        if (highlightedIndex === 0) {
+          handleKeyInput("Advance");
+        } else if (highlightedIndex <= commonPhrases.length) {
+          handleKeyInput(commonPhrases[highlightedIndex - 1]);
+        } else if (highlightedIndex === commonPhrases.length + 1) {
+          handleKeyInput("ลบ");
+        } else if (highlightedIndex === commonPhrases.length + 2) {
+          handleKeyInput("ตกลง");
+        } else if (highlightedIndex === commonPhrases.length + 3) {
+          handleKeyInput("Alert");
         }
       }
-    });
-
-    return () => {
-      if (socket.current) {
-        socket.current.disconnect(); // ปิดการเชื่อมต่อเมื่อ component ถูก unmount
-      }
-    };
-  }, [highlightedIndex, handleKeyInput, commonPhrases, lastSelectedIndex, eyeClosedTooLong, eyeClosedStartTime]);
-
+    }
+  }, [
+    highlightedIndex, 
+    handleKeyInput, 
+    commonPhrases,
+    lastSelectedIndex, 
+    eyeClosedTooLong,
+    eyeClosedStartTime 
+  ]);
 
   return (
     <div className="basic-page">
       <Header />
       <div className="webcam-container">
-        <VideoFeed width="100%" borderRadius="10px" />
+        <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>
       <div className="input-container">
         <input

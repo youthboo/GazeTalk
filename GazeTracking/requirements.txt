@@ -4,4 +4,5 @@ numpy==1.19.5
 opencv-python==4.10.0.82
 flask
 flask-cors
+flask_socketio
 #setuptools==70.0.0. (ถ้าจำเป็น)

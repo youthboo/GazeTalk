@@ -14,7 +14,8 @@ const AdminRec = () => {
   const [recommendedWords, setRecommendedWords] = useState([]);
   const navigate = useNavigate();
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
-
+  // eslint-disable-next-line
+  const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
   const EYE_CLOSED_TIMEOUT = 500;
@@ -151,14 +152,11 @@ const AdminRec = () => {
   );
 
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetch(`${process.env.REACT_APP_GAZEMODEL_URL}/gaze`)
-        .then((response) => response.json())
-        .then((data) => {
+  const handleGazeData = useCallback((data) => {
           const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
           const totalButtons = 1 + recommendedWords.length + 3; 
           
+          setIsEyeClosed(eye_closed);
           setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดต state
 
           if (eye_closed) {
@@ -201,11 +199,8 @@ const AdminRec = () => {
               }
             }
           }
-        })
-        .catch((error) => console.error("Error fetching gaze data:", error));
-    }, 500); 
-  
-    return () => clearInterval(interval);
+        
+     
   }, [
     highlightedIndex, 
     handleKeyInput, 
@@ -219,7 +214,7 @@ const AdminRec = () => {
     <div className="basic-page">
       <Header />
       <div className="webcam-container">
-        <VideoFeed width="100%" borderRadius="10px" />
+        <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>
 
       <div className="input-container">
