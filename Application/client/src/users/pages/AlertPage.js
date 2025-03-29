@@ -30,7 +30,7 @@ const AlertPage = () => {
   };
 
   const handleYesClick = async () => {
-    if (isEmergencySent || !isPageReady) return; // เพิ่มเงื่อนไข !isPageReady
+    if (isEmergencySent || !isPageReady) return; 
     playDingSound();
     if (!canSendEmergencyAlert()) {
       Swal.fire({
@@ -101,7 +101,7 @@ const AlertPage = () => {
   };
 
   const handleNoClick = () => {
-    if (isEmergencySent || !isPageReady) return; // เพิ่มเงื่อนไข !isPageReady
+    if (isEmergencySent || !isPageReady) return; 
     playDingSound();
     setIsEmergencySent(true);
 

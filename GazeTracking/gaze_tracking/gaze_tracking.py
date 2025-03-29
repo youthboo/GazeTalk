@@ -109,18 +109,18 @@ class GazeTracking(object):
     def is_right(self):
         """คืนค่า True ถ้าผู้ใช้มองไปทางขวา"""
         if self.pupils_located and not self.eye_closed:  # 🔹 หยุดถ้าหลับตา
-            return self.horizontal_ratio() <= 0.53
+            return self.horizontal_ratio() <= 0.50
 
     def is_left(self):
         """คืนค่า True ถ้าผู้ใช้มองไปทางซ้าย"""
         if self.pupils_located and not self.eye_closed:  # 🔹 หยุดถ้าหลับตา
-            return self.horizontal_ratio() >= 0.70
+            return self.horizontal_ratio() >= 0.80
 
     def is_center(self):
         """คืนค่า True ถ้าผู้ใช้มองตรงกลาง"""
         if self.pupils_located and not self.eye_closed:  # 🔹 หยุดถ้าหลับตา
             horizontal = self.horizontal_ratio()
-            return 0.53 <= horizontal <= 0.70
+            return 0.50 <= horizontal <= 0.80
 
 
     def is_blinking(self):

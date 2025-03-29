@@ -127,7 +127,7 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
           ไม่พบกล้อง กรุณาตรวจสอบการเชื่อมต่อ...
         </div>
       )}
-      {!isCanvasReady && <div>กำลังเริ่มต้นกล้อง...</div>}
+      {!isCanvasReady}
     </div>
   );
 };
