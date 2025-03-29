@@ -265,7 +265,7 @@ const AdvancePage = () => {
           return newText;
         });
 
-    // 🔹 ล็อกไม่ให้เลือกคำแนะนำ
+    // ล็อกไม่ให้เลือกคำแนะนำ
       setIsPredictionSelectionLocked(true);
       setTimeout(() => {
         setIsPredictionSelectionLocked(false);
@@ -278,21 +278,21 @@ const AdvancePage = () => {
         const allKeys = Object.values(keyboardLayout).flat();
 
         setIsEyeClosed(eye_closed);
-        setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดตค่าจาก API
+        setEyeClosedTooLong(eye_closed_too_long); 
 
         if (eye_closed) {
           if (!eyeClosedStartTime) {
             setEyeClosedStartTime(Date.now());
           } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
-            setEyeClosedTooLong(true); // ✅ บังคับให้หยุดไฮไลท์
+            setEyeClosedTooLong(true); // บังคับให้หยุดไฮไลท์
           }
         } else {
           setEyeClosedStartTime(null);
           setEyeClosedTooLong(false);
         }
 
-        // ✅ ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
-        if (eyeClosedTooLong) return; // 🔴 หยุดทำงานทันทีถ้าหลับตานานเกินไป
+        // ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
+        if (eyeClosedTooLong) return; // หยุดทำงานทันทีถ้าหลับตานานเกินไป
 
         if (!eye_closed && !eyeClosedTooLong) {
           if (predictedWords.length > 0 && !isPredictionSelectionLocked) {
@@ -317,7 +317,7 @@ const AdvancePage = () => {
           }
         }
 
-        // ✅ ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
+        // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
         if (double_blink && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
           const now = Date.now();
           if (now - lastClickTime > CLICK_DELAY) { 

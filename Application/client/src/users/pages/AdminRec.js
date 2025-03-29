@@ -20,14 +20,11 @@ const AdminRec = () => {
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
   const EYE_CLOSED_TIMEOUT = 500;
 
-
   useEffect(() => {
     const fetchRecommendedWords = async () => {
       try {
         const patientGender = sessionStorage.getItem('patient_gender');
         const patientAgeRange = sessionStorage.getItem('patient_age_range');
-
-        console.log('Fetching words with:', patientGender, patientAgeRange);
 
         const response = await fetch(
           `${process.env.REACT_APP_GAZETALK_URL}/api/words?gender=${patientGender}&ageRange=${patientAgeRange}`
@@ -38,7 +35,6 @@ const AdminRec = () => {
         }
 
         const data = await response.json();
-        console.log('Fetched words:', data.words);
         setRecommendedWords(data.words);
       } catch (error) {
         console.error('Error fetching recommended words:', error.message);
@@ -148,16 +144,15 @@ const AdminRec = () => {
           setInputText(phrase);
       }
     },
-    [navigate, handleSubmit] // ลบ inputText ออกจาก dependencies เพราะมันไม่ได้ใช้ในฟังก์ชันนี้
+    [navigate, handleSubmit] 
   );
-
 
   const handleGazeData = useCallback((data) => {
           const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
           const totalButtons = 1 + recommendedWords.length + 3; 
           
           setIsEyeClosed(eye_closed);
-          setEyeClosedTooLong(eye_closed_too_long); // ✅ อัปเดต state
+          setEyeClosedTooLong(eye_closed_too_long); 
 
           if (eye_closed) {
             if (!eyeClosedStartTime) {
@@ -170,7 +165,6 @@ const AdminRec = () => {
             setEyeClosedTooLong(false); 
           }
   
-          // ✅ ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
           if (!eye_closed && !eyeClosedTooLong) {
             setHighlightedIndex((prevIndex) => {
               if (direction === "right") {
@@ -182,7 +176,6 @@ const AdminRec = () => {
             });
           }
   
-          // ✅ ป้องกันไม่ให้เลือกปุ่มถ้าหลับตานานเกินไป
           if (double_blink && !eyeClosedTooLong) {
             if (highlightedIndex !== lastSelectedIndex) { 
               setLastSelectedIndex(highlightedIndex);
@@ -200,7 +193,6 @@ const AdminRec = () => {
             }
           }
         
-     
   }, [
     highlightedIndex, 
     handleKeyInput, 
@@ -231,12 +223,12 @@ const AdminRec = () => {
           <button
             className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
             onClick={() => handleKeyInput("กลับ")}
-            style={{ padding: "20px" }} // ลบ fontSize ออกถ้าไม่ใช้
+            style={{ padding: "20px" }} 
           >
             <img
-              src={require('../assets/back.png')} // ใส่ path ของไฟล์ back.png
+              src={require('../assets/back.png')} 
               alt="Back"
-              style={{ width: "40px", height: "40px" }} // กำหนดขนาดของรูปภาพ
+              style={{ width: "40px", height: "40px" }} 
             />
           </button>
           {recommendedWords.map((word, index) => (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react"; // Import useCallback
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./AlertPage.css";
@@ -14,24 +14,21 @@ const AlertPage = () => {
   const [isEmergencySent, setIsEmergencySent] = useState(false);
   const [isPageReady, setIsPageReady] = useState(false);
 
-  const playDingSound = () => {
+  const playDingSound = useCallback(() => {
     const audio = new Audio(dingSound);
     audio.play();
-  };
+  }, []);
 
-  // ตรวจสอบเวลาการแจ้งเตือนล่าสุดจาก localStorage
-  const canSendEmergencyAlert = () => {
+  const canSendEmergencyAlert = useCallback(() => {
     const lastSent = localStorage.getItem("lastEmergencySent");
     if (!lastSent) return true;
+    return Date.now() - parseInt(lastSent, 10) >= 60000;
+  }, []);
 
-    const lastSentTime = parseInt(lastSent, 10);
-    const currentTime = Date.now();
-    return currentTime - lastSentTime >= 60000;
-  };
-
-  const handleYesClick = async () => {
-    if (isEmergencySent || !isPageReady) return; 
+  const handleYesClick = useCallback(async () => {
+    if (isEmergencySent || !isPageReady) return;
     playDingSound();
+
     if (!canSendEmergencyAlert()) {
       Swal.fire({
         title: "แจ้งเตือนซ้ำเร็วเกินไป!",
@@ -45,7 +42,6 @@ const AlertPage = () => {
 
     setIsEmergencySent(true);
     localStorage.setItem("lastEmergencySent", Date.now().toString());
-
     const patient_id = sessionStorage.getItem("patient_id");
 
     if (!patient_id) {
@@ -64,18 +60,14 @@ const AlertPage = () => {
         `${process.env.REACT_APP_GAZETALK_URL}/api/patients/${patient_id}/send-message`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: "🚨 แจ้งเตือนฉุกเฉิน: ต้องการความช่วยเหลือด่วน!",
           }),
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to send emergency alert");
-      }
+      if (!response.ok) throw new Error("Failed to send emergency alert");
 
       Swal.fire({
         title: "แจ้งเตือนสำเร็จ!",
@@ -83,10 +75,7 @@ const AlertPage = () => {
         icon: "success",
         timer: 3000,
         showConfirmButton: false,
-        didClose: () => {
-          const returnPath = location.state?.returnTo || "/";
-          navigate(returnPath);
-        },
+        didClose: () => navigate(location.state?.returnTo || "/"),
       });
     } catch (error) {
       console.error("Error sending emergency alert:", error);
@@ -98,44 +87,32 @@ const AlertPage = () => {
         showConfirmButton: false,
       });
     }
-  };
+  }, [isEmergencySent, isPageReady, playDingSound, canSendEmergencyAlert, navigate, location]);
 
-  const handleNoClick = () => {
-    if (isEmergencySent || !isPageReady) return; 
+  const handleNoClick = useCallback(() => {
+    if (isEmergencySent || !isPageReady) return;
     playDingSound();
     setIsEmergencySent(true);
+    navigate(location.state?.returnTo || "/");
+  }, [isEmergencySent, isPageReady, playDingSound, navigate, location]);
 
-    const returnPath = location.state?.returnTo || "/";
-    navigate(returnPath);
-  };
-
-  // เพิ่ม useEffect สำหรับการหน่วงเวลาเริ่มต้น
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageReady(true);
-    }, 700); // หน่วงเวลา
-
+    const timer = setTimeout(() => setIsPageReady(true), 800);
     return () => clearTimeout(timer);
   }, []);
 
-  // Fix here by properly passing the parameter `data`
-  const handleGazeData = useCallback((data) => {
-    const { direction, double_blink } = data;
-
-    if (direction === "right") {
-      setHighlightedButton("ไม่ใช่");
-    } else if (direction === "left") {
-      setHighlightedButton("ใช่");
-    }
-
-    if (double_blink && !isEmergencySent && isPageReady) { // เพิ่มเงื่อนไข isPageReady
-      if (highlightedButton === "ใช่") {
-        handleYesClick();
-      } else if (highlightedButton === "ไม่ใช่") {
-        handleNoClick();
+  const handleGazeData = useCallback(
+    (data) => {
+      const { direction, double_blink } = data;
+      if (direction === "right") setHighlightedButton("ไม่ใช่");
+      else if (direction === "left") setHighlightedButton("ใช่");
+      
+      if (double_blink && isPageReady && !isEmergencySent) {
+        highlightedButton === "ใช่" ? handleYesClick() : handleNoClick();
       }
-    }
-  }, [highlightedButton, isEmergencySent, isPageReady]); // Now correctly uses `useCallback`
+    },
+    [highlightedButton, isEmergencySent, isPageReady, handleYesClick, handleNoClick]
+  );
 
   return (
     <div className="alert-page">
@@ -145,20 +122,9 @@ const AlertPage = () => {
       </div>
       <h1>ยืนยันการแจ้งเตือน</h1>
       <p>คุณต้องการส่งการแจ้งเตือนหรือไม่?</p>
-      
       <div className="alert-buttons">
-        <button
-          className={`alert-button ${highlightedButton === "ใช่" ? "highlighted" : ""}`}
-          onClick={handleYesClick}
-        >
-          ใช่
-        </button>
-        <button
-          className={`alert-button ${highlightedButton === "ไม่ใช่" ? "highlighted" : ""}`}
-          onClick={handleNoClick}
-        >
-          ไม่ใช่
-        </button>
+        <button className={`alert-button ${highlightedButton === "ใช่" ? "highlighted" : ""}`} onClick={handleYesClick}>ใช่</button>
+        <button className={`alert-button ${highlightedButton === "ไม่ใช่" ? "highlighted" : ""}`} onClick={handleNoClick}>ไม่ใช่</button>
       </div>
     </div>
   );

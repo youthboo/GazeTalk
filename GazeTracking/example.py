@@ -1,4 +1,3 @@
-import logging
 import base64
 import cv2
 import numpy as np
@@ -7,10 +6,6 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from gaze_tracking import GazeTracking
 import time
-
-# ตั้งค่าการบันทึกล็อก
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)  # อนุญาต CORS
@@ -37,7 +32,6 @@ def decode_base64_image(image_base64):
         frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         return frame
     except Exception as e:
-        logger.error(f"Error decoding image: {e}")
         return None
 
 @socketio.on("upload-frame")
@@ -47,13 +41,11 @@ def handle_frame(data):
 
     try:
         if "frame" not in data:
-            logger.error("Frame not found in data")
             emit("error", {"error": "Frame data missing"})
             return
 
         frame = decode_base64_image(data["frame"])
         if frame is None:
-            logger.error("Decoded frame is None")
             return
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -78,7 +70,7 @@ def handle_frame(data):
                     eye_closed_start_time = time.time()
                 elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
                     eye_closed_too_long = True
-                    logger.info("User has closed eyes for too long!")
+                    
             else:
                 eye_closed_start_time = None
 
@@ -92,7 +84,6 @@ def handle_frame(data):
 
             if blink_count == 2:
                 blink_detected = True
-                logger.info("Double blink detected.")
                 blink_count = 0  # รีเซ็ต blink_count
 
             if not eye_closed and not eye_closed_too_long:
@@ -112,8 +103,7 @@ def handle_frame(data):
         })
 
     except Exception as e:
-        logger.error(f"Error processing frame: {e}")
         emit("error", {"error": str(e)})
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5006)
+    socketio.run(app, host="0.0.0.0", port=81)

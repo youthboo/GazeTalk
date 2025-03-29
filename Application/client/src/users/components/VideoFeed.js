@@ -36,7 +36,7 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
         socket.current = null;
       }
     };
-  }, [onGazeDataReceived]); // แค่เพิ่ม callback ที่อัปเดต
+  }, [onGazeDataReceived]); 
 
   useEffect(() => {
     let videoElement = videoRef.current;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
@@ -19,6 +19,15 @@ const BasicPage = () => {
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null); 
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false); 
   const EYE_CLOSED_TIMEOUT = 500;
+  const [advanceButtonEnabled, setAdvanceButtonEnabled] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAdvanceButtonEnabled(true);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const commonPhrases = useMemo(() => [
     "ใช่",
@@ -60,7 +69,7 @@ const BasicPage = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-      return; // ไม่ทำอะไรถ้าข้อความว่าง
+      return; 
     }
 
     const patient_id = sessionStorage.getItem('patient_id');
@@ -146,7 +155,9 @@ const BasicPage = () => {
         navigate("/alert", { state: { returnTo: "/" } });
         break;
       case "Advance":
-        navigate("/advance");
+        if (advanceButtonEnabled) {
+          navigate("/advance");
+        }
         break;
       case "อื่นๆ":
         navigate("/admin-rec");
@@ -155,7 +166,7 @@ const BasicPage = () => {
         setInputText(phrase);
     }
     // eslint-disable-next-line
-  }, [inputText, navigate, handleSubmit]);
+  }, [inputText, navigate, handleSubmit, advanceButtonEnabled]);
 
   const handleGazeData = useCallback((data) => {
     const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
@@ -233,7 +244,14 @@ const BasicPage = () => {
             <button
               className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
               onClick={() => handleKeyInput("Advance")}
-              style={{ fontSize: '24px', padding: '20px' }}
+              style={{ 
+                fontSize: '24px', 
+                padding: '20px',
+              
+                opacity: advanceButtonEnabled ? 1 : 0.5,
+                cursor: advanceButtonEnabled ? 'pointer' : 'not-allowed'
+              }}
+              disabled={!advanceButtonEnabled} 
             >
               Advance
             </button>
@@ -241,7 +259,7 @@ const BasicPage = () => {
               <button
                 key={index}
                 className={`key-button ${phrase === "อื่นๆ"
-                    ? `special-key ${highlightedIndex === index + 1 ? "highlighted" : ""}` // ใช้ className เฉพาะ
+                    ? `special-key ${highlightedIndex === index + 1 ? "highlighted" : ""}` 
                     : `${highlightedIndex === index + 1 ? "highlighted" : ""}`
                   }`}
                 onClick={() => handleKeyInput(phrase)}
@@ -262,7 +280,6 @@ const BasicPage = () => {
             ))}
           </div>
 
-          {/* ปรับแถวล่างให้กระจายตามจำนวนปุ่ม */}
           <div className="keyboard-bottom" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
             <button
               className={`key-button delete-key ${highlightedIndex === commonPhrases.length + 1 ? "highlighted" : ""}`}

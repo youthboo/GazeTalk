@@ -9,7 +9,6 @@ from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
-
 class ThaiPredictiveText:
     def __init__(self):
         self.word_transitions: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -19,8 +18,8 @@ class ThaiPredictiveText:
     def preprocess_text(self, text: str) -> List[str]:
         """ตัดคำภาษาไทยและทำความสะอาดข้อมูลเพิ่มเติม"""
         text = text.lower()
-        text = re.sub(r"[0-9]", "", text)  # ลบตัวเลข
-        text = re.sub(r"[^\w\s]", "", text)  # ลบสัญลักษณ์พิเศษ
+        text = re.sub(r"[0-9]", "", text) 
+        text = re.sub(r"[^\w\s]", "", text)  
         words = word_tokenize(text, engine="newmm")
         words = [w for w in words if w.strip() and not w.isspace()]
         return words
@@ -71,7 +70,6 @@ def load_model_from_json(file_path: str) -> ThaiPredictiveText:
         print(f"Error loading model from JSON: {e}")
         raise
 
-# โหลดโมเดลเมื่อเริ่มต้น
 current_dir = Path(__file__).resolve().parent
 model_path = current_dir / "model_med_pack.json"
 
