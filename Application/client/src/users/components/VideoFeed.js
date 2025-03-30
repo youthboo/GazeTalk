@@ -36,7 +36,7 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
         socket.current = null;
       }
     };
-  }, [onGazeDataReceived]); 
+  }, [onGazeDataReceived]);
 
   useEffect(() => {
     let videoElement = videoRef.current;

@@ -24,7 +24,7 @@ const AdvancePage = () => {
   const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
-  const CLICK_DELAY = 500; 
+  const CLICK_DELAY = 500;
   const [isNavigationLocked, setIsNavigationLocked] = useState(true);
   const [isPredictionSelectionLocked, setIsPredictionSelectionLocked] = useState(false);
   const [isSelectionDelayed, setIsSelectionDelayed] = useState(false);
@@ -53,9 +53,9 @@ const AdvancePage = () => {
   );
 
   const playDingSound = () => {
-      const audio = new Audio(dingSound);
-      audio.play();
-    };
+    const audio = new Audio(dingSound);
+    audio.play();
+  };
 
   const fetchPredictions = async (text) => {
     if (!text.trim()) {
@@ -179,12 +179,12 @@ const AdvancePage = () => {
     const unlockTimeout = setTimeout(() => {
       setIsNavigationLocked(false);
     }, 1000);
-  
-    return () => clearTimeout(unlockTimeout); 
+
+    return () => clearTimeout(unlockTimeout);
   }, []);
 
   const handleBasic = useCallback(() => {
-    if (!isNavigationLocked) {  
+    if (!isNavigationLocked) {
       navigate("/");
     }
   }, [navigate, isNavigationLocked]);
@@ -265,94 +265,94 @@ const AdvancePage = () => {
           return newText;
         });
 
-    // ล็อกไม่ให้เลือกคำแนะนำ
-      setIsPredictionSelectionLocked(true);
-      setTimeout(() => {
-        setIsPredictionSelectionLocked(false);
-      }, 300);
-  }
-}, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
+        // ล็อกไม่ให้เลือกคำแนะนำ
+        setIsPredictionSelectionLocked(true);
+        setTimeout(() => {
+          setIsPredictionSelectionLocked(false);
+        }, 300);
+    }
+  }, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
 
   const handleGazeData = useCallback((data) => {
-        const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
-        const allKeys = Object.values(keyboardLayout).flat();
+    const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+    const allKeys = Object.values(keyboardLayout).flat();
 
-        setIsEyeClosed(eye_closed);
-        setEyeClosedTooLong(eye_closed_too_long); 
+    setIsEyeClosed(eye_closed);
+    setEyeClosedTooLong(eye_closed_too_long);
 
-        if (eye_closed) {
-          if (!eyeClosedStartTime) {
-            setEyeClosedStartTime(Date.now());
-          } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
-            setEyeClosedTooLong(true); // บังคับให้หยุดไฮไลท์
+    if (eye_closed) {
+      if (!eyeClosedStartTime) {
+        setEyeClosedStartTime(Date.now());
+      } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
+        setEyeClosedTooLong(true); // บังคับให้หยุดไฮไลท์
+      }
+    } else {
+      setEyeClosedStartTime(null);
+      setEyeClosedTooLong(false);
+    }
+
+    // ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
+    if (eyeClosedTooLong) return; // หยุดทำงานทันทีถ้าหลับตานานเกินไป
+
+    if (!eye_closed && !eyeClosedTooLong) {
+      if (predictedWords.length > 0 && !isPredictionSelectionLocked) {
+        if (direction === "right") {
+          setSuggestHighlightedIndex((prevIndex) =>
+            (prevIndex + 1) % (predictedWords.length + 1)
+          );
+        } else if (direction === "left") {
+          setSuggestHighlightedIndex((prevIndex) =>
+            prevIndex === 0 ? predictedWords.length : prevIndex - 1
+          );
+        }
+
+      } else {
+        if (direction === "right") {
+          setHighlightedIndex((prevIndex) => (prevIndex + 1) % allKeys.length);
+        } else if (direction === "left") {
+          setHighlightedIndex((prevIndex) =>
+            prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
+          );
+        }
+      }
+    }
+
+    // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
+    if (double_blink && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
+      const now = Date.now();
+      if (now - lastClickTime > CLICK_DELAY) {
+        if (predictedWords.length > 0) {
+          if (suggestHighlightedIndex === predictedWords.length) {
+            handleClosePredictions();
+          } else {
+            handlePredictionClick(predictedWords[suggestHighlightedIndex]);
           }
         } else {
-          setEyeClosedStartTime(null);
-          setEyeClosedTooLong(false);
+          setLastSelectedIndex(highlightedIndex);
+          setLastClickTime(now);
+          handleKeyInput(allKeys[highlightedIndex]);
         }
+      }
+    }
 
-        // ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
-        if (eyeClosedTooLong) return; // หยุดทำงานทันทีถ้าหลับตานานเกินไป
+    // eslint-disable-next-line
+  }, [
+    keyboardLayout,
+    predictedWords,
+    highlightedIndex,
+    suggestHighlightedIndex,
+    handlePredictionClick,
+    handleKeyInput,
+    handleClosePredictions,
+    lastSelectedIndex,
+    eyeClosedTooLong
+  ]);
 
-        if (!eye_closed && !eyeClosedTooLong) {
-          if (predictedWords.length > 0 && !isPredictionSelectionLocked) {
-            if (direction === "right") {
-              setSuggestHighlightedIndex((prevIndex) =>
-                (prevIndex + 1) % (predictedWords.length + 1) 
-              );
-            } else if (direction === "left") {
-              setSuggestHighlightedIndex((prevIndex) =>
-                prevIndex === 0 ? predictedWords.length : prevIndex - 1
-              );
-            }
-          
-          } else {
-            if (direction === "right") {
-              setHighlightedIndex((prevIndex) => (prevIndex + 1) % allKeys.length);
-            } else if (direction === "left") {
-              setHighlightedIndex((prevIndex) =>
-                prevIndex === 0 ? allKeys.length - 1 : prevIndex - 1
-              );
-            }
-          }
-        }
-
-        // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
-        if (double_blink && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
-          const now = Date.now();
-          if (now - lastClickTime > CLICK_DELAY) { 
-            if (predictedWords.length > 0) {
-              if (suggestHighlightedIndex === predictedWords.length) {
-                handleClosePredictions();
-              } else {
-                handlePredictionClick(predictedWords[suggestHighlightedIndex]);
-              }
-            } else {
-              setLastSelectedIndex(highlightedIndex);
-              setLastClickTime(now); 
-              handleKeyInput(allKeys[highlightedIndex]);
-            }
-          }
-        }
-     
-  // eslint-disable-next-line
-}, [
-  keyboardLayout, 
-  predictedWords, 
-  highlightedIndex, 
-  suggestHighlightedIndex, 
-  handlePredictionClick, 
-  handleKeyInput, 
-  handleClosePredictions, 
-  lastSelectedIndex, 
-  eyeClosedTooLong 
-]);
-  
   return (
     <div className="advance-page">
       <Header />
       <div className="webcam-container">
-        <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData}/>
+        <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>
 
       <div className="input-container">

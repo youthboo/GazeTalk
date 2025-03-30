@@ -106,7 +106,7 @@ const AlertPage = () => {
       const { direction, double_blink } = data;
       if (direction === "right") setHighlightedButton("ไม่ใช่");
       else if (direction === "left") setHighlightedButton("ใช่");
-      
+
       if (double_blink && isPageReady && !isEmergencySent) {
         highlightedButton === "ใช่" ? handleYesClick() : handleNoClick();
       }

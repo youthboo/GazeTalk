@@ -13,7 +13,7 @@ const AdminRec = () => {
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [recommendedWords, setRecommendedWords] = useState([]);
   const navigate = useNavigate();
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
@@ -144,64 +144,64 @@ const AdminRec = () => {
           setInputText(phrase);
       }
     },
-    [navigate, handleSubmit] 
+    [navigate, handleSubmit]
   );
 
   const handleGazeData = useCallback((data) => {
-          const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
-          const totalButtons = 1 + recommendedWords.length + 3; 
-          
-          setIsEyeClosed(eye_closed);
-          setEyeClosedTooLong(eye_closed_too_long); 
+    const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+    const totalButtons = 1 + recommendedWords.length + 3;
 
-          if (eye_closed) {
-            if (!eyeClosedStartTime) {
-              setEyeClosedStartTime(Date.now());
-            } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
-              setEyeClosedTooLong(true); 
-            }
-          } else {
-            setEyeClosedStartTime(null);
-            setEyeClosedTooLong(false); 
-          }
-  
-          if (!eye_closed && !eyeClosedTooLong) {
-            setHighlightedIndex((prevIndex) => {
-              if (direction === "right") {
-                return (prevIndex + 1) % totalButtons;
-              } else if (direction === "left") {
-                return prevIndex === 0 ? totalButtons - 1 : prevIndex - 1;
-              }
-              return prevIndex;
-            });
-          }
-  
-          if (double_blink && !eyeClosedTooLong) {
-            if (highlightedIndex !== lastSelectedIndex) { 
-              setLastSelectedIndex(highlightedIndex);
-              if (highlightedIndex === 0) {
-                handleKeyInput("กลับ");
-              } else if (highlightedIndex <= recommendedWords.length) {
-                handleKeyInput(recommendedWords[highlightedIndex - 1]);
-              } else if (highlightedIndex === recommendedWords.length + 1) {
-                handleKeyInput("ลบ");
-              } else if (highlightedIndex === recommendedWords.length + 2) {
-                handleKeyInput("ตกลง");
-              } else if (highlightedIndex === recommendedWords.length + 3) {
-                handleKeyInput("Alert");
-              }
-            }
-          }
-        
+    setIsEyeClosed(eye_closed);
+    setEyeClosedTooLong(eye_closed_too_long);
+
+    if (eye_closed) {
+      if (!eyeClosedStartTime) {
+        setEyeClosedStartTime(Date.now());
+      } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
+        setEyeClosedTooLong(true);
+      }
+    } else {
+      setEyeClosedStartTime(null);
+      setEyeClosedTooLong(false);
+    }
+
+    if (!eye_closed && !eyeClosedTooLong) {
+      setHighlightedIndex((prevIndex) => {
+        if (direction === "right") {
+          return (prevIndex + 1) % totalButtons;
+        } else if (direction === "left") {
+          return prevIndex === 0 ? totalButtons - 1 : prevIndex - 1;
+        }
+        return prevIndex;
+      });
+    }
+
+    if (double_blink && !eyeClosedTooLong) {
+      if (highlightedIndex !== lastSelectedIndex) {
+        setLastSelectedIndex(highlightedIndex);
+        if (highlightedIndex === 0) {
+          handleKeyInput("กลับ");
+        } else if (highlightedIndex <= recommendedWords.length) {
+          handleKeyInput(recommendedWords[highlightedIndex - 1]);
+        } else if (highlightedIndex === recommendedWords.length + 1) {
+          handleKeyInput("ลบ");
+        } else if (highlightedIndex === recommendedWords.length + 2) {
+          handleKeyInput("ตกลง");
+        } else if (highlightedIndex === recommendedWords.length + 3) {
+          handleKeyInput("Alert");
+        }
+      }
+    }
+
   }, [
-    highlightedIndex, 
-    handleKeyInput, 
-    recommendedWords, 
-    lastSelectedIndex, 
-    eyeClosedTooLong, 
+    highlightedIndex,
+    handleKeyInput,
+    recommendedWords,
+    lastSelectedIndex,
+    eyeClosedTooLong,
     eyeClosedStartTime
   ]);
-  
+
   return (
     <div className="basic-page">
       <Header />
@@ -223,12 +223,12 @@ const AdminRec = () => {
           <button
             className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
             onClick={() => handleKeyInput("กลับ")}
-            style={{ padding: "20px" }} 
+            style={{ padding: "20px" }}
           >
             <img
-              src={require('../assets/back.png')} 
+              src={require('../assets/back.png')}
               alt="Back"
-              style={{ width: "40px", height: "40px" }} 
+              style={{ width: "40px", height: "40px" }}
             />
           </button>
           {recommendedWords.map((word, index) => (

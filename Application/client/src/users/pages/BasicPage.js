@@ -15,9 +15,9 @@ const BasicPage = () => {
   const navigate = useNavigate();
   // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
-  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null); 
-  const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false); 
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
+  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
+  const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
   const EYE_CLOSED_TIMEOUT = 500;
   const [advanceButtonEnabled, setAdvanceButtonEnabled] = useState(false);
 
@@ -69,7 +69,7 @@ const BasicPage = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-      return; 
+      return;
     }
 
     const patient_id = sessionStorage.getItem('patient_id');
@@ -170,14 +170,14 @@ const BasicPage = () => {
 
   const handleGazeData = useCallback((data) => {
     const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
-    const totalButtons = 1 + commonPhrases.length + 3; 
+    const totalButtons = 1 + commonPhrases.length + 3;
 
     setIsEyeClosed(eye_closed);
     setEyeClosedTooLong(eye_closed_too_long);
 
     if (eye_closed) {
       if (!eyeClosedStartTime) {
-        setEyeClosedStartTime(Date.now()); 
+        setEyeClosedStartTime(Date.now());
       } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
         setEyeClosedTooLong(true);
       }
@@ -198,7 +198,7 @@ const BasicPage = () => {
     }
 
     if (double_blink && !eyeClosedTooLong) {
-      if (highlightedIndex !== lastSelectedIndex) { 
+      if (highlightedIndex !== lastSelectedIndex) {
         setLastSelectedIndex(highlightedIndex);
         if (highlightedIndex === 0) {
           handleKeyInput("Advance");
@@ -214,12 +214,12 @@ const BasicPage = () => {
       }
     }
   }, [
-    highlightedIndex, 
-    handleKeyInput, 
+    highlightedIndex,
+    handleKeyInput,
     commonPhrases,
-    lastSelectedIndex, 
+    lastSelectedIndex,
     eyeClosedTooLong,
-    eyeClosedStartTime 
+    eyeClosedStartTime
   ]);
 
   return (
@@ -244,14 +244,14 @@ const BasicPage = () => {
             <button
               className={`key-button special-key ${highlightedIndex === 0 ? "highlighted" : ""}`}
               onClick={() => handleKeyInput("Advance")}
-              style={{ 
-                fontSize: '24px', 
+              style={{
+                fontSize: '24px',
                 padding: '20px',
-              
+
                 opacity: advanceButtonEnabled ? 1 : 0.5,
                 cursor: advanceButtonEnabled ? 'pointer' : 'not-allowed'
               }}
-              disabled={!advanceButtonEnabled} 
+              disabled={!advanceButtonEnabled}
             >
               Advance
             </button>
@@ -259,8 +259,8 @@ const BasicPage = () => {
               <button
                 key={index}
                 className={`key-button ${phrase === "อื่นๆ"
-                    ? `special-key ${highlightedIndex === index + 1 ? "highlighted" : ""}` 
-                    : `${highlightedIndex === index + 1 ? "highlighted" : ""}`
+                  ? `special-key ${highlightedIndex === index + 1 ? "highlighted" : ""}`
+                  : `${highlightedIndex === index + 1 ? "highlighted" : ""}`
                   }`}
                 onClick={() => handleKeyInput(phrase)}
                 style={{ fontSize: '24px', padding: '20px' }}
