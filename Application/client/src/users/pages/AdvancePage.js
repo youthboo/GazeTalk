@@ -19,7 +19,7 @@ const AdvancePage = () => {
   const [showCloseButton, setShowCloseButton] = useState(false);
   const navigate = useNavigate();
 
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); //ป้องกันดับเบิ้ลคลิก
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
   // eslint-disable-next-line
   const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
@@ -31,8 +31,6 @@ const AdvancePage = () => {
 
   const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
   const EYE_CLOSED_TIMEOUT = 500;
-
-
 
   const consonants = useMemo(
     () => [
@@ -98,7 +96,7 @@ const AdvancePage = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {
-      return; // ไม่ทำอะไรถ้าข้อความว่าง
+      return; 
     }
 
     const patient_id = sessionStorage.getItem('patient_id');

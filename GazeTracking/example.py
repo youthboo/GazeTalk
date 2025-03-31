@@ -106,4 +106,4 @@ def handle_frame(data):
         emit("error", {"error": str(e)})
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=81)
+    socketio.run(app, host="0.0.0.0", port=82)
