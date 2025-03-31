@@ -1,6 +1,5 @@
 import React from "react";
 import Swal from "sweetalert2";
-import exampleGif from "../assets/example.gif";
 
 export const GuideIcon = () => {
   const handleGuide = () => {
@@ -8,14 +7,23 @@ export const GuideIcon = () => {
       title: "คู่มือการใช้งาน",
       html: `
         <div>
-          <p><b>การมองซ้าย:</b> ใช้เพื่อเลื่อนตัวเลือกไปทางซ้าย</p>
-          <p><b>การมองขวา:</b> ใช้เพื่อเลื่อนตัวเลือกไปทางขวา</p>
-          <p><b>กระพริบตา 2 ครั้ง:</b> ใช้เพื่อยืนยันการเลือก</p>
-          <img src="${exampleGif}" alt="ตัวอย่างการใช้งาน" style="width:100%; margin-top: 10px;">
+          <p>การมองซ้าย-ขวา: มองซ้ายหรือขวาเพื่อเลื่อนไฮไลท์ไปยังทิศทางที่ต้องการ</p>
+          <p>หลับตาค้าง 5 วินาที: หลับตาค้างเพื่อยืนยันการเลือก</p>
+          <div style="margin-top: 1px;">
+            <iframe width="100%" height="300" 
+              src="https://www.youtube.com/embed/OA4VYkpIUV8" 
+              title="คู่มือการใช้งาน" 
+              frameborder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen>
+            </iframe>
+          </div>
         </div>
       `,
       icon: "info",
-      confirmButtonText: "ปิด",
+      showCloseButton: true,  
+      closeButtonHtml: '<i class="fa fa-times" style="font-size: 20px;"></i>', 
+      showConfirmButton: false, 
     });
   };
 

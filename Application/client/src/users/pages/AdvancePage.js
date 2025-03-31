@@ -176,7 +176,7 @@ const AdvancePage = () => {
   useEffect(() => {
     const unlockTimeout = setTimeout(() => {
       setIsNavigationLocked(false);
-    }, 15000);
+    }, 10000);
 
     return () => clearTimeout(unlockTimeout);
   }, []);
