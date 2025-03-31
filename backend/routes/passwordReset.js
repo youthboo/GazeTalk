@@ -4,16 +4,13 @@ const crypto = require('crypto');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
-const Patient = require('../models/Users'); // ใช้ model ของ Patient
-const Admin = require('../models/Admin'); // ใช้ model ของ Admin
+const Patient = require('../models/Users'); 
+const Admin = require('../models/Admin'); 
 
 dotenv.config();
 
 const router = express.Router();
 
-/**
- * 📌 Forgot Password - ส่งอีเมลรีเซ็ตรหัสผ่าน
- */
 router.post('/forgot-password', async (req, res) => {
     const { email, userType } = req.body;
 
@@ -77,9 +74,6 @@ router.post('/forgot-password', async (req, res) => {
     }
 });
 
-/**
- * 📌 Reset Password - เปลี่ยนรหัสผ่านใหม่
- */
 router.post('/reset-password', async (req, res) => {
     const { token, userType, newPassword } = req.body;
 
