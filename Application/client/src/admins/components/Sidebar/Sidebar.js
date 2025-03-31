@@ -25,6 +25,26 @@ const Sidebar = ({ onLogout, adminCode }) => {
   const [selectedMenuKey, setSelectedMenuKey] = useState('/dashboard'); // กำหนดค่าเริ่มต้น
   const navigate = useNavigate();
   const location = useLocation();
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  // ฟังก์ชันสุ่ม avatar
+  const generateRandomAvatar = () => {
+    const topTypes = ['ShortHairDreads01', 'ShortHairFrizzle', 'LongHairStraight01', 'Hat'];
+    const facialHairTypes = ['BeardMedium', 'BeardLight', 'Blank'];
+    const clotheTypes = ['BlazerShirt', 'ShirtCrewNeck', 'Hoodie', 'Overall'];
+    const eyeTypes = ['Default', 'Happy', 'Surprised', 'Sad'];
+    const mouthTypes = ['Default', 'Smile', 'Twinkle', 'Sad'];
+    const skinColors = ['Light', 'Dark', 'Brown'];
+
+    const randomTopType = topTypes[Math.floor(Math.random() * topTypes.length)];
+    const randomFacialHairType = facialHairTypes[Math.floor(Math.random() * facialHairTypes.length)];
+    const randomClotheType = clotheTypes[Math.floor(Math.random() * clotheTypes.length)];
+    const randomEyeType = eyeTypes[Math.floor(Math.random() * eyeTypes.length)];
+    const randomMouthType = mouthTypes[Math.floor(Math.random() * mouthTypes.length)];
+    const randomSkinColor = skinColors[Math.floor(Math.random() * skinColors.length)];
+
+    return `https://avataaars.io/?avatarStyle=Circle&topType=${randomTopType}&facialHairType=${randomFacialHairType}&clotheType=${randomClotheType}&eyeType=${randomEyeType}&mouthType=${randomMouthType}&skinColor=${randomSkinColor}`;
+  };
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -41,24 +61,26 @@ const Sidebar = ({ onLogout, adminCode }) => {
   const handleNavigation = (path) => {
     if (path === '/logout') {
       Swal.fire({
-        title: 'Are you sure?',
-        text: 'You will be logged out of the system!',
+        title: 'คุณแน่ใจหรือไม่?',
+        text: 'คุณจะออกจากระบบ!',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, logout!',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: 'ใช่, ออกจากระบบ!',
+        cancelButtonText: 'ยกเลิก',
       }).then((result) => {
         if (result.isConfirmed) {
-          onLogout(); // เรียกใช้งานฟังก์ชัน onLogout จาก App.js
-          navigate('/login'); // นำทางกลับไปยังหน้า /login
+          onLogout(); 
+          navigate('/login'); 
         }
       });
     } else {
-      navigate(path); // นำทางไปยัง path อื่นๆ
+      navigate(path); 
     }
   };
   
-  const avatarUrl = `https://avataaars.io/?avatarStyle=Circle&topType=ShortHairDreads01&facialHairType=BeardMedium&clotheType=BlazerShirt&eyeType=Default&mouthType=Default&skinColor=Light`;
+  useEffect(() => {
+    setAvatarUrl(generateRandomAvatar());
+  }, []); // เรียกใช้ตอน component mount
 
   const adminMenuItems = [
     {
