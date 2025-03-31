@@ -32,10 +32,10 @@ RUN pip3 install -r requirements.txt --no-cache-dir -i https://pypi.org/simple
 # คัดลอกไฟล์โค้ดทั้งหมด
 COPY . /GazeTracking
 
+# ติดตั้ง gunicorn และ eventlet
+RUN pip3 install gunicorn eventlet
+
 EXPOSE 82
 
-# กำหนด command เริ่มต้น
-CMD ["python3", "example.py"]
-
-
-
+# เปลี่ยนการใช้ python3 example.py ไปเป็นการใช้ Gunicorn
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:82", "--worker-class", "eventlet", "example:app"]

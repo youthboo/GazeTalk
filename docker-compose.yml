@@ -74,11 +74,11 @@ services:
       context: ./GazeTracking
     container_name: gazetalk-gaze-tracking
     ports:
-      - "82:82"
+      - "82:82"  # map port 82 ของ container ไปยัง port 82 ของ host
     volumes:
       - ./GazeTracking:/app
     environment:
-      - FLASK_ENV=development
+      - FLASK_ENV=production  # ตั้งค่าให้ Flask ทำงานในโหมด production
     restart: always
     depends_on:
       - backend

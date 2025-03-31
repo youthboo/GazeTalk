@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()  # เพื่อให้รองรับ eventlet กับการทำงานของ Flask-SocketIO
+
 import base64
 import cv2
 import numpy as np
@@ -106,4 +109,4 @@ def handle_frame(data):
         emit("error", {"error": str(e)})
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=82)
+    socketio.run(app, host="0.0.0.0", port=82)  # เปลี่ยนเป็นการรันผ่าน eventlet

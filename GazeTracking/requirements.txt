@@ -5,4 +5,7 @@ opencv-python==4.10.0.82
 flask
 flask-cors
 flask_socketio
+gunicorn
+eventlet
+
 #setuptools==70.0.0. (ถ้าจำเป็น)
