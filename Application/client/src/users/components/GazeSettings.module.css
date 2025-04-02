@@ -1,0 +1,266 @@
+.gazeSettings {
+  position: fixed; 
+  display: block; 
+  right: 10px; 
+  top: 100px; 
+  z-index: 100;
+}
+
+/* Keep the rest of your CSS the same */
+.settingsIcon {
+  background: linear-gradient(135deg, #6818be 0%, #1353c1 100%);
+  border: none;
+  cursor: pointer;
+  color: #ffffff;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 0;
+}
+
+.settingsIcon:hover {
+  
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.settingsIconActive {
+  background: linear-gradient(145deg, #4299e1, #3182ce);
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cogIcon {
+  animation: rotateOnHover 4s linear infinite paused;
+}
+
+.settingsIcon:hover .cogIcon {
+  animation-play-state: running;
+}
+
+.eyeIcon {
+  position: absolute;
+  color: inherit;
+}
+
+.settingsPanel {
+  position: absolute;
+  top: 0; /* เริ่มจากด้านบนของปุ่ม */
+  right: 60px; /* ระยะห่างจากปุ่ม */
+  background: white;
+  border: none;
+  padding: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  z-index: 9999;
+  width: 280px;
+  max-width: 280px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transform-origin: top right;
+  animation: panelFadeIn 0.3s ease-out;
+}
+
+
+.panelHeader {
+  background: linear-gradient(90deg, #3182ce, #4299e1);
+  color: white;
+  padding: 12px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.panelContent {
+  padding: 15px;
+}
+
+.labelText {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+  color: #2d3748;
+}
+
+.settingsPanel label {
+  font-size: 14px;
+  font-weight: normal;
+  display: block;
+  margin-bottom: 12px;
+  color: #2d3748;
+}
+
+.settingsPanel input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin-bottom: 15px;
+  transition: all 0.2s ease;
+  background-color: #f7fafc;
+}
+
+.settingsPanel input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+}
+
+.saveBtn {
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.saveBtn:hover {
+  background-color: #2b6cb0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.saveBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  opacity: 0.8;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.resetBtn {
+  background-color: #ffffff;
+  color: #3182ce;
+  border: 2px solid #3182ce;
+  padding: 10px 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  width: auto;
+  height: 40px;
+  margin-top: 15px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.resetBtn:hover {
+  background-color: #f0f4f8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resetBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.resetBtn svg {
+  color: #3182ce;
+  transition: all 0.3s ease;
+  margin-right: 8px; /* เพิ่มระยะห่างระหว่างไอคอนกับข้อความ */
+}
+
+.resetBtn:hover svg {
+  color: #2b6cb0;
+}
+
+.resetBtn:active svg {
+  transform: scale(0.95);
+}
+
+.resetBtn:focus {
+  outline: none;
+}
+
+.resetText {
+  color: #3182ce;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.resetBtn:hover .resetText {
+  color: #2b6cb0;
+}
+
+.resetBtn:active .resetText {
+  transform: scale(0.95);
+}
+
+.description {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin-top: 15px;
+  text-align: left;
+  padding: 0 15px;
+}
+
+@keyframes rotateOnHover {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes panelFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

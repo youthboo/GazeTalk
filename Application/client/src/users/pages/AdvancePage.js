@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
 import bin from "../assets/trash.png";
@@ -8,6 +8,8 @@ import Swal from "sweetalert2";
 import VideoFeed from "../components/VideoFeed";
 import Header from "../components/Header";
 import dingSound from "../assets/pick.mp3";
+import GazeSettings from "../components/GazeSettings";
+import { io } from 'socket.io-client';
 
 const AdvancePage = () => {
   const [isShifted, setIsShifted] = useState(false);
@@ -176,7 +178,7 @@ const AdvancePage = () => {
   useEffect(() => {
     const unlockTimeout = setTimeout(() => {
       setIsNavigationLocked(false);
-    }, 10000);
+    }, 4000);
 
     return () => clearTimeout(unlockTimeout);
   }, []);
@@ -272,7 +274,7 @@ const AdvancePage = () => {
   }, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
 
   const handleGazeData = useCallback((data) => {
-    const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
     const allKeys = Object.values(keyboardLayout).flat();
 
     setIsEyeClosed(eye_closed);
@@ -316,7 +318,7 @@ const AdvancePage = () => {
     }
 
     // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
-    if (double_blink && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
+    if (blink_detected && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
       const now = Date.now();
       if (now - lastClickTime > CLICK_DELAY) {
         if (predictedWords.length > 0) {
@@ -346,9 +348,29 @@ const AdvancePage = () => {
     eyeClosedTooLong
   ]);
 
+  const socket = useRef(null);
+  
+    useEffect(() => {
+      socket.current = io(`${process.env.REACT_APP_GAZEMODEL_URL}`);
+  
+      return () => {
+        if (socket.current) {
+          socket.current.disconnect();
+        }
+      };
+    }, []);
+  
+    const handleThresholdChange = (right, left) => {
+      console.log("New gaze thresholds:", right, left);
+      if (socket.current) {
+        socket.current.emit("update-thresholds", { right, left });
+      }
+    };
+
   return (
     <div className="advance-page">
       <Header />
+      <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>

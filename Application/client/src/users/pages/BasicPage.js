@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import deleteIcon from "../assets/delete.png";
 import bellIcon from "../assets/bell.png";
@@ -7,6 +7,8 @@ import './BasicPage.css';
 import VideoFeed from "../components/VideoFeed";
 import dingSound from "../assets/pick.mp3";
 import Header from "../components/Header";
+import GazeSettings from "../components/GazeSettings";
+import { io } from 'socket.io-client';
 
 const BasicPage = () => {
 
@@ -169,7 +171,7 @@ const BasicPage = () => {
   }, [inputText, navigate, handleSubmit, advanceButtonEnabled]);
 
   const handleGazeData = useCallback((data) => {
-    const { direction, double_blink, eye_closed, eye_closed_too_long } = data;
+    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
     const totalButtons = 1 + commonPhrases.length + 3;
 
     setIsEyeClosed(eye_closed);
@@ -197,7 +199,7 @@ const BasicPage = () => {
       });
     }
 
-    if (double_blink && !eyeClosedTooLong) {
+    if (blink_detected && !eyeClosedTooLong) {
       if (highlightedIndex !== lastSelectedIndex) {
         setLastSelectedIndex(highlightedIndex);
         if (highlightedIndex === 0) {
@@ -222,9 +224,29 @@ const BasicPage = () => {
     eyeClosedStartTime
   ]);
 
+  const socket = useRef(null);
+
+  useEffect(() => {
+    socket.current = io(`${process.env.REACT_APP_GAZEMODEL_URL}`);
+
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
+  }, []);
+
+  const handleThresholdChange = (right, left) => {
+    console.log("New gaze thresholds:", right, left);
+    if (socket.current) {
+      socket.current.emit("update-thresholds", { right, left });
+    }
+  };
+  
   return (
     <div className="basic-page">
       <Header />
+      <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>

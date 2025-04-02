@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./AlertPage.css";
 import Header from "../components/Header";
 import dingSound from "../assets/pick.mp3";
 import VideoFeed from "../components/VideoFeed";
+import GazeSettings from "../components/GazeSettings";
+import { io } from 'socket.io-client';
 
 const AlertPage = () => {
   const navigate = useNavigate();
@@ -103,20 +105,41 @@ const AlertPage = () => {
 
   const handleGazeData = useCallback(
     (data) => {
-      const { direction, double_blink } = data;
+      const { direction, blink_detected } = data;
       if (direction === "right") setHighlightedButton("ไม่ใช่");
       else if (direction === "left") setHighlightedButton("ใช่");
 
-      if (double_blink && isPageReady && !isEmergencySent) {
+      if (blink_detected && isPageReady && !isEmergencySent) {
         highlightedButton === "ใช่" ? handleYesClick() : handleNoClick();
       }
     },
     [highlightedButton, isEmergencySent, isPageReady, handleYesClick, handleNoClick]
   );
 
+  const socket = useRef(null);
+    
+      useEffect(() => {
+        socket.current = io(`${process.env.REACT_APP_GAZEMODEL_URL}`);
+    
+        return () => {
+          if (socket.current) {
+            socket.current.disconnect();
+          }
+        };
+      }, []);
+    
+      const handleThresholdChange = (right, left) => {
+        console.log("New gaze thresholds:", right, left);
+        if (socket.current) {
+          socket.current.emit("update-thresholds", { right, left });
+        }
+      };
+  
+
   return (
     <div className="alert-page">
       <Header />
+      <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>

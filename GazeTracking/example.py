@@ -9,6 +9,10 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from gaze_tracking import GazeTracking
 import time
+import logging
+
+# ตั้งค่าระบบ logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)  # อนุญาต CORS
@@ -30,7 +34,7 @@ EYE_CLOSED_TIMEOUT = 0.5
 def decode_base64_image(image_base64):
     """แปลง base64 string เป็น numpy array (OpenCV)"""
     try:
-        image_data = base64.b64decode(image_base64.split(",")[1])  # ตัด "data:image/jpeg;base64," ออก
+        image_data = base64.b64decode(image_base64.split(",")[1])  
         np_arr = np.frombuffer(image_data, np.uint8)
         frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         return frame
@@ -40,7 +44,7 @@ def decode_base64_image(image_base64):
 @socketio.on("upload-frame")
 def handle_frame(data):
     """รับเฟรมจาก client และประมวลผลการติดตามสายตา"""
-    global blink_count, last_blink_time, eye_closed_start_time
+    global last_blink_time, eye_closed_start_time
 
     try:
         if "frame" not in data:
@@ -73,21 +77,15 @@ def handle_frame(data):
                     eye_closed_start_time = time.time()
                 elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
                     eye_closed_too_long = True
-                    
             else:
                 eye_closed_start_time = None
 
+            # ตรวจจับการกระพริบตาเพียง 1 ครั้ง
             if blinking_ratio > BLINKING_RATIO_THRESHOLD:
                 current_time = time.time()
-                if current_time - last_blink_time <= DOUBLE_BLINK_THRESHOLD:
-                    blink_count += 1
-                else:
-                    blink_count = 1
+                if current_time - last_blink_time > DOUBLE_BLINK_THRESHOLD:
+                    blink_detected = True  
                 last_blink_time = current_time
-
-            if blink_count == 2:
-                blink_detected = True
-                blink_count = 0  # รีเซ็ต blink_count
 
             if not eye_closed and not eye_closed_too_long:
                 if gaze.is_right():
@@ -100,7 +98,7 @@ def handle_frame(data):
         # ส่งข้อมูล gaze กลับไปยัง frontend
         emit("gaze-data", {
             "direction": gaze_direction,
-            "double_blink": blink_detected,
+            "blink_detected": blink_detected, 
             "eye_closed": eye_closed,
             "eye_closed_too_long": eye_closed_too_long,
         })
@@ -108,5 +106,24 @@ def handle_frame(data):
     except Exception as e:
         emit("error", {"error": str(e)})
 
+@socketio.on("update-thresholds")
+def update_thresholds(data):
+    """อัปเดตค่าการมองซ้าย/ขวาตามที่ผู้ใช้กำหนด"""
+    try:
+        right_threshold = float(data.get("right", 0.53))  # ค่า default
+        left_threshold = float(data.get("left", 0.73))
+
+        logging.debug(f"Received thresholds update: Right = {right_threshold}, Left = {left_threshold}")
+
+        # การอัปเดตค่าการมอง
+        gaze.set_thresholds(right_threshold, left_threshold)  
+
+        emit("threshold-updated", {"success": True, "right": right_threshold, "left": left_threshold})
+        logging.debug(f"Thresholds updated successfully: Right = {right_threshold}, Left = {left_threshold}")
+
+    except Exception as e:
+        logging.error(f"Error updating thresholds: {str(e)}")
+        emit("error", {"error": str(e)})
+
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=82)  # เปลี่ยนเป็นการรันผ่าน eventlet
+    socketio.run(app, host="0.0.0.0", port=82) 
