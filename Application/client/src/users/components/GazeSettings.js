@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {  FaTimes } from "react-icons/fa";
 import { FaRedo } from "react-icons/fa";
 import styles from "./GazeSettings.module.css";
-import { BsSliders } from "react-icons/bs"; // Bootstrap Icons
+import { BsSliders } from "react-icons/bs"; 
 
 const GazeSettings = ({ onThresholdChange }) => {
   // ใช้ค่าจาก localStorage ถ้ามี หรือใช้ค่าเริ่มต้น
