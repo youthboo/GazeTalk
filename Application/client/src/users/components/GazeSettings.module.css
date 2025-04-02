@@ -245,6 +245,47 @@
   padding: 0 15px;
 }
 
+.gapDisplay {
+  margin: 15px 0;
+}
+
+.gapInfo {
+  margin-bottom: 8px;
+}
+
+.visualScale {
+  display: flex;
+  height: 30px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.leftArea, .centerArea, .rightArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+}
+
+.leftArea {
+  background: #ff8c66;
+}
+
+.centerArea {
+  background: #4caf50;
+}
+
+.rightArea {
+  background: #5c6bc0;
+}
+
+.errorMessage {
+  color: red;
+  margin-bottom: 15px;
+}
+
 @keyframes rotateOnHover {
   from {
     transform: rotate(0deg);

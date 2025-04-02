@@ -74,11 +74,19 @@ def handle_frame(data):
 
             if eye_closed:
                 if eye_closed_start_time is None:
-                    eye_closed_start_time = time.time()
-                elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
-                    eye_closed_too_long = True
+                    eye_closed_start_time = time.time() 
+                else:
+                    blink_duration = time.time() - eye_closed_start_time  
+
+                    if blink_duration > 3.0:  
+                        eye_closed_too_long = True
             else:
-                eye_closed_start_time = None
+                if eye_closed_start_time is not None:
+                    blink_duration = time.time() - eye_closed_start_time  
+
+                    if blink_duration < 1.6:
+                        blink_detected = False  
+                    eye_closed_start_time = None  
 
             # ตรวจจับการกระพริบตาเพียง 1 ครั้ง
             if blinking_ratio > BLINKING_RATIO_THRESHOLD:
