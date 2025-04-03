@@ -1,27 +1,12 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useSound } from "../context/SoundContext";
+import { useEffect, useState } from "react";
+import { useSound } from "../context/SoundContext"; // นำเข้า Context
 import dingSound from "../assets/pick.mp3";
 
 const useDingSound = () => {
-  const { isMuted } = useSound();
+  const { isMuted } = useSound(); // ใช้ค่า isMuted จาก Context
   const [audioContext, setAudioContext] = useState(null);
   const [audioBuffer, setAudioBuffer] = useState(null);
-  const audioSourceRef = useRef(null);
-  const isMutedRef = useRef(isMuted);
-
-  // อัปเดต ref เมื่อ isMuted เปลี่ยน
-  useEffect(() => {
-    isMutedRef.current = isMuted;
-    
-    if (isMuted && audioSourceRef.current) {
-      try {
-        audioSourceRef.current.stop();
-        audioSourceRef.current = null;
-      } catch (err) {
-        console.log("Sound already stopped");
-      }
-    }
-  }, [isMuted]);
+  const [audioSource, setAudioSource] = useState(null); // ใช้เพื่อควบคุมการเล่นเสียง
 
   useEffect(() => {
     const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -36,22 +21,29 @@ const useDingSound = () => {
     return () => context.close();
   }, []);
 
-  const playDingSound = useCallback(() => {
-    if (audioContext && audioBuffer && !isMutedRef.current) {
-      if (audioSourceRef.current) {
-        try {
-          audioSourceRef.current.stop();
-        } catch (err) {
-        }
-      }
+  useEffect(() => {
+    // หากค่า isMuted เปลี่ยนแปลง ให้หยุดเสียงทันที
+    if (audioSource) {
+      audioSource.stop(); // หยุดเสียงก่อนหน้า
+    }
 
+    if (audioContext && audioBuffer && !isMuted) {
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContext.destination);
       source.start(0);
-      audioSourceRef.current = source;
+      setAudioSource(source); // ตั้งค่า audioSource สำหรับการหยุดเสียงในอนาคต
     }
-  }, [audioContext, audioBuffer]);
+  }, [isMuted, audioContext, audioBuffer]); // ติดตามการเปลี่ยนแปลงของ isMuted
+
+  const playDingSound = () => {
+    if (audioContext && audioBuffer && !isMuted) {
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+    }
+  };
 
   return playDingSound;
 };

@@ -8,7 +8,6 @@ import VideoFeed from "../components/VideoFeed";
 import Header from "../components/Header";
 import GazeSettings from "../components/GazeSettings";
 import { io } from 'socket.io-client';
-
 import useDingSound from "../hooks/useDingSound";
 
 const BasicPage = () => {
@@ -16,13 +15,11 @@ const BasicPage = () => {
   const [inputText, setInputText] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
-  // eslint-disable-next-line
-  const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
-  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
+  // eslint-disable-next-line
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
-  const EYE_CLOSED_TIMEOUT = 500;
   const [advanceButtonEnabled, setAdvanceButtonEnabled] = useState(false);
+  const [isHighlightPaused, setIsHighlightPaused] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,7 +124,7 @@ const BasicPage = () => {
         showConfirmButton: false,
       });
 
-      setInputText(""); // ล้างข้อความหลังจากส่ง
+      setInputText(""); 
     } catch (error) {
       console.error('Error sending message:', error);
       Swal.fire({
@@ -168,25 +165,20 @@ const BasicPage = () => {
     // eslint-disable-next-line
   }, [inputText, navigate, handleSubmit, advanceButtonEnabled]);
 
+  const toggleHighlight = () => {
+    setIsHighlightPaused((prev) => !prev);
+  };
+
   const handleGazeData = useCallback((data) => {
-    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
+    const { direction, eye_closed, eye_closed_too_long } = data;
     const totalButtons = 1 + commonPhrases.length + 3;
 
-    setIsEyeClosed(eye_closed);
-    setEyeClosedTooLong(eye_closed_too_long);
-
-    if (eye_closed) {
-      if (!eyeClosedStartTime) {
-        setEyeClosedStartTime(Date.now());
-      } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
-        setEyeClosedTooLong(true);
-      }
-    } else {
-      setEyeClosedStartTime(null);
-      setEyeClosedTooLong(false);
+    // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
+    if (isHighlightPaused) {
+      return; 
     }
 
-    if (!eye_closed && !eyeClosedTooLong) {
+    if (!eye_closed ) {
       setHighlightedIndex((prevIndex) => {
         if (direction === "right") {
           return (prevIndex + 1) % totalButtons;
@@ -197,7 +189,7 @@ const BasicPage = () => {
       });
     }
 
-    if (blink_detected && !eyeClosedTooLong) {
+    if (eye_closed_too_long && !eyeClosedTooLong) {
       if (highlightedIndex !== lastSelectedIndex) {
         setLastSelectedIndex(highlightedIndex);
         if (highlightedIndex === 0) {
@@ -218,9 +210,8 @@ const BasicPage = () => {
     handleKeyInput,
     commonPhrases,
     lastSelectedIndex,
-    eyeClosedTooLong,
-    eyeClosedStartTime
-  ]);
+    eyeClosedTooLong, isHighlightPaused
+]);
 
   const socket = useRef(null);
 
@@ -243,7 +234,7 @@ const BasicPage = () => {
   
   return (
     <div className="basic-page">
-      <Header />
+      <Header isHighlightPaused={isHighlightPaused} toggleHighlight={toggleHighlight} />
       <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />

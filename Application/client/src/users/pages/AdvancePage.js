@@ -30,9 +30,7 @@ const AdvancePage = () => {
   const [isNavigationLocked, setIsNavigationLocked] = useState(true);
   const [isPredictionSelectionLocked, setIsPredictionSelectionLocked] = useState(false);
   const [isSelectionDelayed, setIsSelectionDelayed] = useState(false);
-
-  const [eyeClosedStartTime, setEyeClosedStartTime] = useState(null);
-  const EYE_CLOSED_TIMEOUT = 500;
+  const [isHighlightPaused, setIsHighlightPaused] = useState(false);
 
   const consonants = useMemo(
     () => [
@@ -184,13 +182,14 @@ const AdvancePage = () => {
     if (!isNavigationLocked) {
       navigate("/");
     }
-  }, [navigate, isNavigationLocked]);
+  }, [playDingSound, navigate, isNavigationLocked]);
 
   const handleClosePredictions = useCallback(() => {
     playDingSound();
     setPredictedWords([]);
     setShowCloseButton(false);
-  }, []);
+     // eslint-disable-next-line
+  }, [playDingSound]);
 
   const handlePredictionClick = useCallback((word) => {
     playDingSound();
@@ -202,7 +201,8 @@ const AdvancePage = () => {
     setTimeout(() => {
       setIsSelectionDelayed(false);
     }, 1000);
-  }, []);
+     // eslint-disable-next-line
+  }, [playDingSound]);
 
   const handleClear = useCallback(() => {
     setInputText("");
@@ -268,28 +268,21 @@ const AdvancePage = () => {
           setIsPredictionSelectionLocked(false);
         }, 300);
     }
+     // eslint-disable-next-line
   }, [handleShift, handleDelete, handleSubmit, handleAlert, handleBasic, handleClear, keyboardLayout]);
 
+  const toggleHighlight = () => {
+    setIsHighlightPaused((prev) => !prev);
+  };
+
   const handleGazeData = useCallback((data) => {
-    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
+    const { direction, eye_closed, eye_closed_too_long } = data;
     const allKeys = Object.values(keyboardLayout).flat();
 
-    setIsEyeClosed(eye_closed);
-    setEyeClosedTooLong(eye_closed_too_long);
-
-    if (eye_closed) {
-      if (!eyeClosedStartTime) {
-        setEyeClosedStartTime(Date.now());
-      } else if (Date.now() - eyeClosedStartTime > EYE_CLOSED_TIMEOUT) {
-        setEyeClosedTooLong(true); // บังคับให้หยุดไฮไลท์
-      }
-    } else {
-      setEyeClosedStartTime(null);
-      setEyeClosedTooLong(false);
+    // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
+    if (isHighlightPaused) {
+      return; 
     }
-
-    // ป้องกันไฮไลท์เคลื่อนที่ถ้าหลับตานานเกินไป
-    if (eyeClosedTooLong) return; // หยุดทำงานทันทีถ้าหลับตานานเกินไป
 
     if (!eye_closed && !eyeClosedTooLong) {
       if (predictedWords.length > 0 && !isPredictionSelectionLocked) {
@@ -315,7 +308,7 @@ const AdvancePage = () => {
     }
 
     // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
-    if (blink_detected && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
+    if (eye_closed_too_long && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
       const now = Date.now();
       if (now - lastClickTime > CLICK_DELAY) {
         if (predictedWords.length > 0) {
@@ -342,7 +335,7 @@ const AdvancePage = () => {
     handleKeyInput,
     handleClosePredictions,
     lastSelectedIndex,
-    eyeClosedTooLong
+    eyeClosedTooLong, isHighlightPaused
   ]);
 
   const socket = useRef(null);
@@ -366,8 +359,8 @@ const AdvancePage = () => {
 
   return (
     <div className="advance-page">
-      <Header />
-      <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
+      <Header isHighlightPaused={isHighlightPaused} toggleHighlight={toggleHighlight} />
+      <GazeSettings onThresholdChange={handleThresholdChange} /> 
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>

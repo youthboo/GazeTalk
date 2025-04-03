@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
-import { FaQuestionCircle, FaSignOutAlt, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
+import { FaQuestionCircle, FaSignOutAlt, FaVolumeUp, FaVolumeMute, FaPauseCircle, FaPlayCircle } from "react-icons/fa";
 
 export const GuideIcon = () => {
   const handleGuide = () => {
@@ -47,7 +47,7 @@ export const LogoutIcon = ({ onLogout }) => {
       if (result.isConfirmed) {
         localStorage.clear();
         if (onLogout) onLogout();
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     });
   };
@@ -63,6 +63,14 @@ export const VolumeControlIcon = ({ isMuted, toggleVolume }) => {
   return (
     <button className="icon-button" onClick={toggleVolume}>
       {isMuted ? <FaVolumeMute size={24} /> : <FaVolumeUp size={24} />}
+    </button>
+  );
+};
+
+export const PauseHighlightIcon = ({ isPaused, togglePause }) => {
+  return (
+    <button className="icon-button" onClick={togglePause}>
+      {isPaused ? <FaPlayCircle size={24} /> : <FaPauseCircle size={24} />}
     </button>
   );
 };

@@ -1,15 +1,16 @@
 import React from "react";
-import { GuideIcon, LogoutIcon, VolumeControlIcon } from "./HeaderIcons";
+import { GuideIcon, LogoutIcon, VolumeControlIcon, PauseHighlightIcon } from "./HeaderIcons";
 import logo from "../assets/hospital.png";
 import { useSound } from "../context/SoundContext"; 
 
-const Header = () => {
-  const { isMuted, toggleMute } = useSound(); // ใช้ context เพื่อควบคุมเสียง
+const Header = ({ isHighlightPaused, toggleHighlight }) => {
+  const { isMuted, toggleMute } = useSound(); 
 
   return (
     <div className="header">
       <div className="header-icons">
-        <VolumeControlIcon isMuted={isMuted} toggleVolume={toggleMute} /> 
+        <VolumeControlIcon isMuted={isMuted} toggleVolume={toggleMute} />
+        <PauseHighlightIcon isPaused={isHighlightPaused} togglePause={toggleHighlight} />
         <GuideIcon />
         <LogoutIcon />
       </div>

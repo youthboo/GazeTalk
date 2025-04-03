@@ -76,7 +76,7 @@ const App = () => {
 
   return (
     <Router>
-      <SoundProvider> {/* ✅ ย้ายมาครอบรอบ Routes ทั้งหมด */}
+      <SoundProvider> 
         <Routes>
           {/* Auth Routes */}
           <Route path="/" element={<Navigate to="/login" />} />
