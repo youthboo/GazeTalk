@@ -1,5 +1,6 @@
 import React from "react";
 import Swal from "sweetalert2";
+import { FaQuestionCircle, FaSignOutAlt, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 
 export const GuideIcon = () => {
   const handleGuide = () => {
@@ -29,13 +30,12 @@ export const GuideIcon = () => {
 
   return (
     <button className="icon-button" onClick={handleGuide}>
-      <i className="fa fa-question-circle" aria-hidden="true"></i>
+      <FaQuestionCircle size={24} />
     </button>
   );
 };
 
 export const LogoutIcon = ({ onLogout }) => {
- 
   const handleLogout = () => {
     Swal.fire({
       title: "คุณต้องการออกจากระบบหรือไม่?",
@@ -45,13 +45,8 @@ export const LogoutIcon = ({ onLogout }) => {
       cancelButtonText: "ยกเลิก",
     }).then((result) => {
       if (result.isConfirmed) {
-        // Clear all stored data
-        localStorage.clear(); 
-        
-        if (onLogout) {
-          onLogout();
-        }
-
+        localStorage.clear();
+        if (onLogout) onLogout();
         window.location.href = '/login';
       }
     });
@@ -59,7 +54,15 @@ export const LogoutIcon = ({ onLogout }) => {
 
   return (
     <button className="icon-button" onClick={handleLogout}>
-      <i className="fa fa-sign-out" aria-hidden="true"></i>
+      <FaSignOutAlt size={24} />
+    </button>
+  );
+};
+
+export const VolumeControlIcon = ({ isMuted, toggleVolume }) => {
+  return (
+    <button className="icon-button" onClick={toggleVolume}>
+      {isMuted ? <FaVolumeMute size={24} /> : <FaVolumeUp size={24} />}
     </button>
   );
 };

@@ -10,6 +10,7 @@ import AccessDenied from './users/pages/AccessDenied';
 import Sidebar from './admins/components/Sidebar/Sidebar';
 import ForgotPassword from './login-reigister/Login/ForgotPassword';
 import ResetPassword from './login-reigister/Login/ResetPassword';
+import { SoundProvider } from "./users/context/SoundContext";
 import './App.css';
 
 const App = () => {
@@ -75,49 +76,48 @@ const App = () => {
 
   return (
     <Router>
-      <Routes>
-        {/* Auth Routes */}
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route
-          path="/login"
-          element={
-            !isLoggedIn ? (
-              <Login onLogin={handleLogin} />
-            ) : (
-              <Navigate to={userRole === 'admin' ? '/admin/dashboard' : '/basic'} />
-            )
-          }
-        />
-        <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/" />} />
-
-        {/* New Forgot Password Route */}
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token/:userType" element={<ResetPassword />} />
-
-        {/* Admin Routes */}
-        <Route
-          path="/admin/*"
-          element={
-            isLoggedIn && userRole === 'admin' ? (
-              renderAdminRoutes()
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-
-        {/* Patient Routes */}
-        <Route path="/basic" element={renderPatientRoutes(BasicPage)} />
-        <Route path="/advance" element={renderPatientRoutes(AdvancePage)} />
-        <Route path="/alert" element={renderPatientRoutes(AlertPage)} />
-        <Route path="/admin-rec" element={renderPatientRoutes(AdminRec)} />
-
-        {/* Other Routes */}
-        <Route path="/access-denied" element={<AccessDenied />} />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
+      <SoundProvider> {/* ✅ ย้ายมาครอบรอบ Routes ทั้งหมด */}
+        <Routes>
+          {/* Auth Routes */}
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route
+            path="/login"
+            element={
+              !isLoggedIn ? (
+                <Login onLogin={handleLogin} />
+              ) : (
+                <Navigate to={userRole === "admin" ? "/admin/dashboard" : "/basic"} />
+              )
+            }
+          />
+          <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/" />} />
+  
+          {/* Forgot Password Routes */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token/:userType" element={<ResetPassword />} />
+  
+          {/* Admin Routes */}
+          <Route
+            path="/admin/*"
+            element={
+              isLoggedIn && userRole === "admin" ? renderAdminRoutes() : <Navigate to="/login" />
+            }
+          />
+  
+          {/* Patient Routes */}
+          <Route path="/basic" element={renderPatientRoutes(BasicPage)} />
+          <Route path="/advance" element={renderPatientRoutes(AdvancePage)} />
+          <Route path="/alert" element={renderPatientRoutes(AlertPage)} />
+          <Route path="/admin-rec" element={renderPatientRoutes(AdminRec)} />
+  
+          {/* Other Routes */}
+          <Route path="/access-denied" element={<AccessDenied />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </SoundProvider>
     </Router>
   );
+  
 };
 
 export default App;

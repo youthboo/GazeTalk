@@ -1,17 +1,19 @@
 import React from "react";
+import { GuideIcon, LogoutIcon, VolumeControlIcon } from "./HeaderIcons";
 import logo from "../assets/hospital.png";
-import { GuideIcon, LogoutIcon } from "./HeaderIcons"; // นำเข้าไอคอน
+import { useSound } from "../context/SoundContext"; 
 
 const Header = () => {
+  const { isMuted, toggleMute } = useSound(); // ใช้ context เพื่อควบคุมเสียง
+
   return (
     <div className="header">
-      {/* ไอคอนด้านซ้าย */}
       <div className="header-icons">
+        <VolumeControlIcon isMuted={isMuted} toggleVolume={toggleMute} /> 
         <GuideIcon />
         <LogoutIcon />
       </div>
 
-      {/* โลโก้ตรงกลาง */}
       <div className="header-logo">
         <img src={logo} alt="Logo" className="logo-image" />
         <h1 className="logo-text">GazeTalk</h1>
