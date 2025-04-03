@@ -5,10 +5,11 @@ import bellIcon from "../assets/bell.png";
 import Swal from "sweetalert2";
 import './BasicPage.css';
 import VideoFeed from "../components/VideoFeed";
-import dingSound from "../assets/pick.mp3";
 import Header from "../components/Header";
 import GazeSettings from "../components/GazeSettings";
 import { io } from 'socket.io-client';
+
+import useDingSound from "../hooks/useDingSound";
 
 const BasicPage = () => {
 
@@ -64,10 +65,7 @@ const BasicPage = () => {
     "อยากฟังเพลง": require("../assets/music.png"),
   }), []);
 
-  const playDingSound = () => {
-    const audio = new Audio(dingSound);
-    audio.play();
-  };
+  const playDingSound = useDingSound();
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {

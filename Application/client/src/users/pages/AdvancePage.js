@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
 import VideoFeed from "../components/VideoFeed";
 import Header from "../components/Header";
-import dingSound from "../assets/pick.mp3";
 import GazeSettings from "../components/GazeSettings";
 import { io } from 'socket.io-client';
+import useDingSound from "../hooks/useDingSound";
 
 const AdvancePage = () => {
   const [isShifted, setIsShifted] = useState(false);
@@ -52,10 +52,7 @@ const AdvancePage = () => {
     []
   );
 
-  const playDingSound = () => {
-    const audio = new Audio(dingSound);
-    audio.play();
-  };
+  const playDingSound = useDingSound();
 
   const fetchPredictions = async (text) => {
     if (!text.trim()) {

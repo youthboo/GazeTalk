@@ -6,9 +6,9 @@ import bellIcon from "../assets/bell.png";
 import deleteIcon from "../assets/delete.png";
 import VideoFeed from "../components/VideoFeed";
 import Header from "../components/Header";
-import dingSound from "../assets/pick.mp3";
 import GazeSettings from "../components/GazeSettings";
 import { io } from 'socket.io-client';
+import useDingSound from "../hooks/useDingSound";
 
 const AdminRec = () => {
   const [inputText, setInputText] = useState("");
@@ -46,10 +46,7 @@ const AdminRec = () => {
     fetchRecommendedWords();
   }, []);
 
-  const playDingSound = () => {
-    const audio = new Audio(dingSound);
-    audio.play();
-  };
+  const playDingSound = useDingSound();
 
   const handleSubmit = useCallback(async () => {
     if (!inputText.trim()) {

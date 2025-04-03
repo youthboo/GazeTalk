@@ -46,14 +46,12 @@ export const LogoutIcon = ({ onLogout }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         // Clear all stored data
-        localStorage.clear(); // ใช้ clear() แทนการลบทีละรายการ
+        localStorage.clear(); 
         
-        // Call onLogout callback
         if (onLogout) {
           onLogout();
         }
 
-        // Force a page refresh to clear any remaining state
         window.location.href = '/login';
       }
     });

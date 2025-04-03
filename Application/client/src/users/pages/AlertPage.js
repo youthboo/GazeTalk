@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./AlertPage.css";
 import Header from "../components/Header";
-import dingSound from "../assets/pick.mp3";
 import VideoFeed from "../components/VideoFeed";
 import GazeSettings from "../components/GazeSettings";
 import { io } from 'socket.io-client';
+import useDingSound from "../hooks/useDingSound";
 
 const AlertPage = () => {
   const navigate = useNavigate();
@@ -16,10 +16,7 @@ const AlertPage = () => {
   const [isEmergencySent, setIsEmergencySent] = useState(false);
   const [isPageReady, setIsPageReady] = useState(false);
 
-  const playDingSound = useCallback(() => {
-    const audio = new Audio(dingSound);
-    audio.play();
-  }, []);
+  const playDingSound = useDingSound();
 
   const canSendEmergencyAlert = useCallback(() => {
     const lastSent = localStorage.getItem("lastEmergencySent");
