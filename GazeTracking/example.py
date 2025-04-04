@@ -1,6 +1,5 @@
 import eventlet
-eventlet.monkey_patch()  # เพื่อให้รองรับ eventlet กับการทำงานของ Flask-SocketIO
-
+eventlet.monkey_patch() 
 import base64
 import cv2
 import numpy as np
@@ -27,9 +26,11 @@ blink_count = 0
 last_blink_time = 0
 DOUBLE_BLINK_THRESHOLD = 0.6
 BLINKING_RATIO_THRESHOLD = 6
-
+EYE_CLOSED_TIMEOUT = 2.0  # หน่วยเป็นวินาที
+eye_closed_start_time = None
 eye_closed_start_time = None
 EYE_CLOSED_TIMEOUT = 0.5
+selection_triggered = False
 
 def decode_base64_image(image_base64):
     """แปลง base64 string เป็น numpy array (OpenCV)"""
@@ -106,13 +107,18 @@ def handle_frame(data):
     except Exception as e:
         emit("error", {"error": str(e)})
 
+@socketio.on('reset-eye-state')
+def reset_eye_state():
+    global eye_closed_start_time, selection_triggered
+    eye_closed_start_time = None
+    selection_triggered = False
 
 @socketio.on("update-thresholds")
 def update_thresholds(data):
     """อัปเดตค่าการมองซ้าย/ขวาตามที่ผู้ใช้กำหนด"""
     try:
-        right_threshold = float(data.get("right", 0.50))  # ค่า default
-        left_threshold = float(data.get("left", 0.80))
+        right_threshold = float(data.get("right", 0.53))  # ค่า default
+        left_threshold = float(data.get("left", 0.73))
 
         logging.debug(f"Received thresholds update: Right = {right_threshold}, Left = {left_threshold}")
 
@@ -127,4 +133,4 @@ def update_thresholds(data):
         emit("error", {"error": str(e)})
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=82) 
+    socketio.run(app, host="0.0.0.0", port=5006) 

@@ -149,7 +149,7 @@ const AdminRec = () => {
   };
 
   const handleGazeData = useCallback((data) => {
-    const { direction,blink_detected, eye_closed, eye_closed_too_long } = data;
+    const { direction, eye_closed, eye_closed_too_long } = data;
     const totalButtons = 1 + recommendedWords.length + 3;
 
     // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
@@ -168,7 +168,7 @@ const AdminRec = () => {
       });
     }
 
-    if (blink_detected && !eyeClosedTooLong) {
+    if (eye_closed_too_long ) {
       if (highlightedIndex !== lastSelectedIndex) {
         setLastSelectedIndex(highlightedIndex);
         if (highlightedIndex === 0) {
@@ -181,6 +181,10 @@ const AdminRec = () => {
           handleKeyInput("ตกลง");
         } else if (highlightedIndex === recommendedWords.length + 3) {
           handleKeyInput("Alert");
+        }    
+
+        if (socket.current) {
+          socket.current.emit('reset-eye-state');
         }
       }
     }

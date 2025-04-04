@@ -16,8 +16,7 @@ const BasicPage = () => {
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const navigate = useNavigate();
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
-  // eslint-disable-next-line
-  const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
+
   const [advanceButtonEnabled, setAdvanceButtonEnabled] = useState(false);
   const [isHighlightPaused, setIsHighlightPaused] = useState(false);
 
@@ -139,7 +138,7 @@ const BasicPage = () => {
   }, [inputText]);
 
   const handleKeyInput = useCallback((phrase) => {
-    playDingSound();
+    
 
     switch (phrase) {
       case "ลบ":
@@ -170,10 +169,9 @@ const BasicPage = () => {
   };
 
   const handleGazeData = useCallback((data) => {
-    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
+    const { direction, eye_closed, eye_closed_too_long } = data;
     const totalButtons = 1 + commonPhrases.length + 3;
 
-    // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
     if (isHighlightPaused) {
       return; 
     }
@@ -189,7 +187,7 @@ const BasicPage = () => {
       });
     }
 
-    if (blink_detected && !eyeClosedTooLong) {
+    if (eye_closed_too_long) {
       if (highlightedIndex !== lastSelectedIndex) {
         setLastSelectedIndex(highlightedIndex);
         if (highlightedIndex === 0) {
@@ -203,14 +201,19 @@ const BasicPage = () => {
         } else if (highlightedIndex === commonPhrases.length + 3) {
           handleKeyInput("Alert");
         }
+
+        if (socket.current) {
+          socket.current.emit('reset-eye-state');
+        }
       }
+      playDingSound();
     }
   }, [
     highlightedIndex,
     handleKeyInput,
     commonPhrases,
     lastSelectedIndex,
-    eyeClosedTooLong, isHighlightPaused
+    isHighlightPaused,playDingSound
 ]);
 
   const socket = useRef(null);

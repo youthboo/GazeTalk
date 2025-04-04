@@ -243,7 +243,7 @@ const AlertPage = () => {
 
   const handleGazeData = useCallback(
     (data) => {
-      const { direction, eye_closed_too_long } = data;
+      const { direction, blink_detected } = data;
       // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
       if (isHighlightPaused) {
         return; 
@@ -252,9 +252,14 @@ const AlertPage = () => {
       if (direction === "right") setHighlightedButton("ไม่ใช่");
       else if (direction === "left") setHighlightedButton("ใช่");
 
-      if (eye_closed_too_long && !isEmergencySent) { 
+      if (blink_detected && !isEmergencySent ) { 
         highlightedButton === "ใช่" ? handleYesClick() : handleNoClick();
       }
+
+      if (socket.current) {
+        socket.current.emit('reset-eye-state');
+      }
+      
     },
     [highlightedButton, isEmergencySent, handleYesClick, handleNoClick, isHighlightPaused]
   );

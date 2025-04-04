@@ -23,7 +23,6 @@ const AdvancePage = () => {
 
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null); 
   // eslint-disable-next-line
-  const [isEyeClosed, setIsEyeClosed] = useState(false);
   const [eyeClosedTooLong, setEyeClosedTooLong] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
   const CLICK_DELAY = 500;
@@ -76,7 +75,6 @@ const AdvancePage = () => {
       console.error("Error fetching predictions:", error);
     }
   };
-
 
   const handleShift = useCallback(() => {
     setIsShifted(prev => !prev);
@@ -276,7 +274,7 @@ const AdvancePage = () => {
   };
 
   const handleGazeData = useCallback((data) => {
-    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
+    const { direction, eye_closed, eye_closed_too_long } = data;
     const allKeys = Object.values(keyboardLayout).flat();
 
     // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
@@ -305,10 +303,11 @@ const AdvancePage = () => {
           );
         }
       }
+      
     }
 
     // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
-    if (blink_detected && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
+    if (eye_closed_too_long && !isPredictionSelectionLocked && !isSelectionDelayed) {
       const now = Date.now();
       if (now - lastClickTime > CLICK_DELAY) {
         if (predictedWords.length > 0) {
@@ -322,6 +321,10 @@ const AdvancePage = () => {
           setLastClickTime(now);
           handleKeyInput(allKeys[highlightedIndex]);
         }
+      }
+
+      if (socket.current) {
+        socket.current.emit('reset-eye-state');        
       }
     }
 

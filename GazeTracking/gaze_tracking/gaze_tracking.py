@@ -14,8 +14,8 @@ class GazeTracking(object):
         self.calibration = Calibration()
 
         # ค่า default สำหรับการตรวจจับการมอง
-        self.right_threshold = 0.50 
-        self.left_threshold = 0.80   
+        self.right_threshold = 0.53 
+        self.left_threshold = 0.73  
 
         self._face_detector = dlib.get_frontal_face_detector()
         cwd = os.path.abspath(os.path.dirname(__file__))
