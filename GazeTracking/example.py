@@ -78,7 +78,7 @@ def handle_frame(data):
                 else:
                     blink_duration = time.time() - eye_closed_start_time  
 
-                    if blink_duration > 0.6: 
+                    if blink_duration > 0.3: 
                         eye_closed_too_long = True
             else:
                 eye_closed_start_time = None  
