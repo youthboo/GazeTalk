@@ -187,8 +187,8 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
               </button>
               <label htmlFor="frameInterval">ความถี่ในการส่งเฟรม (มิลลิวินาที)</label>
               <Slider
-                min={300}
-                max={1600}
+                min={500}
+                max={1500}
                 step={100}
                 value={frameInterval}
                 onChange={handleSliderChange}
@@ -198,9 +198,15 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
                   height: 30,                 
                 }}
               />
-
+              <div className="slider-info"> 
+              </div>
               <p>ค่าปัจจุบัน: {frameInterval} ms<br/>ส่งข้อมูลประมาณ {(1000 / frameInterval).toFixed(1)} ครั้ง/วินาที</p>
-              
+              <p style={{ 
+                color: '#333', 
+                marginLeft: '20px' 
+              }}>
+                ในส่วนของการตั้งค่าความถี่ในการส่งเฟรมนี้ จะช่วยปรับความเร็วในการเคลื่อนที่ของไฮไลท์ เมื่อคุณปรับค่าต่ำ (เช่น 500ms) ไฮไลท์จะเคลื่อนที่เร็วขึ้น แต่ถ้าคุณปรับค่ามากขึ้น (เช่น 1500ms) ไฮไลท์จะเคลื่อนที่ช้าลง
+              </p>
               <button className="save-button" onClick={handleSaveSettings}>
                 บันทึกการตั้งค่า
               </button>

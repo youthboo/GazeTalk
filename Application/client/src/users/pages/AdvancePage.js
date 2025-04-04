@@ -180,7 +180,7 @@ const AdvancePage = () => {
     if (!isNavigationLocked) {
       navigate("/");
     }
-  }, [playDingSound, navigate, isNavigationLocked]);
+  }, [navigate, isNavigationLocked]);
 
   const handleClosePredictions = useCallback(() => {
     playDingSound();
