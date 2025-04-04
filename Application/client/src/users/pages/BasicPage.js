@@ -170,7 +170,7 @@ const BasicPage = () => {
   };
 
   const handleGazeData = useCallback((data) => {
-    const { direction, eye_closed, eye_closed_too_long } = data;
+    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
     const totalButtons = 1 + commonPhrases.length + 3;
 
     // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
@@ -189,7 +189,7 @@ const BasicPage = () => {
       });
     }
 
-    if (eye_closed_too_long && !eyeClosedTooLong) {
+    if (blink_detected && !eyeClosedTooLong) {
       if (highlightedIndex !== lastSelectedIndex) {
         setLastSelectedIndex(highlightedIndex);
         if (highlightedIndex === 0) {

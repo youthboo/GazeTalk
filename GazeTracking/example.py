@@ -59,10 +59,11 @@ def handle_frame(data):
         faces = face_cascade.detectMultiScale(gray, 1.1, 4)
 
         gaze_direction = "center"
+        blink_detected = False
         eye_closed = False
-        eye_closed_too_long = False  
+        eye_closed_too_long = False
 
-        gaze.refresh(frame)  # วิเคราะห์ภาพ
+        gaze.refresh(frame)  # ใช้เฟรมทั้งภาพ ไม่ใช่เฉพาะใบหน้า
 
         if gaze.eye_left is not None and gaze.eye_right is not None:
             blinking_left = gaze.eye_left.blinking or 0.0
@@ -71,17 +72,20 @@ def handle_frame(data):
 
             eye_closed = blinking_ratio > BLINKING_RATIO_THRESHOLD
 
-            # ตรวจจับว่าหลับตานานเกิน 3 วินาที
             if eye_closed:
                 if eye_closed_start_time is None:
-                    eye_closed_start_time = time.time()  # บันทึกเวลาที่เริ่มหลับตา
-                else:
-                    blink_duration = time.time() - eye_closed_start_time  
-
-                    if blink_duration > 0.3: 
-                        eye_closed_too_long = True
+                    eye_closed_start_time = time.time()
+                elif time.time() - eye_closed_start_time > EYE_CLOSED_TIMEOUT:
+                    eye_closed_too_long = True
             else:
-                eye_closed_start_time = None  
+                eye_closed_start_time = None
+
+            # ตรวจจับการกระพริบตาเพียง 1 ครั้ง
+            if blinking_ratio > BLINKING_RATIO_THRESHOLD:
+                current_time = time.time()
+                if current_time - last_blink_time > DOUBLE_BLINK_THRESHOLD:
+                    blink_detected = True  # ถือว่าเป็นการกระพริบตา 1 ครั้ง
+                last_blink_time = current_time
 
             if not eye_closed and not eye_closed_too_long:
                 if gaze.is_right():
@@ -94,8 +98,9 @@ def handle_frame(data):
         # ส่งข้อมูล gaze กลับไปยัง frontend
         emit("gaze-data", {
             "direction": gaze_direction,
+            "blink_detected": blink_detected,  
             "eye_closed": eye_closed,
-            "eye_closed_too_long": eye_closed_too_long,  # ใช้ตัวแปรนี้เป็น trigger ให้คลิก
+            "eye_closed_too_long": eye_closed_too_long,
         })
 
     except Exception as e:

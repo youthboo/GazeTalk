@@ -276,7 +276,7 @@ const AdvancePage = () => {
   };
 
   const handleGazeData = useCallback((data) => {
-    const { direction, eye_closed, eye_closed_too_long } = data;
+    const { direction, blink_detected, eye_closed, eye_closed_too_long } = data;
     const allKeys = Object.values(keyboardLayout).flat();
 
     // หากการไฮไลท์ถูกหยุด ไม่ให้ดำเนินการใดๆ
@@ -308,7 +308,7 @@ const AdvancePage = () => {
     }
 
     // ป้องกันการเลือกปุ่มถ้าหลับตานานเกินไป
-    if (eye_closed_too_long && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
+    if (blink_detected && !eyeClosedTooLong && !isPredictionSelectionLocked && !isSelectionDelayed) {
       const now = Date.now();
       if (now - lastClickTime > CLICK_DELAY) {
         if (predictedWords.length > 0) {
