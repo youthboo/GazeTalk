@@ -106,8 +106,8 @@ def handle_frame(data):
 def update_thresholds(data):
     """อัปเดตค่าการมองซ้าย/ขวาตามที่ผู้ใช้กำหนด"""
     try:
-        right_threshold = float(data.get("right", 0.53))  # ค่า default
-        left_threshold = float(data.get("left", 0.73))
+        right_threshold = float(data.get("right", 0.50))  # ค่า default
+        left_threshold = float(data.get("left", 0.80))
 
         logging.debug(f"Received thresholds update: Right = {right_threshold}, Left = {left_threshold}")
 

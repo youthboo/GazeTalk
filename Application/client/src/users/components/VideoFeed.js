@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { io } from "socket.io-client";
-import { Film, X } from "lucide-react"; // เปลี่ยนไอคอนเป็น Film แทน Settings
+import { Film, X } from "lucide-react";
 import "./VideoFeed.css";
 
 const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
@@ -12,13 +12,17 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
   const [isCanvasReady, setIsCanvasReady] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const socket = useRef(null);
-  const [frameInterval, setFrameInterval] = useState(1000);
+  const [frameInterval, setFrameInterval] = useState(300); // ตั้งค่าเริ่มต้นเป็น 300 ms
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedFrameInterval = localStorage.getItem('frameInterval');
     if (savedFrameInterval) {
-      setFrameInterval(parseInt(savedFrameInterval, 10));
+      const interval = parseInt(savedFrameInterval, 10);
+      // ตรวจสอบว่าค่าที่ได้อยู่ในช่วงที่กำหนด (300-1600 ms)
+      setFrameInterval(Math.max(300, Math.min(1600, interval)));
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -112,16 +116,19 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
   }, [frameInterval, isCanvasReady, startSendingFrames]);
 
   const handleFrameIntervalChange = (e) => {
-    const newFrameInterval = parseInt(e.target.value, 10) || 100;
-    setFrameInterval(newFrameInterval);
+    const newFrameInterval = parseInt(e.target.value, 10);
+    // ตรวจสอบให้แน่ใจว่าค่าอยู่ในช่วงที่กำหนด
+    setFrameInterval(Math.max(300, Math.min(1600, newFrameInterval)));
   };
 
   const handleSaveSettings = () => {
+    // บันทึกค่า frameInterval ที่ผ่านการตรวจสอบแล้ว
     localStorage.setItem('frameInterval', frameInterval);
     setIsSettingsOpen(false);
-    // แทนที่ alert ด้วยการแสดงการแจ้งเตือนที่สวยงามกว่า
+    
     const notification = document.createElement('div');
-
+    notification.className = 'save-notification';
+    notification.textContent = 'บันทึกการตั้งค่าเรียบร้อย';
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -131,6 +138,16 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
       }, 300);
     }, 2000);
   };
+
+  // สร้าง array ของค่าสำหรับ markers
+  const sliderMarkers = [];
+  for (let i = 300; i <= 1600; i += 100) {
+    sliderMarkers.push(i);
+  }
+
+  if (isLoading) {
+    return <div className="loading-message">กำลังโหลดการตั้งค่า...</div>;
+  }
 
   return (
     <div className="video-feed-container">
@@ -158,17 +175,30 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
               <button className="close-button" onClick={() => setIsSettingsOpen(false)}>
                 <X size={18} />
               </button>
-              <label htmlFor="frameInterval">ความถี่ในการส่งเฟรม (มิลลิวินาที)</label>
-              <input
-                id="frameInterval"
-                type="number"
-                min="300"
-                max="1600"
-                step="100"
-                value={frameInterval}
-                onChange={handleFrameIntervalChange}
-              />
-              <p>ค่าปัจจุบัน: {frameInterval} ms<br/>ส่งข้อมูลประมาณ {(1000 / frameInterval).toFixed(1)} ครั้ง/วินาที</p>
+              <div className="slider-container">
+                <label htmlFor="frameInterval">ความถี่ในการส่งเฟรม: {frameInterval} ms</label>
+                <input
+                  id="frameInterval"
+                  type="range"
+                  min="300"
+                  max="1600"
+                  step="100"
+                  value={frameInterval}
+                  onChange={handleFrameIntervalChange}
+                  className="frame-slider"
+                  list="tickmarks"
+                />
+                <datalist id="tickmarks" className="slider-markers">
+                  {sliderMarkers.map((value) => (
+                    <option key={value} value={value} label={value}></option>
+                  ))}
+                </datalist>
+                <div className="slider-info">
+                  <span>เร็ว (300ms)</span>
+                  <span>ช้า (1600ms)</span>
+                </div>
+                <p className="frame-rate-info">ส่งข้อมูลประมาณ {(1000 / frameInterval).toFixed(1)} ครั้ง/วินาที</p>
+              </div>
               
               <button className="save-button" onClick={handleSaveSettings}>
                 บันทึกการตั้งค่า
