@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { io } from "socket.io-client";
-import { Film, X } from "lucide-react"; // เปลี่ยนไอคอนเป็น Film แทน Settings
+import { Film, X } from "lucide-react";
 import "./VideoFeed.css";
 
 const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
@@ -13,11 +13,23 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const socket = useRef(null);
   const [frameInterval, setFrameInterval] = useState(1000);
+  const [sliderValue, setSliderValue] = useState(1000);
 
   useEffect(() => {
     const savedFrameInterval = localStorage.getItem('frameInterval');
     if (savedFrameInterval) {
-      setFrameInterval(parseInt(savedFrameInterval, 10));
+      const parsedInterval = parseInt(savedFrameInterval, 10);
+      // ตรวจสอบว่าค่าอยู่ในช่วงที่ถูกต้องหรือไม่
+      if (parsedInterval >= 300 && parsedInterval <= 1600) {
+        setFrameInterval(parsedInterval);
+        setSliderValue(parsedInterval);
+      } else {
+        // ถ้าค่าไม่อยู่ในช่วงที่ถูกต้อง ให้ใช้ค่าเริ่มต้น
+        setFrameInterval(1000);
+        setSliderValue(1000);
+        // อัพเดทค่าใน localStorage ใหม่
+        localStorage.setItem('frameInterval', '1000');
+      }
     }
   }, []);
 
@@ -111,17 +123,23 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
     }
   }, [frameInterval, isCanvasReady, startSendingFrames]);
 
-  const handleFrameIntervalChange = (e) => {
-    const newFrameInterval = parseInt(e.target.value, 10) || 100;
-    setFrameInterval(newFrameInterval);
+  const handleSliderChange = (e) => {
+    const newValue = parseInt(e.target.value, 10);
+    setSliderValue(newValue);
+  };
+
+  const handleSliderRelease = () => {
+    setFrameInterval(sliderValue);
   };
 
   const handleSaveSettings = () => {
     localStorage.setItem('frameInterval', frameInterval);
     setIsSettingsOpen(false);
-    // แทนที่ alert ด้วยการแสดงการแจ้งเตือนที่สวยงามกว่า
-    const notification = document.createElement('div');
 
+    // สร้างการแจ้งเตือน
+    const notification = document.createElement('div');
+    notification.className = 'save-notification';
+    notification.textContent = 'บันทึกการตั้งค่าเรียบร้อย';
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -130,6 +148,11 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
         document.body.removeChild(notification);
       }, 300);
     }, 2000);
+  };
+
+  // ฟังก์ชันสำหรับแสดงค่า FPS จากช่วงเวลา
+  const getFPS = (interval) => {
+    return (1000 / interval).toFixed(1);
   };
 
   return (
@@ -158,17 +181,32 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
               <button className="close-button" onClick={() => setIsSettingsOpen(false)}>
                 <X size={18} />
               </button>
-              <label htmlFor="frameInterval">ความถี่ในการส่งเฟรม (มิลลิวินาที)</label>
-              <input
-                id="frameInterval"
-                type="number"
-                min="300"
-                max="1600"
-                step="100"
-                value={frameInterval}
-                onChange={handleFrameIntervalChange}
-              />
-              <p>ค่าปัจจุบัน: {frameInterval} ms<br/>ส่งข้อมูลประมาณ {(1000 / frameInterval).toFixed(1)} ครั้ง/วินาที</p>
+              <h3>ตั้งค่าการส่งเฟรม</h3>
+              
+              <div className="slider-container">
+                <label htmlFor="frameInterval">ความถี่ในการส่งเฟรม: {sliderValue} ms ({getFPS(sliderValue)} ครั้ง/วินาที)</label>
+                
+                <div className="slider-with-values">
+
+                  <input
+                    id="frameInterval"
+                    type="range"
+                    min="300"
+                    max="1600"
+                    step="100"
+                    value={sliderValue}
+                    onChange={handleSliderChange}
+                    onMouseUp={handleSliderRelease}
+                    onTouchEnd={handleSliderRelease}
+                    className="frame-slider"
+                  />
+
+                </div>
+                
+                <div className="slider-info">
+
+                </div>
+              </div>
               
               <button className="save-button" onClick={handleSaveSettings}>
                 บันทึกการตั้งค่า
