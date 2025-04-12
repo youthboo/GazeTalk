@@ -14,6 +14,7 @@ const AlertPage = () => {
 
   const [highlightedButton, setHighlightedButton] = useState("ใช่");
   const [isEmergencySent, setIsEmergencySent] = useState(false);
+  // eslint-disable-next-line
   const [isPageReady, setIsPageReady] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
@@ -178,7 +179,7 @@ const AlertPage = () => {
   
     setIsEmergencySent(true);
     localStorage.setItem("lastEmergencySent", Date.now().toString());
-    const patient_id = sessionStorage.getItem("patient_id");
+    const patient_id = localStorage.getItem("patient_id");
   
     if (!patient_id) {
       Swal.fire({

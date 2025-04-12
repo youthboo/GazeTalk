@@ -23,8 +23,8 @@ const AdminRec = () => {
   useEffect(() => {
     const fetchRecommendedWords = async () => {
       try {
-        const patientGender = sessionStorage.getItem('patient_gender');
-        const patientAgeRange = sessionStorage.getItem('patient_age_range');
+        const patientGender = localStorage.getItem('patient_gender');
+        const patientAgeRange = localStorage.getItem('patient_age_range');
 
         const response = await fetch(
           `${process.env.REACT_APP_GAZETALK_URL}/api/words?gender=${patientGender}&ageRange=${patientAgeRange}`
@@ -51,7 +51,7 @@ const AdminRec = () => {
       return;
     }
 
-    const patient_id = sessionStorage.getItem('patient_id');
+    const patient_id = localStorage.getItem('patient_id');
 
     if (!patient_id) {
       Swal.fire({
@@ -141,7 +141,7 @@ const AdminRec = () => {
           setInputText(phrase);
       }
     },
-    [navigate, handleSubmit]
+    [navigate, handleSubmit, playDingSound]
   );
 
   const toggleHighlight = () => {
@@ -285,3 +285,5 @@ const AdminRec = () => {
 };
 
 export default AdminRec;
+
+

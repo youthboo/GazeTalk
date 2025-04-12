@@ -94,7 +94,7 @@ const AdvancePage = () => {
       return; 
     }
 
-    const patient_id = sessionStorage.getItem('patient_id');
+    const patient_id = localStorage.getItem('patient_id');
 
     if (!patient_id) {
       Swal.fire({

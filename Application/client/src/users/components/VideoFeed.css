@@ -209,3 +209,20 @@
     transform: translateY(0);
     box-shadow: 0 2px 6px rgba(37, 117, 252, 0.2);
   }
+
+
+
+@media (min-width: 1366px) and (max-width: 1920px) {
+  .settings-button {
+    width: 43px; /* ปรับขนาดปุ่มเมื่อหน้าจอเล็กลง */
+    height: 43px;
+  }
+}
+
+@media (max-width: 1366px) {
+  .settings-button {
+    width: 38px; /* ปรับขนาดปุ่มเมื่อหน้าจอเล็กลง */
+    height: 38px;
+  }
+}
+

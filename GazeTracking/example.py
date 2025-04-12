@@ -9,13 +9,14 @@ from flask_cors import CORS
 from gaze_tracking import GazeTracking
 import time
 import logging
+from flask import request
 
 # ตั้งค่าระบบ logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)  # อนุญาต CORS
-socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10_000_000, compress=True)  # กำหนดให้เชื่อมต่อจากทุกแหล่ง
+socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=50_000_000, compress=True)  # กำหนดให้เชื่อมต่อจากทุกแหล่ง
 
 gaze = GazeTracking()
 
@@ -27,7 +28,6 @@ last_blink_time = 0
 DOUBLE_BLINK_THRESHOLD = 0.6
 BLINKING_RATIO_THRESHOLD = 6
 EYE_CLOSED_TIMEOUT = 2.0  # หน่วยเป็นวินาที
-eye_closed_start_time = None
 eye_closed_start_time = None
 EYE_CLOSED_TIMEOUT = 0.5
 selection_triggered = False
@@ -117,8 +117,8 @@ def reset_eye_state():
 def update_thresholds(data):
     """อัปเดตค่าการมองซ้าย/ขวาตามที่ผู้ใช้กำหนด"""
     try:
-        right_threshold = float(data.get("right", 0.53))  # ค่า default
-        left_threshold = float(data.get("left", 0.73))
+        right_threshold = float(data.get("right", 0.55))  # ค่า default
+        left_threshold = float(data.get("left", 0.75))
 
         logging.debug(f"Received thresholds update: Right = {right_threshold}, Left = {left_threshold}")
 
@@ -132,5 +132,11 @@ def update_thresholds(data):
         logging.error(f"Error updating thresholds: {str(e)}")
         emit("error", {"error": str(e)})
 
+@socketio.on("update-settings")
+def handle_update_settings(data):
+    global EYE_CLOSED_TIMEOUT
+    print("New settings received:", data)
+    EYE_CLOSED_TIMEOUT = float(data.get("eyeClosedTimeout", 0.5))
+
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5006) 
+    socketio.run(app, host="0.0.0.0", port=82) 

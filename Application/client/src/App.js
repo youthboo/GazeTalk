@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import Login from './login-reigister/Login/Login';
 import Signup from './login-reigister/Signup/Signup';
 import AdvancePage from './users/pages/AdvancePage';
@@ -18,27 +19,51 @@ const App = () => {
   const [userRole, setUserRole] = useState(null);
   const [adminCode, setAdminCode] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    const adminCodeFromStorage = localStorage.getItem('adminCode');
-
+  // ฟังก์ชันตรวจสอบการหมดอายุของ token
+  const checkTokenExpiration = useCallback(() => {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     if (token) {
-      setIsLoggedIn(true);
-      setUserRole(isAdmin ? 'admin' : 'patient');
-      if (isAdmin) {
-        setAdminCode(adminCodeFromStorage); 
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000; 
+        if (decodedToken.exp < currentTime) {
+          handleLogout(); 
+        }
+      } catch (error) {
+        console.error('Invalid token:', error);
       }
     }
   }, []);
 
+  // ตรวจสอบการหมดอายุของ token ใน useEffect
+  useEffect(() => {
+    checkTokenExpiration(); // ตรวจสอบทุกครั้งที่โหลดหน้า
+  }, [checkTokenExpiration]);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const adminCodeFromStorage = sessionStorage.getItem('adminCode');
+  
+    if (token) {
+      setIsLoggedIn(true);
+      setUserRole(isAdmin ? 'admin' : 'patient');
+      if (isAdmin) {
+        setAdminCode(adminCodeFromStorage);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setUserRole(null);
+    }
+  }, []);
+  
   const handleLogin = () => {
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    const adminCode = localStorage.getItem('adminCode');
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const adminCode = sessionStorage.getItem('adminCode');
   
     // ถ้า user ไม่ใช่ admin แต่กรอก code admin
     if (!isAdmin && adminCode) {
-      localStorage.clear();
+      sessionStorage.clear();
       setIsLoggedIn(false);
       setUserRole(null);
       setAdminCode(null);
@@ -78,7 +103,6 @@ const App = () => {
     <Router>
       <SoundProvider> 
         <Routes>
-          {/* Auth Routes */}
           <Route path="/" element={<Navigate to="/login" />} />
           <Route
             path="/login"
@@ -92,7 +116,6 @@ const App = () => {
           />
           <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/" />} />
   
-          {/* Forgot Password Routes */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token/:userType" element={<ResetPassword />} />
   
@@ -117,7 +140,6 @@ const App = () => {
       </SoundProvider>
     </Router>
   );
-  
 };
 
-export default App;
+export default App;  

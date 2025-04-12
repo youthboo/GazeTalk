@@ -19,6 +19,7 @@ const BasicPage = () => {
 
   const [advanceButtonEnabled, setAdvanceButtonEnabled] = useState(false);
   const [isHighlightPaused, setIsHighlightPaused] = useState(false);
+  const [showGuide, setShowGuide] = useState(true); // true ตอนเข้า
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -68,7 +69,7 @@ const BasicPage = () => {
       return;
     }
 
-    const patient_id = sessionStorage.getItem('patient_id');
+    const patient_id = localStorage.getItem('patient_id');
 
     if (!patient_id) {
       Swal.fire({
@@ -138,9 +139,10 @@ const BasicPage = () => {
   }, [inputText]);
 
   const handleKeyInput = useCallback((phrase) => {
-    
+    playDingSound();
 
     switch (phrase) {
+      
       case "ลบ":
         setInputText("");
         break;
@@ -235,9 +237,15 @@ const BasicPage = () => {
     }
   };
   
+  useEffect(() => {
+    // ปิดไม่ให้แสดงอีกเมื่อแสดงครั้งแรก
+    const timer = setTimeout(() => setShowGuide(false), 1000); 
+    return () => clearTimeout(timer);
+  }, []);
+  
   return (
     <div className="basic-page">
-      <Header isHighlightPaused={isHighlightPaused} toggleHighlight={toggleHighlight} />
+      <Header showGuide={showGuide} isHighlightPaused={isHighlightPaused} toggleHighlight={toggleHighlight} />
       <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />

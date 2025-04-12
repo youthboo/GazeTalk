@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { io } from "socket.io-client";
-import { Film, X } from "lucide-react"; // เปลี่ยนไอคอนเป็น Film แทน Settings
+import { Film, X } from "lucide-react"; 
 import "./VideoFeed.css";
-import { Slider } from 'antd';  // นำเข้า Slider จาก antd
+import { Slider } from 'antd';  
+import { message } from 'antd';
 
 const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
   const videoRef = useRef(null);
@@ -14,12 +15,17 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const socket = useRef(null);
   const [frameInterval, setFrameInterval] = useState(1000);
+  const [eyeClosedTimeout, setEyeClosedTimeout] = useState(0.5);
 
   useEffect(() => {
     const savedFrameInterval = localStorage.getItem('frameInterval');
     if (savedFrameInterval) {
       setFrameInterval(parseInt(savedFrameInterval, 10));
     }
+    const savedEyeClosedTimeout = localStorage.getItem('eyeClosedTimeout');
+    if (savedEyeClosedTimeout) {
+      setEyeClosedTimeout(parseFloat(savedEyeClosedTimeout));
+  }
   }, []);
 
   useEffect(() => {
@@ -31,9 +37,9 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
       
       const serverUrl = process.env.REACT_APP_GAZEMODEL_URL;
       socket.current = io(`${serverUrl}`, {
-        reconnection: true,        // เปิดใช้งานการเชื่อมต่อใหม่อัตโนมัติ
-        reconnectionAttempts: 5,   // จำนวนครั้งที่พยายามเชื่อมต่อใหม่
-        reconnectionDelay: 1000    // ระยะเวลารอก่อนเชื่อมต่อใหม่ (ms)
+        reconnection: true,       
+        reconnectionAttempts: 5,   
+        reconnectionDelay: 1000   
       });
 
       socket.current.on("connect", () => {
@@ -130,28 +136,17 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
     }
   }, [frameInterval, isCanvasReady, startSendingFrames]);
 
-  const handleFrameIntervalChange = (e) => {
-    const newFrameInterval = parseInt(e.target.value, 10) || 100;
-    setFrameInterval(newFrameInterval);
-  };
-
   const handleSaveSettings = () => {
     localStorage.setItem('frameInterval', frameInterval);
+    localStorage.setItem('eyeClosedTimeout', eyeClosedTimeout);
+    if (socket.current && socket.current.connected) {
+      socket.current.emit("update-settings", {
+        frameInterval: frameInterval,
+        eyeClosedTimeout: eyeClosedTimeout
+      });
+    }
     setIsSettingsOpen(false);
-    // แทนที่ alert ด้วยการแสดงการแจ้งเตือนที่สวยงามกว่า
-    const notification = document.createElement('div');
-    notification.className = 'settings-notification';
-    notification.textContent = 'บันทึกการตั้งค่าเรียบร้อย';
-    notification.style.opacity = '1';
-
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.opacity = '0';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 2000);
+    message.success('บันทึกการตั้งค่าเรียบร้อย', 2);
   };
 
   const handleSliderChange = (value) => {
@@ -182,6 +177,7 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
 
           {isSettingsOpen && (
             <div className="settings-panel">
+              
               <button className="close-button" onClick={() => setIsSettingsOpen(false)}>
                 <X size={18} />
               </button>
@@ -197,16 +193,44 @@ const VideoFeed = ({ width, borderRadius, onGazeDataReceived }) => {
                   margin: '0 auto',          
                   height: 30,                 
                 }}
-              />
+              />  
               <div className="slider-info"> 
               </div>
-              <p>ค่าปัจจุบัน: {frameInterval} ms<br/>ส่งข้อมูลประมาณ {(1000 / frameInterval).toFixed(1)} ครั้ง/วินาที</p>
+              <p>ค่าปัจจุบัน: {frameInterval} ms</p>
               <p style={{ 
-                color: '#333', 
-                marginLeft: '20px' 
+                color: '#888', 
+                marginLeft: '40px',
+                marginRight: '40px',
+                textAlign: 'justify',
+                textIndent: '2em', 
+                margin: '15px auto',
+                maxWidth: '240px'
               }}>
-                ในส่วนของการตั้งค่าความถี่ในการส่งเฟรมนี้ จะช่วยปรับความเร็วในการเคลื่อนที่ของไฮไลท์ เมื่อคุณปรับค่าต่ำ (เช่น 500ms) ไฮไลท์จะเคลื่อนที่เร็วขึ้น แต่ถ้าคุณปรับค่ามากขึ้น (เช่น 1500ms) ไฮไลท์จะเคลื่อนที่ช้าลง
+                การตั้งค่าความถี่ในการส่งเฟรมจะช่วยปรับความเร็วในการเคลื่อนที่ของไฮไลท์ ถ้าปรับค่าต่ำ เช่น 500ms ไฮไลท์จะเคลื่อนที่เร็วขึ้นแต่ถ้าปรับค่ามากขึ้น เช่น 1500ms ไฮไลท์จะเคลื่อนที่ช้าลง
               </p>
+
+              <label htmlFor="eyeTimeout">การตรวจจับการหลับตา </label>
+              <Slider
+                min={0.1}
+                max={1.0}
+                step={0.1}
+                value={eyeClosedTimeout}
+                onChange={(value) => setEyeClosedTimeout(value)}
+                style={{ width: '70%', margin: '0 auto' }}
+              />
+              <p>ค่าปัจจุบัน: {eyeClosedTimeout} </p>
+              <p style={{
+                color: '#888',
+                marginLeft: '40px',
+                marginRight: '40px',
+                textAlign: 'justify',
+                textIndent: '2em',
+                margin: '15px auto',
+                maxWidth: '240px',
+              }}>
+                การตั้งค่าการตรวจจับการหลับตาจะดูว่าผู้ใช้ต้องหลับตาไว้นานมากน้อยแค่ไหน เช่น ค่าต่ำ การตอบสนองการเลือกคำจะเร็วขึ้น แต่ถ้าค่าสูง การตอบสนองการเลือกคำก็จะช้าลง
+              </p>
+
               <button className="save-button" onClick={handleSaveSettings}>
                 บันทึกการตั้งค่า
               </button>

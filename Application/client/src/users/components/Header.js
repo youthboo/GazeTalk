@@ -3,7 +3,7 @@ import { GuideIcon, LogoutIcon, VolumeControlIcon, PauseHighlightIcon } from "./
 import logo from "../assets/hospital.png";
 import { useSound } from "../context/SoundContext"; 
 
-const Header = ({ isHighlightPaused, toggleHighlight }) => {
+const Header = ({ isHighlightPaused, toggleHighlight, showGuide }) => {
   const { isMuted, toggleMute } = useSound(); 
 
   return (
@@ -11,7 +11,7 @@ const Header = ({ isHighlightPaused, toggleHighlight }) => {
       <div className="header-icons">
         <VolumeControlIcon isMuted={isMuted} toggleVolume={toggleMute} />
         <PauseHighlightIcon isPaused={isHighlightPaused} togglePause={toggleHighlight} />
-        <GuideIcon />
+        <GuideIcon autoOpen={showGuide} />
         <LogoutIcon />
       </div>
 

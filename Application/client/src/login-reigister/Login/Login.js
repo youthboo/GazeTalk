@@ -28,18 +28,18 @@ const Login = ({ onLogin }) => {
             }
 
             if (isAdmin) {
-                localStorage.setItem('token', token);
-                localStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('adminCode', adminCode);
+                sessionStorage.setItem('token', token);
+                sessionStorage.setItem('isAdmin', 'true');
+                sessionStorage.setItem('adminCode', adminCode);
                 onLogin();
                 navigate('/admin/dashboard');
             } else {
                 localStorage.setItem('token', token);
                 localStorage.setItem('isAdmin', 'false');
-                sessionStorage.setItem('patient_id', patient_id);
-                sessionStorage.setItem('patient_gender', gender);
-                sessionStorage.setItem('patient_age_range', ageRange);
-                sessionStorage.setItem('role', role);
+                localStorage.setItem('patient_id', patient_id);
+                localStorage.setItem('patient_gender', gender);
+                localStorage.setItem('patient_age_range', ageRange);
+                localStorage.setItem('role', role);
                 onLogin();
                 navigate('/basic');
             }

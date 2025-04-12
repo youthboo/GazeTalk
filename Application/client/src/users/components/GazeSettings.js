@@ -3,16 +3,17 @@ import { FaTimes } from "react-icons/fa";
 import { FaRedo } from "react-icons/fa";
 import styles from "./GazeSettings.module.css";
 import { BsSliders } from "react-icons/bs"; 
+import { message } from 'antd';
 
 const GazeSettings = ({ onThresholdChange }) => {
   const [rightThreshold, setRightThreshold] = useState(() => {
     const savedRightThreshold = localStorage.getItem("rightThreshold");
-    return savedRightThreshold ? parseFloat(savedRightThreshold) : 0.50;
+    return savedRightThreshold ? parseFloat(savedRightThreshold) : 0.55;
   });
 
   const [leftThreshold, setLeftThreshold] = useState(() => {
     const savedLeftThreshold = localStorage.getItem("leftThreshold");
-    return savedLeftThreshold ? parseFloat(savedLeftThreshold) : 0.80;
+    return savedLeftThreshold ? parseFloat(savedLeftThreshold) : 0.75;
   });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -23,8 +24,8 @@ const GazeSettings = ({ onThresholdChange }) => {
 
   // ตรวจสอบความถูกต้องของค่า
   useEffect(() => {
-    if (thresholdGap < 0.20) {
-      setValidationError("⚠️ ไม่แนะนำให้ปรับน้อยกว่า 0.20");
+    if (thresholdGap < 0.15) {
+      setValidationError("⚠️ ไม่แนะนำให้ปรับน้อยกว่า 0.15");
     } else {
       setValidationError("");
     }
@@ -36,6 +37,8 @@ const GazeSettings = ({ onThresholdChange }) => {
     localStorage.setItem("leftThreshold", leftThreshold);
     onThresholdChange(rightThreshold, leftThreshold);
     setIsOpen(false);
+
+    message.success("บันทึกการตั้งค่าเรียบร้อย", 2);
   };
 
   const handleClose = () => {
@@ -43,8 +46,8 @@ const GazeSettings = ({ onThresholdChange }) => {
   };
 
   const resetToDefaults = () => {
-    setRightThreshold(0.50);
-    setLeftThreshold(0.80);
+    setRightThreshold(0.55);
+    setLeftThreshold(0.75);
     localStorage.removeItem("rightThreshold");
     localStorage.removeItem("leftThreshold");
     setValidationError("");
@@ -83,7 +86,7 @@ const GazeSettings = ({ onThresholdChange }) => {
           
           <div className={styles.panelContent}>
             <label>
-              <span className={styles.labelText}><strong>Left Threshold:</strong> ปรับค่าระยะการมองไปทางซ้าย (ถ้าค่ามากขึ้นจะทำให้ต้องหันตาไปทางซ้ายมากขึ้น)</span>
+              <span className={styles.labelText}><strong>Left Threshold:</strong> ปรับค่าระยะการมองไปทางซ้าย (ถ้าค่ามาก จะต้องเหลือกตาไปทางซ้ายมากขึ้น)</span>
               <input
                 type="number"
                 step="0.01"
@@ -95,7 +98,7 @@ const GazeSettings = ({ onThresholdChange }) => {
             </label>
 
             <label>
-              <span className={styles.labelText}><strong>Right Threshold:</strong> ปรับค่าระยะการมองไปทางขวา (ถ้าค่าน้อยลงจะทำให้ต้องหันตาไปทางขวามากขึ้น)</span>
+              <span className={styles.labelText}><strong>Right Threshold:</strong> ปรับค่าระยะการมองไปทางขวา (ถ้าค่าน้อย จะต้องเหลือกตาไปทางขวามากขึ้น)</span>
               <input
                 type="number"
                 step="0.01"
@@ -106,18 +109,18 @@ const GazeSettings = ({ onThresholdChange }) => {
               />
             </label>
                     
-            <div className={styles.gapDisplay} style={{marginTop: "5px", marginBottom: "10px"}}>
+            <div className={styles.gapDisplay} style={{marginTop: "1px", marginBottom: "15px", fontSize: "16px"}}>
               <div className={styles.gapInfo}>
-                <strong>ระยะห่างปัจจุบัน:</strong> {thresholdGap.toFixed(2)}
+                ระยะห่างระหว่าง Left Threshold และ Right Threshold: <strong>{thresholdGap.toFixed(2)}</strong>
                 <span 
                   className={styles.gapStatus} 
                   style={{
-                    color: thresholdGap >= 0.19 ? "green" : "orange", 
+                    color: thresholdGap >= 0.15 ? "green" : "orange", 
                     marginLeft: "10px",
                     fontWeight: "bold"
                   }}
                 >
-                  {thresholdGap >= 0.19 ? "✓" : validationError}
+                  {thresholdGap >= 0.15 ? "✓" : validationError}
                 </span>
               </div>
             </div>
@@ -125,7 +128,6 @@ const GazeSettings = ({ onThresholdChange }) => {
             <button 
               className={styles.saveBtn} 
               onClick={handleSave}
-              // ลบ disabled attribute ออก เพื่อให้กดปุ่มบันทึกได้เสมอ
             >
               บันทึกการตั้งค่า
             </button>
@@ -135,9 +137,6 @@ const GazeSettings = ({ onThresholdChange }) => {
               <span className={styles.resetText}>รีเซ็ตเป็นค่าเริ่มต้น</span>
             </button>
             
-            <p className={styles.description}>
-              การตั้งค่าที่ดีควรมีระยะห่างระหว่าง Left และ Right อย่างน้อย 0.20 เพื่อให้การตรวจจับการมองตรงกลางทำงานได้แม่นยำ
-            </p>
           </div>
         </div>
       )}
