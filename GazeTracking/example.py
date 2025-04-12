@@ -23,11 +23,9 @@ gaze = GazeTracking()
 # โหลด Haar Cascade Classifier สำหรับตรวจจับใบหน้า
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-blink_count = 0
 last_blink_time = 0
-DOUBLE_BLINK_THRESHOLD = 0.6
-BLINKING_RATIO_THRESHOLD = 6
-EYE_CLOSED_TIMEOUT = 2.0  # หน่วยเป็นวินาที
+DOUBLE_BLINK_THRESHOLD = 0.3
+BLINKING_RATIO_THRESHOLD = 5 
 eye_closed_start_time = None
 EYE_CLOSED_TIMEOUT = 0.5
 selection_triggered = False
@@ -139,4 +137,4 @@ def handle_update_settings(data):
     EYE_CLOSED_TIMEOUT = float(data.get("eyeClosedTimeout", 0.5))
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=82) 
+    socketio.run(app, host="0.0.0.0", port=5006) 
