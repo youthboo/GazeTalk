@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Modal, Input, Button, message, Select, Card, Row, Col, Typography, Empty, Spin, Tooltip } from 'antd';
-import {  EditOutlined, FilterOutlined } from '@ant-design/icons';
+import { EditOutlined, FilterOutlined, DeleteOutlined } from '@ant-design/icons';
 import './EditWord.css';
 
 const { Title, Text } = Typography;
@@ -58,7 +58,13 @@ const EditWord = () => {
       message.warning('กรุณากรอกคำใหม่');
       return;
     }
-
+  
+    // ตรวจสอบว่าคำที่กรอกมีอยู่แล้วหรือไม่
+    if (messages.includes(newWord.trim())) {
+      message.warning('คำนี้มีอยู่แล้วในระบบ');
+      return;
+    }
+  
     try {
       const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words/update`, {
         method: 'PUT',
@@ -72,7 +78,7 @@ const EditWord = () => {
           newWord,
         }),
       });
-
+  
       if (response.ok) {
         message.success('เพิ่มคำสำเร็จ');
         fetchData();
@@ -86,6 +92,33 @@ const EditWord = () => {
       console.error('Error adding new word:', error.message);
       message.error('ไม่สามารถเพิ่มคำได้');
     }
+  };
+  
+  const handleDeleteMessage = (word) => {
+    Modal.confirm({
+      title: 'คุณแน่ใจหรือไม่ที่จะลบข้อความนี้?',
+      content: `คำว่า "${word}" จะถูกลบออกจากระบบ`,
+      okText: 'ลบ',
+      cancelText: 'ยกเลิก',
+      onOk: async () => {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}&word=${word}`, {
+            method: 'DELETE',
+          });
+  
+          if (response.ok) {
+            message.success('ข้อความถูกลบเรียบร้อยแล้ว');
+            fetchData(); // รีเฟรชข้อมูลหลังจากลบ
+          } else {
+            const errorData = await response.json();
+            message.error(`เกิดข้อผิดพลาด: ${errorData.message}`);
+          }
+        } catch (error) {
+          console.error('Error deleting message:', error.message);
+          message.error('ไม่สามารถลบข้อความได้');
+        }
+      },
+    });
   };
 
   const openAddModal = (word) => {
@@ -106,7 +139,21 @@ const EditWord = () => {
       key: 'usage_count',
       render: (count) => <Text type="secondary">{count}</Text>,
     },
+    {
+      title: 'การจัดการ',
+      key: 'action',
+      render: (_, record) => (
+        <Button
+          type="danger"
+          icon={<DeleteOutlined />}
+          onClick={() => handleDeleteMessage(record.word)} // ใช้ word แทน id
+        >
+          ลบ
+        </Button>
+      ),
+    },
   ];
+  
 
   const data = summary.map(({ word, usage_count }, index) => ({
     key: index,

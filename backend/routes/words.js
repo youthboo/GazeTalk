@@ -24,6 +24,19 @@ router.put('/update', async (req, res) => {
   const { gender, ageRange, oldWord, newWord } = req.body;  
 
   try {
+    // ตรวจสอบคำใหม่ว่ามีอยู่ในฐานข้อมูลหรือไม่
+    const existingWord = await RecommendedWord.findOne({
+      where: {
+        gender: gender,  
+        age_range: ageRange, 
+        word: newWord, 
+      },
+    });
+
+    if (existingWord) {
+      return res.status(400).json({ message: 'คำนี้มีอยู่แล้วในระบบ' });
+    }
+
     const wordToUpdate = await RecommendedWord.findOne({
       where: {
         gender: gender,  

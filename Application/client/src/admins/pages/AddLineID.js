@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Table, Input, Button, message, Modal, Layout, Typography, Card } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined, TeamOutlined } from '@ant-design/icons';
 import './AddLineID.css';
 
 const { Content } = Layout;
@@ -13,7 +13,7 @@ const AddLineID = () => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth); // ✅ State เก็บขนาดหน้าจอ
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,6 +77,20 @@ const AddLineID = () => {
     });
   };
 
+  const formatThaiDate = (dateString) => {
+    const date = new Date(dateString);
+    const thaiMonths = [
+      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ];
+    const day = date.getDate();
+    const month = thaiMonths[date.getMonth()];
+    const year = date.getFullYear() + 543; // แปลง ค.ศ. -> พ.ศ.
+  
+    return `${day} ${month} ${year}`;
+  };
+  
+
   const columns = [
     {
       title: 'Username',
@@ -90,7 +104,6 @@ const AddLineID = () => {
       title: 'Gender',
       dataIndex: 'gender',
       key: 'gender',
-      sorter: (a, b) => a.gender.localeCompare(b.gender),
       width: '15%',
       render: (text) => <span className="text-secondary">{text}</span>
     },
@@ -98,10 +111,11 @@ const AddLineID = () => {
       title: 'Date of Birth',
       dataIndex: 'dateOfBirth',
       key: 'dateOfBirth',
-      render: (text) => new Date(text).toLocaleDateString('th-TH'),
+      render: (text) => formatThaiDate(text),
       sorter: (a, b) => new Date(a.dateOfBirth) - new Date(b.dateOfBirth),
       width: '20%',
     },
+    
     {
       title: 'Actions',
       key: 'actions',
@@ -136,8 +150,8 @@ const AddLineID = () => {
             title={
               <div className="flex justify-between items-center">
                 <Title level={3} className="mb-0 text-primary">
-                  <UserAddOutlined className="mr-2" />
-                  เพิ่มญาติ (Add Relative ID)
+                  <TeamOutlined style={{ marginRight: '12px' }} />
+                  ตารางแสดงรายชื่อของผู้ป่วยทั้งหมด 
                 </Title>
               </div>
             }
@@ -145,7 +159,7 @@ const AddLineID = () => {
             <div className="search-wrapper mb-4">
               <Input
                 className="patient-search-input"
-                placeholder="ค้นหาจากชื่อผู้ใช้หรือเพศ"
+                placeholder="ค้นหาจาก Username หรือ Gender ของผู้ป่วย"
                 prefix={<SearchOutlined />}
                 value={searchTerm}
                 onChange={handleSearch}

@@ -1,0 +1,35 @@
+.dashboard-caretaker {
+    padding: 24px;
+  }
+  
+  .dashboard-caretaker h1 {
+    margin-bottom: 24px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .chart-container {
+    height: 300px;
+    position: relative;
+    margin: 0 auto;
+    max-width: 600px;
+  }
+  
+  .chart-row {
+    margin-top: 20px;
+  }
+  
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .qr-code-img {
+    transition: transform 0.3s ease;
+  }
+  
+  .qr-code-img:hover {
+    transform: scale(1.05);
+  }

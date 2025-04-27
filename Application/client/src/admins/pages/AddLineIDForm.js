@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Select, notification, Layout, Card, Space } from 'antd';
+import { Form, Input, Button, Select, notification, Layout, Card, Space, Typography } from 'antd';
+import { UserAddOutlined } from '@ant-design/icons';
 import './AddLineIDForm.css';
 
 const { Option } = Select;
 const { Content } = Layout;
+const { Title } = Typography; // เพิ่มการ import Title
 
 const AddLineIDForm = ({ onSubmit }) => {
   const location = useLocation();
@@ -49,15 +51,12 @@ const AddLineIDForm = ({ onSubmit }) => {
       if (onSubmit) onSubmit();
       navigate(-1); 
     } catch (error) {
-      // ตรวจสอบข้อผิดพลาดจาก API
       if (error.response && error.response.status === 400) {
-        // กรณีที่จำนวนเกินลิมิต
         notification.error({
           message: 'Error',
           description: error.response.data.message || 'จำนวนผู้เกี่ยวข้องเกินลิมิต ไม่สามารถเพิ่มได้อีก',
         });
       } else {
-        // กรณีที่เกิดข้อผิดพลาดทั่วไป
         notification.error({
           message: 'Error',
           description: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
@@ -70,10 +69,15 @@ const AddLineIDForm = ({ onSubmit }) => {
   return (
     <Layout className="add-line-id-container">
       <Content className="add-line-id-content">
-        <Card
-          className="add-line-id-card"
-          title={<h3>Add Telegram ID</h3>}
-        >
+      <Card 
+        className="shadow-lg rounded-lg"
+        title={
+          <Space>
+            <UserAddOutlined style={{ fontSize: '24px', marginRight: '12px' }} />
+            <Title level={3} style={{ margin: 0 }}>เพิ่มข้อมูลผู้เกี่ยวข้อง</Title>
+          </Space>
+        }
+      >
           {patient.name && (
             <div className="patient-info">
               <h4>Patient: {patient.name}</h4>
@@ -137,10 +141,10 @@ const AddLineIDForm = ({ onSubmit }) => {
             <Form.Item className="form-actions">
               <Space>
                 <Button type="primary" htmlType="submit" className="submit-btn">
-                  Save
+                  บันทึก
                 </Button>
                 <Button type="default" onClick={() => navigate(-1)} className="cancel-btn">
-                  Cancel
+                  ยกเลิก
                 </Button>
               </Space>
             </Form.Item>

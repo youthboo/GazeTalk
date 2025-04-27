@@ -6,7 +6,7 @@ import {
   EditOutlined, 
   LogoutOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined 
+  MenuFoldOutlined
 } from '@ant-design/icons';
 import Swal from 'sweetalert2';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
@@ -16,6 +16,8 @@ import Dashboard from '../../pages/Dashboard';
 import AddLineID from '../../pages/AddLineID';
 import PatientDetail from '../../pages/PatientDetail';
 import AddLineIDForm from '../../pages/AddLineIDForm';
+import PatientSearch from '../../pages/PatientSearchPage';  // นำเข้า component
+import DashboardCaretaker from '../../pages/DashboardCaretaker'; // เพิ่มการนำเข้า
 
 const { Sider, Content, Header } = Layout;
 
@@ -80,22 +82,36 @@ const Sidebar = ({ onLogout, adminCode }) => {
   
   useEffect(() => {
     setAvatarUrl(generateRandomAvatar());
-  }, []); // เรียกใช้ตอน component mount
+  }, []); 
 
   const adminMenuItems = [
+    ...(adminCode === 'SKCode55' ? [
     {
       key: '/admin/dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
     },
-    ...(adminCode === 'SKCode55' || adminCode === 'SecretCodeAdmin' ? [
+    ] : []),
+    ...(adminCode === 'SecretCodeAdmin' ? [
+      {
+        key: '/admin/dashboard-caretaker',
+        icon: <DashboardOutlined />,
+        label: 'Caretaker Dashboard',
+      },
+    ] : []),
+    ...(adminCode === 'SecretCodeAdmin' ? [
+      {
+        key: '/admin/search-patient',
+        icon: <EditOutlined />,
+        label: 'Patient Search',
+      },
+    ] : []),
+    ...(adminCode === 'SKCode55' ? [
       {
         key: '/admin/addline',
         icon: <UserAddOutlined />,
         label: 'Add Relative ID',
       },
-    ] : []),
-    ...(adminCode === 'SKCode55' ? [
       {
         key: '/admin/editword',
         icon: <EditOutlined />,
@@ -104,7 +120,6 @@ const Sidebar = ({ onLogout, adminCode }) => {
     ] : []),
   ];
   
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
@@ -222,6 +237,8 @@ const Sidebar = ({ onLogout, adminCode }) => {
             <Route path="/editword" element={<EditWord />} />
             <Route path="/patient/:id" element={<PatientDetail />} />
             <Route path="/addlineform" element={<AddLineIDForm />} />
+            <Route path="/search-patient" element={<PatientSearch />} />
+            <Route path="/dashboard-caretaker" element={<DashboardCaretaker />} />
           </Routes>
         </Content>
       </Layout>

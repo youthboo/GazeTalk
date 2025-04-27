@@ -246,7 +246,7 @@ const BasicPage = () => {
   return (
     <div className="basic-page">
       <Header showGuide={showGuide} isHighlightPaused={isHighlightPaused} toggleHighlight={toggleHighlight} />
-      <GazeSettings onThresholdChange={handleThresholdChange} /> {/* เรียกใช้งานที่นี่ */}
+      <GazeSettings onThresholdChange={handleThresholdChange} /> 
       <div className="webcam-container">
         <VideoFeed width="100%" borderRadius="10px" onGazeDataReceived={handleGazeData} />
       </div>
@@ -258,6 +258,8 @@ const BasicPage = () => {
           placeholder="เลือกข้อความ..."
         />
       </div>
+
+      
 
       <div className="keyboard">
         <div className="keyboard">

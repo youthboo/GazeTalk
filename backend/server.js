@@ -22,16 +22,15 @@ app.use(cors({
     origin: '*',  
     credentials: true
 }));
-app.options('*', cors()); // เปิดใช้งาน CORS สำหรับ preflight requests
+app.options('*', cors()); 
 
-// Use helmet to add security headers including Content Security Policy
 app.use(helmet.contentSecurityPolicy({
   directives: {
-    defaultSrc: ["'self'"], // การเข้าถึงจากแหล่งตัวเอง
-    imgSrc: ["'self'", "http://202.44.40.178"], // เพิ่ม IP ที่ให้เข้าถึงได้
-    connectSrc: ["'self'", "http://202.44.40.178:85"], // ให้ backend ติดต่อได้
-    styleSrc: ["'self'"],  // การโหลดจากแหล่งตัวเอง
-    fontSrc: ["'self'"]    // การโหลดฟอนต์จากแหล่งตัวเอง
+    defaultSrc: ["'self'"], 
+    imgSrc: ["'self'", "http://202.44.40.178"], 
+    connectSrc: ["'self'", "http://202.44.40.178:85"], 
+    styleSrc: ["'self'"],  
+    fontSrc: ["'self'"]   
   }
 }));
 
@@ -43,7 +42,7 @@ app.use('/api', patientRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/telegram', telegramIDRoutes); 
 app.use('/api/relative', relativeRoutes); 
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api", dashboardRoutes);
 app.use('/api', sendMessageRoute);
 app.use('/api/words', wordsRoute);
 app.use('/api/auth', passwordResetRoutes);

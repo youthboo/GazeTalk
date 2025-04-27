@@ -89,4 +89,4 @@ def predict():
     return jsonify({'predictions': [{'word': word, 'probability': prob} for word, prob in predictions]})
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",debug=True, port=83)
+    app.run(host="0.0.0.0",debug=True, port=5009) #ตอน deploy แก้เป็น port 83

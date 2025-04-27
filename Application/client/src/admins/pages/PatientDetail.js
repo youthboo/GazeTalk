@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Space, Typography, Modal, Layout, Card, message, Form, Input, Select } from 'antd';
-import { EyeOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, SolutionOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import './PatientDetail.css';
 
@@ -141,10 +141,14 @@ const PatientDetail = () => {
         <Card
           className="patient-detail-card"
           title={
-            <Space>
-              <UserAddOutlined /> <Title level={3}>Related People</Title>
-            </Space>
+            <div className="flex justify-between items-center">
+              <Title level={3} className="mb-0 text-primary">
+                <SolutionOutlined style={{ marginRight: '12px' }} />
+                ตารางแสดงข้อมูลผู้เกี่ยวข้องทั้งหมด
+              </Title>
+            </div>
           }
+         
         >
           <Table
             dataSource={relatedPeople}
@@ -157,9 +161,9 @@ const PatientDetail = () => {
 
           <Space style={{ marginTop: '20px' }}>
             <Button onClick={handleAddPerson} type="primary">
-              Add New Person
+              เพิ่มผู้เกี่ยวข้อง
             </Button>
-            <Button onClick={handleBack}>Back</Button>
+            <Button onClick={handleBack}>ย้อนกลับ</Button>
           </Space>
         </Card>
 

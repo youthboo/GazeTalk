@@ -15,12 +15,10 @@ from flask import request
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app)  # อนุญาต CORS
-socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=50_000_000, compress=True)  # กำหนดให้เชื่อมต่อจากทุกแหล่ง
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=50_000_000, compress=True)
 
 gaze = GazeTracking()
-
-# โหลด Haar Cascade Classifier สำหรับตรวจจับใบหน้า
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
 last_blink_time = 0
@@ -31,7 +29,6 @@ EYE_CLOSED_TIMEOUT = 0.5
 selection_triggered = False
 
 def decode_base64_image(image_base64):
-    """แปลง base64 string เป็น numpy array (OpenCV)"""
     try:
         image_data = base64.b64decode(image_base64.split(",")[1])  
         np_arr = np.frombuffer(image_data, np.uint8)
@@ -42,7 +39,6 @@ def decode_base64_image(image_base64):
 
 @socketio.on("upload-frame")
 def handle_frame(data):
-    """รับเฟรมจาก client และประมวลผลการติดตามสายตา"""
     global last_blink_time, eye_closed_start_time
 
     try:
@@ -55,14 +51,21 @@ def handle_frame(data):
             return
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+        # ปรับค่าเพื่อตรวจจับใบหน้าที่อยู่ไกลได้ดีขึ้น
+        faces = face_cascade.detectMultiScale(gray, 1.05, 1, minSize=(20, 20), maxSize=(300, 300))
 
         gaze_direction = "center"
         blink_detected = False
         eye_closed = False
         eye_closed_too_long = False
 
-        gaze.refresh(frame)  # ใช้เฟรมทั้งภาพ ไม่ใช่เฉพาะใบหน้า
+        if len(faces) > 0:
+            # ใช้ใบหน้าแรกที่ตรวจจับได้
+            (x, y, w, h) = faces[0]
+            face_only = frame[y:y+h, x:x+w]
+            gaze.refresh(face_only)
+        else:
+            gaze.refresh(frame)  # fallback ถ้าไม่เจอหน้าเลย
 
         if gaze.eye_left is not None and gaze.eye_right is not None:
             blinking_left = gaze.eye_left.blinking or 0.0
@@ -79,11 +82,10 @@ def handle_frame(data):
             else:
                 eye_closed_start_time = None
 
-            # ตรวจจับการกระพริบตาเพียง 1 ครั้ง
             if blinking_ratio > BLINKING_RATIO_THRESHOLD:
                 current_time = time.time()
                 if current_time - last_blink_time > DOUBLE_BLINK_THRESHOLD:
-                    blink_detected = True  # ถือว่าเป็นการกระพริบตา 1 ครั้ง
+                    blink_detected = True
                 last_blink_time = current_time
 
             if not eye_closed and not eye_closed_too_long:
@@ -94,7 +96,6 @@ def handle_frame(data):
                 elif gaze.is_center():
                     gaze_direction = "center"
 
-        # ส่งข้อมูล gaze กลับไปยัง frontend
         emit("gaze-data", {
             "direction": gaze_direction,
             "blink_detected": blink_detected,  
@@ -113,14 +114,11 @@ def reset_eye_state():
 
 @socketio.on("update-thresholds")
 def update_thresholds(data):
-    """อัปเดตค่าการมองซ้าย/ขวาตามที่ผู้ใช้กำหนด"""
     try:
-        right_threshold = float(data.get("right", 0.55))  # ค่า default
+        right_threshold = float(data.get("right", 0.55))
         left_threshold = float(data.get("left", 0.75))
 
         logging.debug(f"Received thresholds update: Right = {right_threshold}, Left = {left_threshold}")
-
-        # การอัปเดตค่าการมอง
         gaze.set_thresholds(right_threshold, left_threshold)  
 
         emit("threshold-updated", {"success": True, "right": right_threshold, "left": left_threshold})
@@ -137,4 +135,4 @@ def handle_update_settings(data):
     EYE_CLOSED_TIMEOUT = float(data.get("eyeClosedTimeout", 0.5))
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=82) 
+    socketio.run(app, host="0.0.0.0", port=5006) #ตอน deploy แก้เป็น port 82
