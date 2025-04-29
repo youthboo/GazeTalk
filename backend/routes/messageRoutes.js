@@ -89,9 +89,9 @@ router.post('/send-message', async (req, res) => {
     }
 });
 
-// เส้นทางสำหรับดึงข้อมูลข้อความตามช่วงอายุและเพศ
+// เพิ่มเส้นทางใหม่หรือปรับปรุงเส้นทาง /messages ที่มีอยู่
 router.get('/messages', async (req, res) => {
-    const { gender, ageRange } = req.query;
+    const { gender, ageRange, startDate, endDate } = req.query;
 
     try {
         if (!gender || !ageRange) {
@@ -120,11 +120,21 @@ router.get('/messages', async (req, res) => {
             return res.json({ messages: [] });
         }
 
-        // ดึงข้อความทั้งหมดของผู้ป่วยที่อยู่ในกลุ่มเพศและช่วงอายุเดียวกัน
+        // เตรียมเงื่อนไขสำหรับการค้นหาข้อความ
+        const messageConditions = {
+            patient_id: patients.map(p => p.patient_id),
+        };
+        
+        // เพิ่มเงื่อนไขช่วงวันที่ถ้ามีการระบุ
+        if (startDate && endDate) {
+            messageConditions.timestamp = {
+                [Op.between]: [new Date(startDate), new Date(endDate)]
+            };
+        }
+
+        // ดึงข้อความตามเงื่อนไข
         const messages = await Message.findAll({
-            where: {
-                patient_id: patients.map(p => p.patient_id),
-            },
+            where: messageConditions,
             include: [{
                 model: Patient,
                 attributes: ['gender', 'dateOfBirth'],
@@ -132,7 +142,6 @@ router.get('/messages', async (req, res) => {
         });
 
         // สรุปคำในข้อความและนับความถี่
-        // แก้ไขเป็น:
         const wordCount = {};
         messages.forEach(message => {
             const word = message.text.trim().toLowerCase();

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Modal, Input, Button, message, Select, Card, Row, Col, Typography, Empty, Spin, Tooltip } from 'antd';
-import { EditOutlined, FilterOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Modal, Input, Button, message, Select, Card, Row, Col, Typography, Empty, Spin, Tooltip, DatePicker } from 'antd';
+import { EditOutlined, FilterOutlined, DeleteOutlined, CalendarOutlined, SwapOutlined, SelectOutlined } from '@ant-design/icons';
 import './EditWord.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const EditWord = () => {
   const [gender, setGender] = useState(undefined);
@@ -16,6 +17,10 @@ const EditWord = () => {
   const [selectedWord, setSelectedWord] = useState('');
   const [newWord, setNewWord] = useState('');
   const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState(null);
+  const [selectedTableWord, setSelectedTableWord] = useState(null);
+  const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
+  const [wordToReplace, setWordToReplace] = useState('');
 
   const fetchData = async () => {
     if (!gender || !ageRange) {
@@ -28,9 +33,21 @@ const EditWord = () => {
     setError(null);
 
     try {
+      // สร้าง URL พื้นฐาน
+      let messagesUrl = `${process.env.REACT_APP_GAZETALK_URL}/api/words?gender=${gender}&ageRange=${ageRange}`;
+      let summaryUrl = `${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}`;
+      
+      // เพิ่มพารามิเตอร์วันที่ถ้ามีการเลือก
+      if (dateRange && dateRange.length === 2) {
+        const startDate = dateRange[0].format('YYYY-MM-DD');
+        const endDate = dateRange[1].format('YYYY-MM-DD');
+        messagesUrl += `&startDate=${startDate}&endDate=${endDate}`;
+        summaryUrl += `&startDate=${startDate}&endDate=${endDate}`;
+      }
+
       const [messagesResponse, summaryResponse] = await Promise.all([
-        fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words?gender=${gender}&ageRange=${ageRange}`),
-        fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}`)
+        fetch(messagesUrl),
+        fetch(summaryUrl)
       ]);
 
       const messagesData = await messagesResponse.json();
@@ -48,10 +65,16 @@ const EditWord = () => {
     }
   };
 
+  // ผูกการดึงข้อมูลกับการเปลี่ยนแปลงของตัวกรอง
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line
   }, [gender, ageRange]);
+
+  // ฟังก์ชันสำหรับการค้นหาด้วยช่วงวันที่
+  const handleSearch = () => {
+    fetchData();
+  };
 
   const handleAddNewWord = async () => {
     if (!newWord.trim()) {
@@ -93,16 +116,67 @@ const EditWord = () => {
       message.error('ไม่สามารถเพิ่มคำได้');
     }
   };
+
+  const handleReplaceWord = async () => {
+    if (!selectedTableWord) {
+      message.warning('กรุณาเลือกคำจากตารางก่อน');
+      return;
+    }
+  
+    try {
+      const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gender,
+          ageRange,
+          oldWord: wordToReplace,
+          newWord: selectedTableWord,
+        }),
+      });
+  
+      if (response.ok) {
+        message.success(`แทนที่คำ "${wordToReplace}" ด้วย "${selectedTableWord}" สำเร็จ`);
+        fetchData();
+        setIsReplaceModalOpen(false);
+        setWordToReplace('');
+      } else {
+        const errorData = await response.json();
+        message.error(`เกิดข้อผิดพลาด: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error replacing word:', error.message);
+      message.error('ไม่สามารถแทนที่คำได้');
+    }
+  };
   
   const handleDeleteMessage = (word) => {
     Modal.confirm({
       title: 'คุณแน่ใจหรือไม่ที่จะลบข้อความนี้?',
-      content: `คำว่า "${word}" จะถูกลบออกจากระบบ`,
+      content: (
+        <div>
+          <p>คำว่า "{word}" จะถูกลบออกจากระบบ</p>
+          {dateRange && dateRange.length === 2 && (
+            <p>เฉพาะในช่วงวันที่ {dateRange[0].format('DD/MM/YYYY')} ถึง {dateRange[1].format('DD/MM/YYYY')}</p>
+          )}
+        </div>
+      ),
       okText: 'ลบ',
       cancelText: 'ยกเลิก',
       onOk: async () => {
         try {
-          const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}&word=${word}`, {
+          let url = `${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}&word=${word}`;
+          
+          // เพิ่มพารามิเตอร์วันที่ถ้ามีการเลือก
+          if (dateRange && dateRange.length === 2) {
+            const startDate = dateRange[0].format('YYYY-MM-DD');
+            const endDate = dateRange[1].format('YYYY-MM-DD');
+            url += `&startDate=${startDate}&endDate=${endDate}`;
+          }
+          
+          const response = await fetch(url, {
             method: 'DELETE',
           });
   
@@ -126,6 +200,46 @@ const EditWord = () => {
     setIsModalOpen(true);
   };
 
+  const openReplaceModal = (word) => {
+    setWordToReplace(word);
+    setIsReplaceModalOpen(true);
+  };
+
+  const handleRemoveWord = (word) => {
+    Modal.confirm({
+      title: 'คุณแน่ใจหรือไม่ที่จะลบคำนี้?',
+      content: `คำว่า "${word}" จะถูกลบออกจากรายการ`,
+      okText: 'ลบ',
+      cancelText: 'ยกเลิก',
+      onOk: async () => {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words/remove`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              gender,
+              ageRange,
+              word,
+            }),
+          });
+    
+          if (response.ok) {
+            message.success(`ลบคำ "${word}" สำเร็จ`);
+            fetchData();
+          } else {
+            const errorData = await response.json();
+            message.error(`เกิดข้อผิดพลาด: ${errorData.message}`);
+          }
+        } catch (error) {
+          console.error('Error removing word:', error.message);
+          message.error('ไม่สามารถลบคำได้');
+        }
+      },
+    });
+  };
+
   const columns = [
     {
       title: 'คำ',
@@ -143,17 +257,26 @@ const EditWord = () => {
       title: 'การจัดการ',
       key: 'action',
       render: (_, record) => (
-        <Button
-          type="danger"
-          icon={<DeleteOutlined />}
-          onClick={() => handleDeleteMessage(record.word)} // ใช้ word แทน id
-        >
-          ลบ
-        </Button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button
+            type="primary"
+            icon={<SelectOutlined />}
+            onClick={() => setSelectedTableWord(record.word)}
+            disabled={selectedTableWord === record.word}
+          >
+            {selectedTableWord === record.word ? 'เลือกแล้ว' : 'เลือก'}
+          </Button>
+          <Button
+            type="danger"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteMessage(record.word)}
+          >
+            ลบ
+          </Button>
+        </div>
       ),
     },
   ];
-  
 
   const data = summary.map(({ word, usage_count }, index) => ({
     key: index,
@@ -174,10 +297,9 @@ const EditWord = () => {
                 </Title>
               </div>
             }
-           
           >
             <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12}>
+              <Col xs={24} sm={12} md={6}>
                 <div className="edit-word-form-group">
                   <Text strong>ช่วงอายุ:</Text>
                   <Select
@@ -194,7 +316,7 @@ const EditWord = () => {
                   </Select>
                 </div>
               </Col>
-              <Col xs={24} sm={12}>
+              <Col xs={24} sm={12} md={6}>
                 <div className="edit-word-form-group">
                   <Text strong>เพศ:</Text>
                   <Select
@@ -210,12 +332,56 @@ const EditWord = () => {
                   </Select>
                 </div>
               </Col>
+              <Col xs={24} md={12}>
+                <div className="edit-word-form-group">
+                  <Text strong>ช่วงเวลา:</Text>
+                  <RangePicker
+                    style={{ width: '100%' }}
+                    onChange={setDateRange}
+                    placeholder={['วันที่เริ่มต้น', 'วันที่สิ้นสุด']}
+                    size="large"
+                    format="DD/MM/YYYY"
+                  />
+                </div>
+              </Col>
+            </Row>
+            <Row style={{ marginTop: 16 }}>
+              <Col>
+                <Button 
+                  type="primary" 
+                  icon={<CalendarOutlined />}
+                  onClick={handleSearch}
+                >
+                  ค้นหา
+                </Button>
+              </Col>
             </Row>
           </Card>
         </Col>
 
         <Col span={24}>
-          <Card title="สรุปข้อมูลการใช้คำ">
+          <Card 
+            title={
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>สรุปข้อมูลการใช้คำ</span>
+                {selectedTableWord && (
+                  <Text type="success" strong>
+                    คำที่เลือก: {selectedTableWord}
+                  </Text>
+                )}
+              </div>
+            }
+            extra={
+              selectedTableWord && (
+                <Button 
+                  type="default" 
+                  onClick={() => setSelectedTableWord(null)}
+                >
+                  ยกเลิกการเลือก
+                </Button>
+              )
+            }
+          >
             {loading ? (
               <div style={{ textAlign: 'center', padding: '20px' }}>
                 <Spin size="large" />
@@ -236,16 +402,17 @@ const EditWord = () => {
                   showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`
                 }}
                 locale={{
-                  emptyText: 'ไม่มีข้อมูล'
+                  emptyText: dateRange && dateRange.length === 2 
+                    ? `ไม่พบข้อมูลในช่วงวันที่ ${dateRange[0].format('DD/MM/YYYY')} ถึง ${dateRange[1].format('DD/MM/YYYY')}` 
+                    : 'ไม่มีข้อมูล'
                 }}
               />
-
             )}
           </Card>
         </Col>
 
         <Col span={24}>
-          <Card title="เพิ่มคำศัพท์ใหม่">
+          <Card title="แก้ไขคำศัพท์">
             {!gender || !ageRange ? (
               <Empty 
                 description="กรุณาเลือกช่วงอายุและเพศก่อน" 
@@ -256,31 +423,51 @@ const EditWord = () => {
                 <Spin size="large" />
               </div>
             ) : messages.length === 0 ? (
-              <Empty description="ไม่พบคำศัพท์สำหรับช่วงอายุและเพศที่เลือก" />
+              <Empty 
+                description={dateRange && dateRange.length === 2 
+                  ? `ไม่พบคำศัพท์ในช่วงวันที่ ${dateRange[0].format('DD/MM/YYYY')} ถึง ${dateRange[1].format('DD/MM/YYYY')}` 
+                  : "ไม่พบคำศัพท์สำหรับช่วงอายุและเพศที่เลือก"} 
+              />
             ) : (
               <Row gutter={[16, 16]}>
                 {messages.map((word, index) => (
                 <Col xs={24} sm={8} key={index}>
-                  <Button 
-                    onClick={() => openAddModal(word)} 
-                    className="edit-word-new-word-btn"
-                    block
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    <span>{word}</span>
-                    <Tooltip title="แก้ไขคำ">
-                      <EditOutlined />
-                    </Tooltip>
-                  </Button>
+                  <div className="word-card">
+                    <div className="word-text">{word}</div>
+                    <div className="word-actions">
+                      <Tooltip title="แก้ไขคำ">
+                        <Button 
+                          type="primary" 
+                          icon={<EditOutlined />} 
+                          onClick={() => openAddModal(word)}
+                        />
+                      </Tooltip>
+                      <Tooltip title="แทนที่ด้วยคำที่เลือก">
+                        <Button 
+                          type="default" 
+                          icon={<SwapOutlined />} 
+                          onClick={() => openReplaceModal(word)}
+                          disabled={!selectedTableWord}
+                        />
+                      </Tooltip>
+                      <Tooltip title="ลบคำ">
+                        <Button 
+                          type="danger" 
+                          icon={<DeleteOutlined />} 
+                          onClick={() => handleRemoveWord(word)}
+                        />
+                      </Tooltip>
+                    </div>
+                  </div>
                 </Col>
               ))}
-
               </Row>
             )}
           </Card>
         </Col>
       </Row>
 
+      {/* Modal สำหรับการแก้ไขคำ */}
       <Modal
         title={`เพิ่มคำใหม่แทน "${selectedWord}"`}
         open={isModalOpen}
@@ -296,6 +483,46 @@ const EditWord = () => {
           size="large"
         />
       </Modal>
+
+      {/* Modal สำหรับการแทนที่คำด้วยคำที่เลือกจากตาราง */}
+      <Modal
+        title={`แทนที่คำด้วยคำที่เลือก`}
+        open={isReplaceModalOpen}
+        onOk={handleReplaceWord}
+        onCancel={() => setIsReplaceModalOpen(false)}
+        okText="แทนที่"
+        cancelText="ยกเลิก"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Text>คำเดิม: <Text strong>{wordToReplace}</Text></Text>
+        </div>
+        <div>
+          <Text>คำใหม่: <Text strong type="success">{selectedTableWord || '(กรุณาเลือกคำจากตาราง)'}</Text></Text>
+        </div>
+      </Modal>
+
+      {/* เพิ่ม CSS สำหรับ word-card */}
+      <style jsx>{`
+        .word-card {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px;
+          border: 1px solid #f0f0f0;
+          border-radius: 4px;
+          background-color: #fff;
+        }
+        .word-text {
+          font-weight: 500;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .word-actions {
+          display: flex;
+          gap: 8px;
+        }
+      `}</style>
     </div>
   );
 };

@@ -259,8 +259,6 @@ const BasicPage = () => {
         />
       </div>
 
-      
-
       <div className="keyboard">
         <div className="keyboard">
           {/* ปรับให้แถวหลักเป็น 5 คอลัมน์ */}

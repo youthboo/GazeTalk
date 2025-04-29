@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Table, Input, Button, message, Modal, Layout, Typography, Card } from 'antd';
+import { Table, Input, Button, message, Modal, Layout, Typography, Card, Pagination } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, TeamOutlined } from '@ant-design/icons';
 import './AddLineID.css';
 
@@ -14,6 +14,8 @@ const AddLineID = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +52,7 @@ const AddLineID = () => {
         patient.gender.toLowerCase().includes(value)
     );
     setFilteredPatients(filtered);
+    setCurrentPage(1); // เมื่อค้นหาให้กลับไปหน้าแรก
   };
 
   const handleViewPatient = (patient) => {
@@ -86,10 +89,9 @@ const AddLineID = () => {
     const day = date.getDate();
     const month = thaiMonths[date.getMonth()];
     const year = date.getFullYear() + 543; // แปลง ค.ศ. -> พ.ศ.
-  
+
     return `${day} ${month} ${year}`;
   };
-  
 
   const columns = [
     {
@@ -115,22 +117,21 @@ const AddLineID = () => {
       sorter: (a, b) => new Date(a.dateOfBirth) - new Date(b.dateOfBirth),
       width: '20%',
     },
-    
     {
       title: 'Actions',
       key: 'actions',
       render: (_, patient) => (
         <div className="patient-actions">
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />} 
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
             onClick={() => handleViewPatient(patient)}
             size="small"
             className="mr-2"
           />
-          <Button 
-            danger 
-            icon={<DeleteOutlined />} 
+          <Button
+            danger
+            icon={<DeleteOutlined />}
             onClick={() => handleDeletePatient(patient.patient_id)}
             size="small"
           />
@@ -141,11 +142,42 @@ const AddLineID = () => {
     },
   ];
 
+  // คำนวณจำนวนหน้าทั้งหมด
+  const totalPages = Math.ceil(filteredPatients.length / pageSize);
+
+  // กำหนดรูปแบบการแสดงปุ่มหน้า
+  const itemRender = (current, type, originalElement) => {
+    if (type === 'page') {
+      if (
+        current === 1 ||
+        current === totalPages ||
+        current === currentPage ||
+        current === currentPage - 1 ||
+        current === currentPage + 1
+      ) {
+        return originalElement;
+      }
+      if (current === currentPage - 2 && currentPage > 3) {
+        return <span>...</span>;
+      }
+      if (current === currentPage + 2 && currentPage < totalPages - 2) {
+        return <span>...</span>;
+      }
+      return null;
+    }
+    return originalElement;
+  };
+
+  const handlePaginationChange = (page, pageSize) => {
+    setCurrentPage(page);
+    setPageSize(pageSize);
+  };
+
   return (
     <Layout className="patient-list-container bg-gray-100 min-h-screen">
       <Content className="p-6">
         <div className="patient-container">
-          <Card 
+          <Card
             className="shadow-lg rounded-lg"
             title={
               <div className="flex justify-between items-center">
@@ -167,21 +199,27 @@ const AddLineID = () => {
                 size="large"
               />
             </div>
-            
+
             <Table
-              key={windowWidth} 
               columns={columns}
-              dataSource={filteredPatients}
-              rowKey="patient_id"
+              dataSource={filteredPatients.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
               loading={loading}
-              pagination={{
-                pageSize: 5,
-                showSizeChanger: true,
-                showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`
-              }}
-              className="patient-table"
-              size="middle"
+              rowKey="patient_id"
+              pagination={false}
+              scroll={{ x: windowWidth < 768 ? '100vw' : undefined }}
             />
+
+            <div className="mt-4 text-center">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={filteredPatients.length}
+                onChange={handlePaginationChange}
+                showSizeChanger
+                pageSizeOptions={[5, 10, 20, 50]}  
+                itemRender={itemRender}
+              />
+            </div>
           </Card>
         </div>
       </Content>
