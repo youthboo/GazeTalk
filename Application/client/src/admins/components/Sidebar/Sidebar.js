@@ -16,15 +16,15 @@ import Dashboard from '../../pages/Dashboard';
 import AddLineID from '../../pages/AddLineID';
 import PatientDetail from '../../pages/PatientDetail';
 import AddLineIDForm from '../../pages/AddLineIDForm';
-import PatientSearch from '../../pages/PatientSearchPage';  // นำเข้า component
-import DashboardCaretaker from '../../pages/DashboardCaretaker'; // เพิ่มการนำเข้า
+import PatientSearch from '../../pages/PatientSearchPage';  
+import DashboardCaretaker from '../../pages/DashboardCaretaker'; 
 
 const { Sider, Content, Header } = Layout;
 
 const Sidebar = ({ onLogout, adminCode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [username, setUsername] = useState('');
-  const [selectedMenuKey, setSelectedMenuKey] = useState('/dashboard'); // กำหนดค่าเริ่มต้น
+  const [selectedMenuKey, setSelectedMenuKey] = useState('/dashboard'); 
   const navigate = useNavigate();
   const location = useLocation();
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -55,7 +55,6 @@ const Sidebar = ({ onLogout, adminCode }) => {
     }
   }, []);
 
-  // อัปเดต selectedMenuKey เมื่อ location.pathname เปลี่ยน
   useEffect(() => {
     setSelectedMenuKey(location.pathname);
   }, [location.pathname]);

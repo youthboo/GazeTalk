@@ -110,7 +110,14 @@ const App = () => {
               !isLoggedIn ? (
                 <Login onLogin={handleLogin} />
               ) : (
-                <Navigate to={userRole === "admin" ? "/admin/dashboard" : "/basic"} />
+                <Navigate to={
+                  userRole === "admin"
+                    ? adminCode === "SecretCodeAdmin"
+                      ? "/admin/dashboard-caretaker"
+                      : "/admin/dashboard"
+                    : "/basic"
+                } />
+                
               )
             }
           />

@@ -30,7 +30,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3008/api/dashboard")
+      .get("http://202.44.40.178:85/api/dashboard") //ตอน deploy แก้เป็น http://202.44.40.178:85/api/dashboard http://localhost:3008/api/dashboard
       .then((response) => {
         const { patientData } = response.data;
         setPatientData(patientData);
@@ -116,6 +116,46 @@ const Dashboard = () => {
       },
     ],
   };  
+
+// สร้าง options ใหม่สำหรับ Age Chart
+const ageChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      labels: {
+        generateLabels: (chart) => {
+          return [
+            {
+              text: '13-19',
+              fillStyle: '#FF6384',
+              strokeStyle: '#FF6384',
+              hidden: false,
+            },
+            {
+              text: '20-39',
+              fillStyle: '#36A2EB',
+              strokeStyle: '#36A2EB',
+              hidden: false,
+            },
+            {
+              text: '40-59',
+              fillStyle: '#FFCE56',
+              strokeStyle: '#FFCE56',
+              hidden: false,
+            },
+            {
+              text: '60+',
+              fillStyle: '#4BC0C0',
+              strokeStyle: '#4BC0C0',
+              hidden: false,
+            },
+          ];
+        },
+      },
+    },
+  },
+};
   
 // Calculate total patients in all age groups
 const totalAgePatients = 
@@ -142,8 +182,6 @@ const ageChartData = {
     },
   ],
 };
-
-
   return (
     <div className="dashboard">
       <h1>Dashboard</h1>
@@ -192,7 +230,7 @@ const ageChartData = {
         <Col xs={24} md={12}>
           <Card title="Patient Count by Age Range (%)" bordered>
             <div className="chart-container">
-              <Pie key={windowSize} data={ageChartData} options={chartOptions} />
+              <Pie key={windowSize} data={ageChartData} options={ageChartOptions} />
             </div>
           </Card>
         </Col>

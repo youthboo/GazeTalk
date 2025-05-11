@@ -2,10 +2,10 @@ const express = require('express');
 const { Op } = require('sequelize');
 const Message = require('../models/Message');
 const Patient = require('../models/Users');
+const MessageStats = require('../models/MessageStats');
 const router = express.Router();
 const moment = require('moment');
 
-// เส้นทางที่ใช้ในการบันทึกข้อความ
 router.post('/send-message', async (req, res) => {
     const { text, patient_id } = req.body;
 
@@ -32,64 +32,66 @@ router.post('/send-message', async (req, res) => {
         else if (age >= 60) ageGroup = '60-120';
         else return res.status(400).json({ message: 'Patient age is not in any valid range' });
 
-        // กำหนดช่วงอายุสำหรับการค้นหา
-        let minAge, maxAge;
-        if (ageGroup === '13-19') { minAge = 13; maxAge = 19; }
-        else if (ageGroup === '20-39') { minAge = 20; maxAge = 39; }
-        else if (ageGroup === '40-59') { minAge = 40; maxAge = 59; }
-        else { minAge = 60; maxAge = 120; }
+        const cleanText = text.trim().toLowerCase();
 
-        const minBirthYear = today.getFullYear() - maxAge;
-        const maxBirthYear = today.getFullYear() - minAge;
-
-        // ค้นหาข้อความที่มีเนื้อหาเดียวกัน และผู้ป่วยมีเพศและช่วงอายุเดียวกัน
-        const existingMessages = await Message.findAll({
-            include: [{
-                model: Patient,
-                where: {
-                    gender: patient.gender,
-                    dateOfBirth: {
-                        [Op.gte]: new Date(minBirthYear, 0, 1),
-                        [Op.lte]: new Date(maxBirthYear, 11, 31)
-                    }
-                }
-            }],
+        // ตรวจสอบว่าผู้ป่วยคนนี้เคยส่งข้อความนี้แล้วหรือไม่
+        const existingMessage = await Message.findOne({
             where: {
-                text: text.trim().toLowerCase()
+                patient_id,
+                text: cleanText
             }
         });
 
-        if (existingMessages && existingMessages.length > 0) {
-            // ถ้ามีข้อความที่ตรงเงื่อนไขอยู่แล้ว ใช้รายการแรก
-            const existingMessage = existingMessages[0];
-            existingMessage.frequency_word += 1;
-            await existingMessage.save();
+        let messageResponse;
 
-            return res.status(200).json({
-                message: 'Message frequency updated',
-                data: existingMessage
-            });
+        if (existingMessage) {
+            // อัพเดทความถี่ถ้าเจอข้อความเดิม
+            existingMessage.frequency_word += 1;
+            existingMessage.timestamp = new Date(); // อัพเดทเวลาล่าสุด
+            await existingMessage.save();
+            messageResponse = existingMessage;
         } else {
-            // ถ้าไม่มี ให้สร้างข้อความใหม่
+            // สร้างข้อความใหม่ถ้าไม่เจอข้อความเดิม
             const newMessage = await Message.create({
-                text: text.trim().toLowerCase(),
+                text: cleanText,
                 patient_id,
                 timestamp: new Date(),
-                frequency_word: 1 // ตั้งค่าเริ่มต้นเป็น 1
+                frequency_word: 1
             });
-
-            return res.status(200).json({
-                message: 'Message saved successfully',
-                data: newMessage
-            });
+            messageResponse = newMessage;
         }
+
+        // อัพเดทหรือสร้างข้อมูลสถิติใน MessageStats (คงเดิม)
+        const [statRecord, created] = await MessageStats.findOrCreate({
+            where: {
+                text: cleanText,
+                gender: patient.gender,
+                age_group: ageGroup
+            },
+            defaults: {
+                frequency: 1,
+                last_timestamp: new Date()
+            }
+        });
+
+        // ถ้าเจอข้อมูลเดิม ให้อัพเดทความถี่และเวลาล่าสุด
+        if (!created) {
+            statRecord.frequency += 1;
+            statRecord.last_timestamp = new Date();
+            await statRecord.save();
+        }
+
+        return res.status(200).json({
+            message: existingMessage ? 'Message frequency updated' : 'Message saved successfully',
+            data: messageResponse,
+            statistics: statRecord
+        });
     } catch (error) {
         console.error('Error saving message:', error);
         res.status(500).json({ message: 'Error saving message', error });
     }
 });
 
-// เพิ่มเส้นทางใหม่หรือปรับปรุงเส้นทาง /messages ที่มีอยู่
 router.get('/messages', async (req, res) => {
     const { gender, ageRange, startDate, endDate } = req.query;
 
@@ -98,73 +100,38 @@ router.get('/messages', async (req, res) => {
             return res.status(400).json({ message: 'Gender and age range are required' });
         }
 
-        const ageBounds = ageRange === "60-120" ? [60, 120] : ageRange.split('-').map(Number);
-        const currentYear = new Date().getFullYear();
-        const lowerBoundYear = currentYear - ageBounds[1];
-        const upperBoundYear = currentYear - ageBounds[0];
-        const lowerBoundDate = new Date(lowerBoundYear, 0, 1).toISOString();
-        const upperBoundDate = new Date(upperBoundYear, 11, 31).toISOString();
-
-        // ดึงข้อมูลผู้ป่วยตามเพศและช่วงอายุ
-        const patients = await Patient.findAll({
-            where: {
-                gender,
-                dateOfBirth: {
-                    [Op.gte]: lowerBoundDate,
-                    [Op.lte]: upperBoundDate,
-                },
-            },
-        });
-
-        if (patients.length === 0) {
-            return res.json({ messages: [] });
-        }
-
-        // เตรียมเงื่อนไขสำหรับการค้นหาข้อความ
-        const messageConditions = {
-            patient_id: patients.map(p => p.patient_id),
+        // เตรียมเงื่อนไขสำหรับการค้นหา
+        const conditions = {
+            gender,
+            age_group: ageRange
         };
         
         // เพิ่มเงื่อนไขช่วงวันที่ถ้ามีการระบุ
         if (startDate && endDate) {
-            messageConditions.timestamp = {
+            conditions.last_timestamp = {
                 [Op.between]: [new Date(startDate), new Date(endDate)]
             };
         }
 
-        // ดึงข้อความตามเงื่อนไข
-        const messages = await Message.findAll({
-            where: messageConditions,
-            include: [{
-                model: Patient,
-                attributes: ['gender', 'dateOfBirth'],
-            }],
+        // ดึงข้อมูลความถี่จากตาราง MessageStats
+        const statistics = await MessageStats.findAll({
+            where: conditions,
+            order: [['frequency', 'DESC']]
         });
 
-        // สรุปคำในข้อความและนับความถี่
-        const wordCount = {};
-        messages.forEach(message => {
-            const word = message.text.trim().toLowerCase();
-            if (word) {
-                wordCount[word] = (wordCount[word] || 0) + message.frequency_word;
-            }
-        });
-
-        const summary = Object.entries(wordCount)
-            .map(([word, count]) => ({
-                word,
-                usage_count: count,
-            }))
-            .sort((a, b) => b.usage_count - a.usage_count);
+        const summary = statistics.map(stat => ({
+            word: stat.text,
+            usage_count: stat.frequency,
+            last_used: stat.last_timestamp
+        }));
 
         res.json({ summary });
     } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error fetching message statistics:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// เพิ่มเส้นทางสำหรับลบข้อความตามช่วงอายุและเพศ
 router.delete('/messages', async (req, res) => {
     const { gender, ageRange, word } = req.query;
 
@@ -173,31 +140,10 @@ router.delete('/messages', async (req, res) => {
             return res.status(400).json({ message: 'Gender and age range are required' });
         }
 
-        const ageBounds = ageRange === "60-120" ? [60, 120] : ageRange.split('-').map(Number);
-        const currentYear = new Date().getFullYear();
-        const lowerBoundYear = currentYear - ageBounds[1];
-        const upperBoundYear = currentYear - ageBounds[0];
-        const lowerBoundDate = new Date(lowerBoundYear, 0, 1).toISOString();
-        const upperBoundDate = new Date(upperBoundYear, 11, 31).toISOString();
-
-        // ดึงข้อมูลผู้ป่วยตามเพศและช่วงอายุ
-        const patients = await Patient.findAll({
-            where: {
-                gender,
-                dateOfBirth: {
-                    [Op.gte]: lowerBoundDate,
-                    [Op.lte]: upperBoundDate,
-                },
-            },
-        });
-
-        if (patients.length === 0) {
-            return res.status(404).json({ message: 'ไม่พบผู้ป่วยในช่วงอายุและเพศที่ระบุ' });
-        }
-
         // เงื่อนไขการลบ
         const deleteCondition = {
-            patient_id: patients.map(p => p.patient_id),
+            gender,
+            age_group: ageRange
         };
         
         // ถ้ามีการระบุคำเฉพาะ ให้เพิ่มเงื่อนไขในการลบ
@@ -205,18 +151,18 @@ router.delete('/messages', async (req, res) => {
             deleteCondition.text = word.trim().toLowerCase();
         }
 
-        // ลบข้อความ
-        const deleteCount = await Message.destroy({
+        // ลบข้อมูลสถิติ
+        const deleteCount = await MessageStats.destroy({
             where: deleteCondition
         });
 
         res.status(200).json({ 
-            message: `ลบข้อความจำนวน ${deleteCount} รายการเรียบร้อยแล้ว`,
+            message: `ลบข้อมูลสถิติจำนวน ${deleteCount} รายการเรียบร้อยแล้ว`,
             count: deleteCount
         });
     } catch (error) {
-        console.error('Error deleting messages:', error);
-        res.status(500).json({ error: 'ไม่สามารถลบข้อความได้' });
+        console.error('Error deleting message statistics:', error);
+        res.status(500).json({ error: 'ไม่สามารถลบข้อมูลสถิติได้' });
     }
 });
 

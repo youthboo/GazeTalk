@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, Card, Typography, message, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import './PatientSearchPage.css'; // จะเขียน css น่ารักๆ เพิ่มได้เลย
+import './PatientSearchPage.css'; 
 
 const { Title, Text } = Typography;
 
@@ -63,23 +63,25 @@ const PatientSearchPage = () => {
     <div className="patient-search-container">
       <Card className="search-card">
         <Title level={3}>ค้นหาข้อมูลผู้ป่วยด้วย Username</Title>
-        <Input
-          placeholder="กรอก Username ของผู้ป่วย"
-          prefix={<SearchOutlined />}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onPressEnter={handleSearch}
-          size="large"
-          className="mb-4"
-        />
-        <Button 
-          type="primary" 
-          onClick={handleSearch}
-          size="large"
-          block
-        >
-          ค้นหา
-        </Button>
+        <div className="search-input-group">
+          <Input
+            placeholder="กรอก Username ของผู้ป่วย"
+            prefix={<SearchOutlined />}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onPressEnter={handleSearch}
+            size="large"
+            className="search-input"
+          />
+          <Button 
+            type="primary" 
+            onClick={handleSearch}
+            size="large"
+            className="search-button"
+          >
+            ค้นหา
+          </Button>
+        </div>
 
         {loading && <Spin className="mt-4" />}
         

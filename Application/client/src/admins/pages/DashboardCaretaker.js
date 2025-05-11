@@ -20,7 +20,7 @@ const DashboardCaretaker = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3008/api/dashboard")  //ตอน deploy แก้เป็น http://202.44.40.178:85/api/dashboard
+      .get("http://202.44.40.178:85/api/dashboard")  //ตอน deploy แก้เป็น http://202.44.40.178:85/api/dashboard http://localhost:3008/api/dashboard
       .then((response) => {
         const { patientData } = response.data;
         setPatientData(patientData);

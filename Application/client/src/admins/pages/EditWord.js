@@ -138,7 +138,7 @@ const EditWord = () => {
       });
   
       if (response.ok) {
-        message.success(`แทนที่คำ "${wordToReplace}" ด้วย "${selectedTableWord}" สำเร็จ`);
+        message.success(`แทนที่ "${wordToReplace}" ด้วย "${selectedTableWord}" สำเร็จ`);
         fetchData();
         setIsReplaceModalOpen(false);
         setWordToReplace('');
@@ -205,41 +205,6 @@ const EditWord = () => {
     setIsReplaceModalOpen(true);
   };
 
-  const handleRemoveWord = (word) => {
-    Modal.confirm({
-      title: 'คุณแน่ใจหรือไม่ที่จะลบคำนี้?',
-      content: `คำว่า "${word}" จะถูกลบออกจากรายการ`,
-      okText: 'ลบ',
-      cancelText: 'ยกเลิก',
-      onOk: async () => {
-        try {
-          const response = await fetch(`${process.env.REACT_APP_GAZETALK_URL}/api/words/remove`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              gender,
-              ageRange,
-              word,
-            }),
-          });
-    
-          if (response.ok) {
-            message.success(`ลบคำ "${word}" สำเร็จ`);
-            fetchData();
-          } else {
-            const errorData = await response.json();
-            message.error(`เกิดข้อผิดพลาด: ${errorData.message}`);
-          }
-        } catch (error) {
-          console.error('Error removing word:', error.message);
-          message.error('ไม่สามารถลบคำได้');
-        }
-      },
-    });
-  };
-
   const columns = [
     {
       title: 'คำ',
@@ -288,100 +253,104 @@ const EditWord = () => {
     <div className="edit-word-container">
       <Row gutter={[16, 16]} justify="center">
         <Col span={24}>
-          <Card 
-            title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Title level={3} style={{ margin: 0 }}>
-                  <FilterOutlined style={{ marginRight: 8 }} />
-                  จัดการคำศัพท์
-                </Title>
-              </div>
-            }
-          >
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} md={6}>
-                <div className="edit-word-form-group">
-                  <Text strong>ช่วงอายุ:</Text>
-                  <Select
-                    value={ageRange || undefined}
-                    onChange={(value) => setAgeRange(value)}
-                    style={{ width: '100%' }}
-                    placeholder="เลือกช่วงอายุ"
-                    size="large"
-                  >
-                    <Option value="13-19">13-19</Option>
-                    <Option value="20-39">20-39</Option>
-                    <Option value="40-59">40-59</Option>
-                    <Option value="60-120">60 ขึ้นไป</Option>
-                  </Select>
-                </div>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <div className="edit-word-form-group">
-                  <Text strong>เพศ:</Text>
-                  <Select
-                    value={gender || undefined}
-                    onChange={(value) => setGender(value)}
-                    style={{ width: '100%' }}
-                    placeholder="เลือกเพศ"
-                    size="large"
-                  >
-                    <Option value="male">ชาย</Option>
-                    <Option value="female">หญิง</Option>
-                    <Option value="other">อื่นๆ</Option>
-                  </Select>
-                </div>
-              </Col>
-              <Col xs={24} md={12}>
-                <div className="edit-word-form-group">
-                  <Text strong>ช่วงเวลา:</Text>
-                  <RangePicker
-                    style={{ width: '100%' }}
-                    onChange={setDateRange}
-                    placeholder={['วันที่เริ่มต้น', 'วันที่สิ้นสุด']}
-                    size="large"
-                    format="DD/MM/YYYY"
-                  />
-                </div>
-              </Col>
-            </Row>
-            <Row style={{ marginTop: 16 }}>
-              <Col>
-                <Button 
-                  type="primary" 
-                  icon={<CalendarOutlined />}
-                  onClick={handleSearch}
+        <Card 
+          title={
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Title level={3} style={{ margin: 0 }}>
+                <FilterOutlined style={{ marginRight: 8 }} />
+                จัดการคำศัพท์
+              </Title>
+            </div>
+          }
+        >
+          {/* แถวตัวกรองหลัก */}
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <div className="edit-word-form-group">
+                <Text strong>ช่วงอายุ:</Text>
+                <Select
+                  value={ageRange || undefined}
+                  onChange={(value) => setAgeRange(value)}
+                  style={{ width: '100%' }}
+                  placeholder="เลือกช่วงอายุ"
+                  size="large"
                 >
-                  ค้นหา
-                </Button>
-              </Col>
-            </Row>
-          </Card>
+                  <Option value="13-19">13-19</Option>
+                  <Option value="20-39">20-39</Option>
+                  <Option value="40-59">40-59</Option>
+                  <Option value="60-120">60 ขึ้นไป</Option>
+                </Select>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <div className="edit-word-form-group">
+                <Text strong>เพศ:</Text>
+                <Select
+                  value={gender || undefined}
+                  onChange={(value) => setGender(value)}
+                  style={{ width: '100%' }}
+                  placeholder="เลือกเพศ"
+                  size="large"
+                >
+                  <Option value="male">ชาย</Option>
+                  <Option value="female">หญิง</Option>
+                  <Option value="other">อื่นๆ</Option>
+                </Select>
+              </div>
+            </Col>
+            <Col xs={24} sm={24} md={8}>
+              <div className="edit-word-form-group">
+                <Text strong>ค้นหาตามช่วงเวลา <span style={{ fontWeight: 'normal', color: '#999' }}></span>:</Text>
+                <RangePicker
+                  style={{ width: '100%' }}
+                  onChange={setDateRange}
+                  placeholder={['วันที่เริ่มต้น', 'วันที่สิ้นสุด']}
+                  size="large"
+                  format="DD/MM/YYYY"
+                />
+              </div>
+            </Col>
+            <Col xs={24} sm={24} md={4} style={{ display: 'flex', alignItems: 'end' }}>
+              <Button 
+                type="primary" 
+                icon={<CalendarOutlined />}
+                onClick={handleSearch}
+                size="large"
+                style={{ width: '100%' }}
+              >
+                ค้นหา
+              </Button>
+            </Col>
+          </Row>
+        </Card>
+
         </Col>
 
         <Col span={24}>
           <Card 
-            title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>สรุปข้อมูลการใช้คำ</span>
-                {selectedTableWord && (
-                  <Text type="success" strong>
-                    คำที่เลือก: {selectedTableWord}
-                  </Text>
-                )}
-              </div>
-            }
-            extra={
-              selectedTableWord && (
-                <Button 
-                  type="default" 
-                  onClick={() => setSelectedTableWord(null)}
-                >
-                  ยกเลิกการเลือก
-                </Button>
-              )
-            }
-          >
+              title={
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>สรุปข้อมูลการใช้คำ</span>
+                  {selectedTableWord && (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Text type="success" strong style={{ marginRight: '7px' }}>
+                        คำที่เลือก: {selectedTableWord}
+                      </Text>
+                      <Button 
+                        type="text" 
+                        danger 
+                        size="small"
+                        onClick={() => setSelectedTableWord(null)}
+                        style={{ border: '1px solid #ff4d4f' }}
+                      >
+                        ยกเลิกการเลือก
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              }
+            >
+
             {loading ? (
               <div style={{ textAlign: 'center', padding: '20px' }}>
                 <Spin size="large" />
@@ -450,13 +419,7 @@ const EditWord = () => {
                           disabled={!selectedTableWord}
                         />
                       </Tooltip>
-                      <Tooltip title="ลบคำ">
-                        <Button 
-                          type="danger" 
-                          icon={<DeleteOutlined />} 
-                          onClick={() => handleRemoveWord(word)}
-                        />
-                      </Tooltip>
+                      
                     </div>
                   </div>
                 </Col>
@@ -467,7 +430,6 @@ const EditWord = () => {
         </Col>
       </Row>
 
-      {/* Modal สำหรับการแก้ไขคำ */}
       <Modal
         title={`เพิ่มคำใหม่แทน "${selectedWord}"`}
         open={isModalOpen}
@@ -501,28 +463,6 @@ const EditWord = () => {
         </div>
       </Modal>
 
-      {/* เพิ่ม CSS สำหรับ word-card */}
-      <style jsx>{`
-        .word-card {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px;
-          border: 1px solid #f0f0f0;
-          border-radius: 4px;
-          background-color: #fff;
-        }
-        .word-text {
-          font-weight: 500;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .word-actions {
-          display: flex;
-          gap: 8px;
-        }
-      `}</style>
     </div>
   );
 };
