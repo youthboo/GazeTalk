@@ -156,25 +156,13 @@ const EditWord = () => {
     Modal.confirm({
       title: 'คุณแน่ใจหรือไม่ที่จะลบข้อความนี้?',
       content: (
-        <div>
-          <p>คำว่า "{word}" จะถูกลบออกจากระบบ</p>
-          {dateRange && dateRange.length === 2 && (
-            <p>เฉพาะในช่วงวันที่ {dateRange[0].format('DD/MM/YYYY')} ถึง {dateRange[1].format('DD/MM/YYYY')}</p>
-          )}
-        </div>
+        <p>คำว่า "{word}" จะถูกลบออกจากระบบ</p>
       ),
       okText: 'ลบ',
       cancelText: 'ยกเลิก',
       onOk: async () => {
         try {
-          let url = `${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}&word=${word}`;
-          
-          // เพิ่มพารามิเตอร์วันที่ถ้ามีการเลือก
-          if (dateRange && dateRange.length === 2) {
-            const startDate = dateRange[0].format('YYYY-MM-DD');
-            const endDate = dateRange[1].format('YYYY-MM-DD');
-            url += `&startDate=${startDate}&endDate=${endDate}`;
-          }
+          const url = `${process.env.REACT_APP_GAZETALK_URL}/api/messages/messages?gender=${gender}&ageRange=${ageRange}&word=${word}`;
           
           const response = await fetch(url, {
             method: 'DELETE',
@@ -182,7 +170,7 @@ const EditWord = () => {
   
           if (response.ok) {
             message.success('ข้อความถูกลบเรียบร้อยแล้ว');
-            fetchData(); // รีเฟรชข้อมูลหลังจากลบ
+            fetchData(); 
           } else {
             const errorData = await response.json();
             message.error(`เกิดข้อผิดพลาด: ${errorData.message}`);
@@ -193,7 +181,7 @@ const EditWord = () => {
         }
       },
     });
-  };
+  };  
 
   const openAddModal = (word) => {
     setSelectedWord(word);
@@ -367,8 +355,9 @@ const EditWord = () => {
                 dataSource={data}
                 pagination={{
                   pageSize: 5,
-                  showSizeChanger: true,
-                  showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`
+                  simple: false, 
+                  showSizeChanger: false,
+                  showQuickJumper: false, 
                 }}
                 locale={{
                   emptyText: dateRange && dateRange.length === 2 
@@ -446,7 +435,6 @@ const EditWord = () => {
         />
       </Modal>
 
-      {/* Modal สำหรับการแทนที่คำด้วยคำที่เลือกจากตาราง */}
       <Modal
         title={`แทนที่คำด้วยคำที่เลือก`}
         open={isReplaceModalOpen}

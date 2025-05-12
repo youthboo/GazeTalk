@@ -14,8 +14,6 @@ router.get('/patients', async (req, res) => {
   }
 });
 
-// ใช้ patient_id แทนที่ id
-// ลบผู้ป่วย (โดยลบข้อความที่เกี่ยวข้องก่อน)
 router.delete('/patients/:patient_id', async (req, res) => {
   const { patient_id } = req.params;
 
@@ -26,7 +24,6 @@ router.delete('/patients/:patient_id', async (req, res) => {
       return res.status(404).json({ message: 'ไม่พบผู้ป่วยที่ต้องการลบ' });
     }
 
-    // 🔸 ลบข้อความทั้งหมดที่อ้างถึง patient_id นี้ก่อน
     const deletedMessages = await Message.destroy({
       where: { patient_id },
     });
@@ -35,7 +32,6 @@ router.delete('/patients/:patient_id', async (req, res) => {
       console.log('ไม่พบข้อความที่เกี่ยวข้องกับผู้ป่วย');
     }
 
-    // 🔸 ลบผู้ป่วย
     await patient.destroy();
 
     res.status(200).json({ message: 'ลบข้อมูลผู้ป่วยและข้อความที่เกี่ยวข้องสำเร็จ' });

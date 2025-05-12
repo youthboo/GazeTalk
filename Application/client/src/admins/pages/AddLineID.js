@@ -209,16 +209,18 @@ const AddLineID = () => {
               scroll={{ x: windowWidth < 768 ? '100vw' : undefined }}
             />
 
-            <div className="mt-4 text-center">
-              <Pagination
+            <div className="mt-4 text-right">
+            <Pagination
                 current={currentPage}
                 pageSize={pageSize}
                 total={filteredPatients.length}
                 onChange={handlePaginationChange}
-                showSizeChanger
-                pageSizeOptions={[5, 10, 20, 50]}  
+                showQuickJumper={false}    
+                showSizeChanger={false}     
                 itemRender={itemRender}
+                style={{ float: 'right' }}
               />
+
             </div>
           </Card>
         </div>

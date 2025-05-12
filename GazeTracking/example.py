@@ -135,4 +135,4 @@ def handle_update_settings(data):
     EYE_CLOSED_TIMEOUT = float(data.get("eyeClosedTimeout", 0.5))
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5006) #ตอน deploy แก้เป็น port 82
+    socketio.run(app, host="0.0.0.0", port=82) #ตอน deploy แก้เป็น port 82/localhost :5006
