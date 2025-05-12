@@ -5,6 +5,25 @@ import styles from "./GazeSettings.module.css";
 import { BsSliders } from "react-icons/bs"; 
 import { message } from 'antd';
 
+// Device-specific gaze threshold recommendations
+const DEVICE_RECOMMENDATIONS = [
+  {
+    screenSize: '14 นิ้ว (Windows)',
+    leftThreshold: 0.73,
+    rightThreshold: 0.58,
+  },
+  {
+    screenSize: '16 นิ้ว (Windows)',
+    leftThreshold: 0.85,
+    rightThreshold: 0.55,
+  },
+  {
+    screenSize: '13 นิ้ว (MacBook)',
+    leftThreshold: 0.75,
+    rightThreshold: 0.55,
+  },
+];
+
 const GazeSettings = ({ onThresholdChange }) => {
   const [rightThreshold, setRightThreshold] = useState(() => {
     const savedRightThreshold = localStorage.getItem("rightThreshold");
@@ -18,6 +37,7 @@ const GazeSettings = ({ onThresholdChange }) => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [currentRecommendation, setCurrentRecommendation] = useState(null);
 
   // คำนวณค่าช่องว่างระหว่าง threshold
   const thresholdGap = leftThreshold - rightThreshold;
@@ -50,6 +70,7 @@ const GazeSettings = ({ onThresholdChange }) => {
     setLeftThreshold(0.75);
     localStorage.removeItem("rightThreshold");
     localStorage.removeItem("leftThreshold");
+    setCurrentRecommendation(null);
     setValidationError("");
   };
 
@@ -57,12 +78,14 @@ const GazeSettings = ({ onThresholdChange }) => {
     const newValue = parseFloat(value);
     // ลบการบังคับให้ค่า leftThreshold ต้องเปลี่ยนตาม
     setRightThreshold(newValue);
+    setCurrentRecommendation(null);
   };
 
   const updateLeftThreshold = (value) => {
     const newValue = parseFloat(value);
     // ลบการบังคับให้ค่า rightThreshold ต้องเปลี่ยนตาม
     setLeftThreshold(newValue);
+    setCurrentRecommendation(null);
   };
 
   return (
@@ -85,6 +108,27 @@ const GazeSettings = ({ onThresholdChange }) => {
           </div>
           
           <div className={styles.panelContent}>
+            <div className={styles.deviceRecommendations}>
+              <h4>คำแนะนำตามขนาดจอ</h4>
+              {DEVICE_RECOMMENDATIONS.map((rec, index) => (
+                <div 
+                  key={index} 
+                  className={styles.recommendationItem}
+                  onClick={() => {
+                    setRightThreshold(rec.rightThreshold);
+                    setLeftThreshold(rec.leftThreshold);
+                    setCurrentRecommendation(rec);
+                  }}
+                >
+                  <h5 className={styles.recommendationTitle}>{rec.screenSize}</h5>
+                  <div className={styles.recommendationValues}>
+                    <span>Left: {rec.leftThreshold}</span>
+                    <span>Right: {rec.rightThreshold}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <label>
               <span className={styles.labelText}><strong>Left Threshold:</strong> ปรับค่าระยะการมองไปทางซ้าย (ถ้าค่ามาก จะต้องเหลือกตาไปทางซ้ายมากขึ้น)</span>
               <input

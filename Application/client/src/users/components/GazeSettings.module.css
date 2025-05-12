@@ -25,7 +25,6 @@
 }
 
 .settingsIcon:hover {
-  
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -74,7 +73,6 @@
   animation: panelFadeIn 0.3s ease-out;
 }
 
-
 .panelHeader {
   background: linear-gradient(90deg, #3182ce, #4299e1);
   color: white;
@@ -106,7 +104,7 @@
   font-size: 14px;
   font-weight: normal;
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 1px;
   color: #2d3748;
 }
 
@@ -117,7 +115,7 @@
   border: 1px solid #e2e8f0;
   font-size: 14px;
   box-sizing: border-box;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
   transition: all 0.2s ease;
   background-color: #f7fafc;
 }
@@ -327,7 +325,37 @@
   }
 }
 
+/* New device recommendations styles */
+.deviceRecommendations {
+  margin-bottom: 10px;
+  margin-top: -20px;
+}
 
+.deviceRecommendations h4 {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #666;
+}
 
+.recommendationItem {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
+.recommendationTitle {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #333;
+}
 
+.recommendationValues {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #888;
+}
